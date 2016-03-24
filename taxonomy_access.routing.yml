@@ -1,14 +1,14 @@
 taxonomy_access.settings:
   path: /admin/config/people/taxonomy_access
   defaults:
-    _title: Taxonomy access control - control
+    _title: Taxonomy access control
     _controller: Drupal\taxonomy_access\Controller\DefaultController::taxonomy_access_admin
   requirements:
     _permission: 'administer site configuration'
   options:
     _admin_route: TRUE
 taxonomy_access.settings_role:
-  path: /admin/config/people/taxonomy_access_role
+  path: /admin/config/people/taxonomy_access/role
   defaults:
     _title: Access control for user
     _form: Drupal\taxonomy_access\Form\TaxonomyAccessSettings

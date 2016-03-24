@@ -1,7 +1,8 @@
 taxonomy_access.hello:
   path: /admin/config/people/taxonomy_access_hello
   defaults:
-      _controller: Drupal\taxonomy_access\Controller\DefaultController::hello
+    _title: Taxonomy access control - control
+    _controller: Drupal\taxonomy_access\Controller\DefaultController::hello
   requirements:
     _permission: 'administer site configuration'
   options:
@@ -9,7 +10,7 @@ taxonomy_access.hello:
 taxonomy_access.settings:
   path: /admin/config/people/taxonomy_access
   defaults:
-    _title: Taxonomy Access
+    _title: Taxonomy Access control - form
     _form: Drupal\taxonomy_access\Form\TaxonomyAccessSettings
   requirements:
     _permission: 'administer site configuration'

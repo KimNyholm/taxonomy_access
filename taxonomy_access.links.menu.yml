@@ -1,0 +1,5 @@
+taxonomy_access.settings:
+  title: 'Taxonomy access control'
+  route_name: taxonomy_access.settings
+  description: 'Configure taxonomy access control.'
+  parent: user.admin_index

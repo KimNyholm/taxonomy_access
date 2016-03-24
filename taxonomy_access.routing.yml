@@ -1,0 +1,9 @@
+taxonomy_access.settings:
+  path: /admin/config/people/taxonomy_access
+  defaults:
+    _title: Taxonomy Access
+    _form: Drupal\taxonomy_access\Form\TaxonomyAccessSettings
+  requirements:
+    _permission: 'administer site configuration'
+  options:
+    _admin_route: TRUE

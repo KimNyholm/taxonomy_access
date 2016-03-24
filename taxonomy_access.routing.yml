@@ -1,3 +1,11 @@
+taxonomy_access.hello:
+  path: /admin/config/people/taxonomy_access_hello
+  defaults:
+      _controller: Drupal\taxonomy_access\Controller\DefaultController::hello
+  requirements:
+    _permission: 'administer site configuration'
+  options:
+    _admin_route: TRUE
 taxonomy_access.settings:
   path: /admin/config/people/taxonomy_access
   defaults:

@@ -1,16 +1,16 @@
-taxonomy_access.hello:
-  path: /admin/config/people/taxonomy_access_hello
+taxonomy_access.settings:
+  path: /admin/config/people/taxonomy_access
   defaults:
     _title: Taxonomy access control - control
-    _controller: Drupal\taxonomy_access\Controller\DefaultController::hello
+    _controller: Drupal\taxonomy_access\Controller\DefaultController::taxonomy_access_admin
   requirements:
     _permission: 'administer site configuration'
   options:
     _admin_route: TRUE
-taxonomy_access.settings:
-  path: /admin/config/people/taxonomy_access
+taxonomy_access.settings_role:
+  path: /admin/config/people/taxonomy_access_role
   defaults:
-    _title: Taxonomy Access control - form
+    _title: Access control for user
     _form: Drupal\taxonomy_access\Form\TaxonomyAccessSettings
   requirements:
     _permission: 'administer site configuration'

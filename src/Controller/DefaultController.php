@@ -16,19 +16,20 @@ function _taxonomy_access_user_roles($permission = NULL) {
   return $roles[$permission];
 }
 
-function myRow(){
+function UserRoleList(){
   $roles=_taxonomy_access_user_roles();
   $rows=array();
-   foreach ($roles as $rid => $name) {
-      $row = [];
-      $row[] = $rid;
-      $row[] = 'Disabled';
-      $url=Url::fromRoute('taxonomy_access.settings');
-      $link = \Drupal::l(t('Configure'), $url);
-      $row[] = $link;
-      $rows[]=$row;
-    }
-    return $rows  ;
+  foreach ($roles as $rid => $role) {
+    $url=Url::fromRoute('taxonomy_access.settings_role');
+    $link = \Drupal::l(t('Configure'), $url);
+    $row = array(
+      $role->label(),
+      'Disabled',
+      $link,
+      );
+    $rows[]=$row;
+  }
+  return $rows  ;
 }
 
 /**
@@ -36,12 +37,10 @@ function myRow(){
  */
 class DefaultController extends ControllerBase {
 
-  public function hello() {
+  public function taxonomy_access_admin() {
 
     $header = [t('Role'), t('Status'), t('Operations')];
-    $row = array('role', 'status', 'operations');
-    $rows = [];
-    $rows=myRow();
+    $rows=UserRoleList();
 
     $build['role_table'] = [
       '#theme' => 'table',
@@ -56,7 +55,7 @@ class DefaultController extends ControllerBase {
           );
   }
 
-  public function taxonomy_access_admin() {
+  public function xtaxonomy_access_admin() {
     $roles = _taxonomy_access_user_roles();
     $active_rids = db_query('SELECT rid FROM {taxonomy_access_default} WHERE vid = :vid', [
       ':vid' => TAXONOMY_ACCESS_GLOBAL_DEFAULT

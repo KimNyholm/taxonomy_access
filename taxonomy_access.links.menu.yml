@@ -1,10 +1,10 @@
-taxonomy_access.hello:
+taxonomy_access.settings:
   title: 'Taxonomy access control controller'
-  route_name: taxonomy_access.hello
+  route_name: taxonomy_access.settings
   description: 'hello Configure taxonomy access control.'
   parent: user.admin_index
-taxonomy_access.settings:
-  title: 'Taxonomy access controli formbase'
-  route_name: taxonomy_access.settings
+taxonomy_access.settings_role:
+  title: 'Access control for user'
+  route_name: taxonomy_access.settings_role
   description: 'Configure taxonomy access control.'
   parent: user.admin_index

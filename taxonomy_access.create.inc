@@ -124,7 +124,7 @@ function _taxonomy_access_options_alter(&$element, &$form_state, $context) {
   // Check for an existing entity ID.
   $entity_id = 0;
   if (!empty($form_state['build_info']['args'][0])) {
-    $info = entity_get_info($context['instance']['entity_type']);
+    $info = \Drupal::entityManager()->getDefinition($context['instance']['entity_type']);
     $pseudo_entity = (object) $form_state['build_info']['args'][0];
     if (isset($pseudo_entity->{$info['entity keys']['id']})) {
       $entity_id = $pseudo_entity->{$info['entity keys']['id']};
@@ -340,7 +340,7 @@ function taxonomy_access_create_default_allowed(array $vids) {
 function _taxonomy_access_create_defaults($account = NULL) {
 
   // If the user can administer taxonomy, return TRUE for a global grant.
-  if (user_access('administer taxonomy', $account)) {
+  if ($account->hasPermission('administer taxonomy')) {
     return TRUE;
   }
 
@@ -349,7 +349,7 @@ function _taxonomy_access_create_defaults($account = NULL) {
 
   // Select term grants for the current user's roles.
   if (is_null($account)) {
-    global $user;
+    $user = \Drupal::currentUser();
     $account = $user;
   }
   $query
@@ -402,7 +402,7 @@ function taxonomy_access_autocomplete($field_name, $tags_typed = '') {
 
   // The user enters a comma-separated list of tags. We only autocomplete the last tag.
   $tags_typed = drupal_explode_tags($tags_typed);
-  $tag_last = drupal_strtolower(array_pop($tags_typed));
+  $tag_last = \Drupal\Component\Utility\Unicode::strtolower(array_pop($tags_typed));
 
   $matches = array();
   if ($tag_last != '') {
@@ -446,7 +446,7 @@ function taxonomy_access_autocomplete($field_name, $tags_typed = '') {
       if (strpos($name, ',') !== FALSE || strpos($name, '"') !== FALSE) {
         $n = '"' . str_replace('"', '""', $name) . '"';
       }
-      $term_matches[$prefix . $n] = check_plain($name);
+      $term_matches[$prefix . $n] = \Drupal\Component\Utility\Html::escape($name);
     }
   }
 
@@ -489,7 +489,7 @@ function _taxonomy_access_autocomplete_validate($element, &$form_state) {
     foreach ($typed_terms as $typed_term) {
       // See if the term exists in the chosen vocabulary and return the tid;
       // otherwise, create a new 'autocreate' term for insert/update.
-      if ($possibilities = taxonomy_term_load_multiple(array(), array('name' => trim($typed_term), 'vid' => array_keys($vocabularies)))) {
+      if ($possibilities = \Drupal::entityManager()->getStorage('taxonomy_term')->loadByProperties(array('name' => trim($typed_term), 'vid' => array_keys($vocabularies)))) {
         $term = array_pop($possibilities);
       }
       // Only autocreate if the user has create for the vocab. default.
@@ -519,7 +519,7 @@ function _taxonomy_access_autocomplete_validate($element, &$form_state) {
 
   // Add in the terms that were disallowed.
   // taxonomy.module expects arrays, not objects.
-  $disallowed = taxonomy_term_load_multiple($element['#disallowed_defaults']);
+  $disallowed = \Drupal::entityManager()->getStorage('taxonomy_term')->loadMultiple($element['#disallowed_defaults']);
   foreach ($disallowed as $key => $term) {
     $disallowed[$key] = (array) $term;
   }
@@ -527,7 +527,7 @@ function _taxonomy_access_autocomplete_validate($element, &$form_state) {
 
   // Subsequent validation will be handled by hook_field_attach_validate().
   // Set the value in the form.
-  form_set_value($element, $value, $form_state);
+  $form_state->setValueForElement($element, $value);
 }
 
 /**
@@ -564,7 +564,7 @@ function _taxonomy_access_options_validate($element, &$form_state) {
 
   // Subsequent validation will be handled by hook_field_attach_validate().
   // Set the value in the form.
-  form_set_value($element, $items, $form_state);
+  $form_state->setValueForElement($element, $items);
 }
 
 /**
@@ -588,7 +588,7 @@ function taxonomy_access_autocomplete_default_value(array $items) {
   // Assemble list of tags.
   $tags = array();
   foreach ($items as $item) {
-    $tags[$item['tid']] = isset($item['taxonomy_term']) ? $item['taxonomy_term'] : taxonomy_term_load($item['tid']);
+    $tags[$item['tid']] = isset($item['taxonomy_term']) ? $item['taxonomy_term'] : \Drupal::entityManager()->getStorage("taxonomy_term")->load($item['tid']);
   }
 
   // Assemble the default value using taxonomy.module.
@@ -631,7 +631,7 @@ function _taxonomy_access_field_validate($entity_type, $entity, &$errors) {
   list($entity_id, , $bundle) = entity_extract_ids($entity_type, $entity);
   if ($entity_id) {
     // Load the entity.
-    $old_entity = entity_load($entity_type, array($entity_id));
+    $old_entity = \Drupal::entityManager()->getStorage($entity_type, array($entity_id));
     $old_entity = $old_entity[$entity_id];
 
     // Fetch the original entity's taxonomy fields.

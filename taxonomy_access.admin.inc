@@ -36,10 +36,13 @@ function taxonomy_access_admin() {
       // Add enable link for unconfigured roles.
       $row[] = array('data' => t('Disabled'));
     }
-    $row[] = array('data' => l(
-      t("Configure"),
-      TAXONOMY_ACCESS_CONFIG . "/role/$rid/edit",
-      array('attributes' => array('class' => array('module-link', 'module-link-configure')))));
+    // @FIXME
+// l() expects a Url object, created from a route name or external URI.
+// $row[] = array('data' => l(
+//       t("Configure"),
+//       TAXONOMY_ACCESS_CONFIG . "/role/$rid/edit",
+//       array('attributes' => array('class' => array('module-link', 'module-link-configure')))));
+
     $rows[] = $row;
   }
 
@@ -86,8 +89,8 @@ function taxonomy_access_role_delete_confirm_submit($form, &$form_state) {
   $roles = _taxonomy_access_user_roles();
   $rid = $form_state['values']['rid'];
   if (is_numeric($rid)
-      && $rid != DRUPAL_ANONYMOUS_RID
-      && $rid != DRUPAL_AUTHENTICATED_RID) {
+      && $rid != \Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE
+      && $rid != \Drupal\Core\Session\AccountInterface::AUTHENTICATED_RID) {
     if ($form_state['values']['confirm']) {
       $form_state['redirect'] = TAXONOMY_ACCESS_CONFIG;
       taxonomy_access_delete_role_grants($rid);
@@ -112,10 +115,13 @@ function taxonomy_access_enable_role_url($rid) {
   $query['token'] = drupal_get_token($rid);
 
   // Build and return the URL with the token and destination.
-  return url(
-    TAXONOMY_ACCESS_CONFIG . "/role/$rid/enable",
-    array('query' => $query)
-  );
+  // @FIXME
+// url() expects a route name or an external URI.
+// return url(
+//     TAXONOMY_ACCESS_CONFIG . "/role/$rid/enable",
+//     array('query' => $query)
+//   );
+
 }
 
 /**
@@ -127,12 +133,12 @@ function taxonomy_access_enable_role_url($rid) {
 function taxonomy_access_enable_role_validate($rid) {
   $rid = intval($rid);
   // If a valid token is not provided, return a 403.
-  $query = drupal_get_query_parameters();
+  $query = \Drupal\Component\Utility\UrlHelper::filterQueryParameters();
   if (empty($query['token']) || !drupal_valid_token($query['token'], $rid)) {
     return MENU_ACCESS_DENIED;
   }
   // Return a 404 for the anonymous or authenticated roles.
-  if (in_array($rid, array(DRUPAL_ANONYMOUS_RID, DRUPAL_AUTHENTICATED_RID))) {
+  if (in_array($rid, array(\Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE, \Drupal\Core\Session\AccountInterface::AUTHENTICATED_RID))) {
     return MENU_NOT_FOUND;
   }
   // Return a 404 for invalid role IDs.
@@ -165,7 +171,7 @@ function taxonomy_access_admin_role($form, $form_state, $rid) {
   $form['rid'] = array('#type' => 'value', '#value' => $rid);
 
   // For custom roles, allow the user to enable or disable grants for the role.
-  if (!in_array($rid, array(DRUPAL_ANONYMOUS_RID, DRUPAL_AUTHENTICATED_RID))) {
+  if (!in_array($rid, array(\Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE, \Drupal\Core\Session\AccountInterface::AUTHENTICATED_RID))) {
     $roles = _taxonomy_access_user_roles();
 
     // If the role is not enabled, return only a link to enable it.
@@ -182,10 +188,13 @@ function taxonomy_access_admin_role($form, $form_state, $rid) {
     }
     // Otherwise, add a link to disable and build the rest of the form.
     else {
-      $disable_url = url(
-        TAXONOMY_ACCESS_CONFIG . "/role/$rid/delete",
-        array('query' => drupal_get_destination())
-      );
+      // @FIXME
+// url() expects a route name or an external URI.
+// $disable_url = url(
+//         TAXONOMY_ACCESS_CONFIG . "/role/$rid/delete",
+//         array('query' => drupal_get_destination())
+//       );
+
       $form['status'] = array(
         '#markup' => '<p>' . t(
           'Access control for the %name role is enabled. <a href="@url">Disable @name</a>.',
@@ -237,7 +246,7 @@ function taxonomy_access_admin_role($form, $form_state, $rid) {
   // Fetch all vocabularies and determine which are enabled for the role.
   $vocabs = array();
   $disabled = array();
-  foreach (taxonomy_get_vocabularies() as $vocab) {
+  foreach (\Drupal\taxonomy\Entity\Vocabulary::loadMultiple() as $vocab) {
     $vocabs[$vocab->vid] = $vocab;
     if (!isset($defaults[$vocab->vid])) {
       $disabled[$vocab->vid] = $vocab->name;
@@ -274,14 +283,14 @@ function taxonomy_access_admin_role($form, $form_state, $rid) {
       // Fetch unconfigured terms and reorder term records by hierarchy.
       $sort = array();
       $add_options = array();
-      if ($tree = taxonomy_get_tree($vid)) {
+      if ($tree = \Drupal::entityManager()->getStorage("taxonomy_term")->loadTree($vid)) {
         foreach ($tree as $term) {
           if (empty($term_grants[$vid][$term->tid])) {
-            $add_options["term $term->tid"] = str_repeat('-', $term->depth) . ' ' .check_plain($term->name);
+            $add_options["term $term->tid"] = str_repeat('-', $term->depth) . ' ' .\Drupal\Component\Utility\Html::escape($term->name);
           }
           else {
             $sort[$term->tid] = $term_grants[$vid][$term->tid];
-            $sort[$term->tid]['name'] =  str_repeat('-', $term->depth) . ' ' . check_plain($term->name);
+            $sort[$term->tid]['name'] =  str_repeat('-', $term->depth) . ' ' . \Drupal\Component\Utility\Html::escape($term->name);
           }
         }
         $term_grants[$vid] = $sort;
@@ -331,10 +340,13 @@ function taxonomy_access_admin_role($form, $form_state, $rid) {
           '#value' => t('Add'),
         );
       }
-      $disable_url = url(
-        TAXONOMY_ACCESS_CONFIG . "/role/$rid/disable/$vid",
-        array('query' => drupal_get_destination())
-      );
+      // @FIXME
+// url() expects a route name or an external URI.
+// $disable_url = url(
+//         TAXONOMY_ACCESS_CONFIG . "/role/$rid/disable/$vid",
+//         array('query' => drupal_get_destination())
+//       );
+
       $form[$name]['disable'] = array(
           '#markup' => '<p>' . t(
             'To disable the %vocab vocabulary, <a href="@url">delete all @vocab access rules</a>.',
@@ -396,7 +408,15 @@ function taxonomy_access_grant_table(array $rows, $parent_vid, $first_col, $dele
     );
   }
   if ($delete) {
-    drupal_add_js('misc/tableselect.js');
+    // @FIXME
+// The Assets API has totally changed. CSS, JavaScript, and libraries are now
+// attached directly to render arrays using the #attached property.
+// 
+// 
+// @see https://www.drupal.org/node/2169605
+// @see https://www.drupal.org/node/2408597
+// drupal_add_js('misc/tableselect.js');
+
     array_unshift($header, array('class' => array('select-all')));
   }
   $table = array(
@@ -479,12 +499,12 @@ function theme_taxonomy_access_grant_table($element_data) {
   $table['header'] = $element_data['elements']['#header'];
   $table['attributes']['class'] = array('taxonomy-access-grant-table');
   $rows = array();
-  foreach (element_children($element_data['elements']) as $element_key) {
+  foreach (\Drupal\Core\Render\Element::children($element_data['elements']) as $element_key) {
     $child = $element_data['elements'][$element_key];
-    foreach (element_children($child) as $child_key) {
+    foreach (\Drupal\Core\Render\Element::children($child) as $child_key) {
       $record = $child[$child_key];
       $row = array();
-      foreach (element_children($record) as $record_key) {
+      foreach (\Drupal\Core\Render\Element::children($record) as $record_key) {
         $data = array('data' => $record[$record_key]);
         // If it's the default, add styling.
         if ($record_key == 'name') {
@@ -504,7 +524,16 @@ function theme_taxonomy_access_grant_table($element_data) {
     }
   }
   $table['rows'] = $rows;
-  return theme('table', $table);
+  // @FIXME
+// theme() has been renamed to _theme() and should NEVER be called directly.
+// Calling _theme() directly can alter the expected output and potentially
+// introduce security issues (see https://www.drupal.org/node/2195739). You
+// should use renderable arrays instead.
+// 
+// 
+// @see https://www.drupal.org/node/2195739
+// return theme('table', $table);
+
 }
 
 /**
@@ -528,7 +557,7 @@ function taxonomy_access_admin_build_row(array $grants, $label_key = NULL, $dele
   if ($label_key) {
     $form[$label_key] = array(
       '#type' => 'markup',
-      '#markup' => check_plain($grants[$label_key]),
+      '#markup' => \Drupal\Component\Utility\Html::escape($grants[$label_key]),
     );
   }
   foreach (array('view', 'update', 'delete', 'create', 'list') as $grant) {
@@ -657,7 +686,7 @@ function taxonomy_access_disable_vocab_confirm_page($rid, $vocab) {
     return MENU_NOT_FOUND;
   }
 
-  return drupal_get_form('taxonomy_access_disable_vocab_confirm', $rid, $vocab);
+  return \Drupal::formBuilder()->getForm('taxonomy_access_disable_vocab_confirm', $rid, $vocab);
 }
 
 /**
@@ -752,7 +781,7 @@ function taxonomy_access_delete_selected_submit($form, &$form_state) {
   }
   if ($rid) {
     if (taxonomy_access_delete_term_grants($delete_tids, $rid)) {
-      drupal_set_message(format_plural(
+      drupal_set_message(\Drupal::translation()->formatPlural(
           sizeof($delete_tids),
           '1 term access rule was deleted.',
           '@count term access rules were deleted.'));
@@ -770,7 +799,7 @@ function taxonomy_access_delete_selected_submit($form, &$form_state) {
 function taxonomy_access_save_all_submit($form, &$form_state) {
   $values = $form_state['values'];
   $rid = $values['rid'];
-  $vocabs = taxonomy_get_vocabularies();
+  $vocabs = \Drupal\taxonomy\Entity\Vocabulary::loadMultiple();
 
   // Create four lists of records to update.
   $update_terms = array();
@@ -881,24 +910,27 @@ function _taxonomy_access_admin_instructions_html() {
     . "</li>"
     . "</ul>\n\n"
     ;
-  if (arg(4) != DRUPAL_ANONYMOUS_RID && arg(4) != DRUPAL_AUTHENTICATED_RID) {
+  if (arg(4) != \Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE && arg(4) != \Drupal\Core\Session\AccountInterface::AUTHENTICATED_RID) {
     // Role other than Anonymous or Authenticated
-    $instructions .= ''
-      . "<p>"
-      . t('<strong>Remember:</strong> This role <strong>will</strong> inherit permissions from the <em>authenticated user</em> role.  Be sure to <a href="@url">configure the authenticated user</a> properly.',
-        array("@url" => url(
-            TAXONOMY_ACCESS_CONFIG
-            . "/role/"
-            .  DRUPAL_AUTHENTICATED_RID
-            . '/edit')))
-      . "</p>\n\n"
-      ;
+    // @FIXME
+// url() expects a route name or an external URI.
+// $instructions .= ''
+//       . "<p>"
+//       . t('<strong>Remember:</strong> This role <strong>will</strong> inherit permissions from the <em>authenticated user</em> role.  Be sure to <a href="@url">configure the authenticated user</a> properly.',
+//         array("@url" => url(
+//             TAXONOMY_ACCESS_CONFIG
+//             . "/role/"
+//             .  \Drupal\Core\Session\AccountInterface::AUTHENTICATED_RID
+//             . '/edit')))
+//       . "</p>\n\n"
+//       ;
+
   }
   $instructions .= ''
     . "<p>"
     . t('For more information and for troubleshooting guidelines, see the <a href="@help">help page</a> and the !readme.',
       array(
-        '@help' => url('admin/help/taxonomy_access'),
+        '@help' => \Drupal\Core\Url::fromRoute('help.page'),
         '!readme' => "<code>README.txt</code>"
       ))
     . "</p>\n\n"

@@ -1,0 +1,6 @@
+services:
+  init_subscriber:
+    class: Drupal\taxonomy_access\EventSubscriber\InitSubscriber
+    tags:
+      -
+        name: event_subscriber

@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:600italic,400,700,600' rel='stylesheet' type='text/css' />
+    <style type="text/css">
+    <!--
+
+body {
+  width: 80%;
+  color: #343434;
+  margin: 1em auto;
+  font-family: 'Open Sans', Verdana, sans-serif;
+}
+
+details {
+  font-size: 18px;
+  line-height: 25px;
+  margin-bottom: 2em;
+  display: block;
+}
+
+details summary {
+  padding: 1em;
+  margin-bottom: 1em;
+  display: block;
+}
+
+details.error summary {
+  background-color: #ffd5d5;
+}
+
+details.warning summary {
+  background-color: #fff3bb;
+}
+
+a {
+  color: #095cb1;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+h5 {
+  font-size: 1em;
+}
+
+aside {
+  font-style: italic;
+  line-height: 20px;
+  font-size: 15px;
+}
+
+.group {
+  border: 1px solid #ececec;
+  padding: 1em;
+  display: block;
+}
+
+.group > summary {
+  padding: 0;
+  color: #c8c8c8;
+  margin-bottom: 0;;
+  font-weight: bold;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  display: block;
+}
+
+.group[open] > summary {
+  margin-bottom: 1em;
+}
+
+.group > details:last-child {
+  margin-bottom: 0;
+}
+
+    -->
+    </style>
+  </head>
+  <body>
+      <details open="true" class="group">
+      <summary></summary>
+          <details class="error">
+      <summary>Automated web tests must be in a PSR-4 namespace, and unit tests must be converted to PHPUnit.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/1543796">Namespacing of automated tests has changed</a></li>
+                <li><a target="_blank" href="https://www.drupal.org/node/2301125"><code>getInfo()</code> in test classes replaced by doc comments</a></li>
+                <li><a target="_blank" href="https://www.drupal.org/node/1710766">Test classes should define a <code>$modules</code> property declaring dependencies</a></li>
+                <li><a target="_blank" href="https://www.drupal.org/node/1911318">SimpleTest tests now use empty &quot;testing&quot; profile by default</a></li>
+                <li><a target="_blank" href="https://www.drupal.org/node/1829160">New <code>KernelTestBase</code> class for API-level integration tests</a></li>
+                <li><a target="_blank" href="https://www.drupal.org/node/2012184">PHPUnit added to Drupal core</a></li>
+              </ul>
+      
+                      </details>
+    <details class="error">
+      <summary>Classes must be PSR-4 compliant.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/2246699">PSR-4 compatible class loader in Drupal core</a></li>
+              </ul>
+      
+                      </details>
+    <details class="warning">
+      <summary>Many common functions, shared variables, and constants have been renamed.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/2324935">The global theme variables have been replaced by an ActiveTheme object</a></li>
+              </ul>
+      
+                      </details>
+    <details class="error">
+      <summary><code>hook_init()</code> has been removed.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/2013014"><code>hook_init()</code> removed</a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.module, line 77</li>
+            </ul>
+                  <aside>Flagged by _flag_hook:init</aside>    </details>
+    <details class="error">
+      <summary><code>hook_menu()</code> has been removed from Drupal 8.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/1800686">All functionality of <code>hook_menu()</code> replaced</a></li>
+                <li><a target="_blank" href="https://www.drupal.org/node/2177901">Dynamic routes are now defined in <code>MODULE.routing.yml</code></a></li>
+                <li><a target="_blank" href="https://www.drupal.org/node/2119699">Page callbacks have been converted to controller classes</a></li>
+                <li><a target="_blank" href="https://www.drupal.org/node/2089605">Route naming convention</a></li>
+                <li><a target="_blank" href="https://www.drupal.org/node/2165243">Contextual links are now plugins defined in <code>MODULE.links.contextual.yml</code></a></li>
+                <li><a target="_blank" href="https://www.drupal.org/node/2007444">Local actions are now plugins defined in <code>MODULE.links.action.yml</code></a></li>
+                <li><a target="_blank" href="https://www.drupal.org/node/2044515">Local tasks and now plugins defined in <code>MODULE.links.task.yml</code></a></li>
+                <li><a target="_blank" href="https://www.drupal.org/node/2228089">Menu links are now defined in <code>MODULE.links.menu.yml</code></a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.module, line 116</li>
+            </ul>
+                  <aside>Flagged by _flag_hook:menu</aside>    </details>
+    <details class="error">
+      <summary>Module info files' <code>core</code> key must have a value of <code>8.x</code>.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/1935708"><code>.info</code> files are now <code>.info.yml</code> files</a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.info</li>
+            </ul>
+                  <aside>Flagged by info</aside>    </details>
+    <details class="error">
+      <summary>Info files must contain a <code>type</code> key.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/1935708#type"><code>.info</code> files are now <code>.info.yml</code> files</a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.info</li>
+            </ul>
+                  <aside>Flagged by info</aside>    </details>
+    <details class="error">
+      <summary>Many common dependencies have moved into core.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/1935708"><code>.info</code> files are now <code>.info.yml</code> files</a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.info</li>
+            </ul>
+                  <aside>Flagged by info</aside>    </details>
+    <details class="error">
+      <summary>Modules no longer declare classes in their info file.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/1935708#files"><code>.info</code> files are now <code>.info.yml</code> files</a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.info</li>
+            </ul>
+                  <aside>Flagged by info</aside>    </details>
+    <details class="error">
+      <summary>Module info files' <code>configure</code> key must be a route name, not a path.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/1935708#configure"><code>.info</code> files are now <code>.info.yml</code> files</a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.info</li>
+            </ul>
+                  <aside>Flagged by info</aside>    </details>
+    <details class="error">
+      <summary><code>drupal_add_css()</code> has been removed.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/2169605"><code>drupal_add_css()</code>, <code>drupal_add_js()</code> and <code>drupal_add_library()</code> removed in favor of <code>#attached</code></a></li>
+                <li><a target="_blank" href="https://www.drupal.org/node/2408597"><code>AssetResolverInterface</code> and <code>AttachedAssetsInterface</code> replace internal Asset API functions</a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.module, line 82</li>
+            </ul>
+                  <aside>Flagged by _function_call:drupal_add_css</aside>    </details>
+    <details class="error">
+      <summary><code>drupal_add_js()</code> has been removed.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/2169605"><code>drupal_add_css()</code>, <code>drupal_add_js()</code> and <code>drupal_add_library()</code> removed in favor of <code>#attached</code></a></li>
+                <li><a target="_blank" href="https://www.drupal.org/node/2408597"><code>AssetResolverInterface</code> and <code>AttachedAssetsInterface</code> replace internal Asset API functions</a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.admin.inc, line 399</li>
+            </ul>
+                  <aside>Flagged by _function_call:drupal_add_js</aside>    </details>
+    <details class="error">
+      <summary><code>confirm_form()</code> is now <code>\Drupal\Core\Form\ConfirmFormBase</code></summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/1945416"><code>confirm_form()</code> removed</a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.admin.inc, line 72</li>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.admin.inc, line 690</li>
+            </ul>
+                  <aside>Flagged by _function_call:confirm_form</aside>    </details>
+    <details class="error">
+      <summary><code>drupal_goto()</code> has been removed.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/2023537"><code>drupal_goto()</code> removed</a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.admin.inc, line 149</li>
+            </ul>
+                  <aside>Flagged by _function_call:drupal_goto</aside>    </details>
+    <details class="error">
+      <summary><code>drupal_write_record()</code> has been removed.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/2340291"><code>drupal_write_record()</code> removed</a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.module, line 422</li>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.module, line 1182</li>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.module, line 1220</li>
+            </ul>
+                  <aside>Flagged by _function_call:drupal_write_record</aside>    </details>
+    <details class="error">
+      <summary><code>element_children()</code> is now a method of the <code>Element</code> class.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/2173683"><code>element_*</code> functions moved into <code>Element</code> class</a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.admin.inc, line 482</li>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.admin.inc, line 484</li>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.admin.inc, line 487</li>
+            </ul>
+                  <aside>Flagged by _function_call:element_children</aside>    </details>
+    <details class="error">
+      <summary><code>entity_extract_ids()</code> replaced by methods of <code>EntityInterface</code></summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/1724986"><code>entity_extract_ids()</code> removed</a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.create.inc, line 631</li>
+            </ul>
+                  <aside>Flagged by _function_call:entity_extract_ids</aside>    </details>
+    <details class="error">
+      <summary><code>entity_get_info()</code> is now a method of the EntityManager service.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/1929006"><code>entity_get_info()</code> is deprecated</a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.create.inc, line 127</li>
+            </ul>
+                  <aside>Flagged by _function_call:entity_get_info</aside>    </details>
+    <details class="error">
+      <summary><code>entity_load()</code> has been removed.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/2266845">Entities are now classed objects implementing <code>EntityInterface</code></a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.create.inc, line 634</li>
+            </ul>
+                  <aside>Flagged by _function_call:entity_load</aside>    </details>
+    <details class="error">
+      <summary><code>node_load()</code> has been removed.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/2266845">Entities are now classed objects implementing <code>EntityInterface</code></a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.module, line 587</li>
+            </ul>
+                  <aside>Flagged by _function_call:node_load</aside>    </details>
+    <details class="error">
+      <summary><code>taxonomy_term_load()</code> has been removed.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/2266845">Entities are now classed objects implementing <code>EntityInterface</code></a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.module, line 862</li>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.create.inc, line 591</li>
+            </ul>
+                  <aside>Flagged by _function_call:taxonomy_term_load</aside>    </details>
+    <details class="error">
+      <summary><code>taxonomy_term_load_multiple()</code> has been removed.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/2266845">Entities are now classed objects implementing <code>EntityInterface</code></a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.create.inc, line 492</li>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.create.inc, line 522</li>
+            </ul>
+                  <aside>Flagged by _function_call:taxonomy_term_load_multiple</aside>    </details>
+    <details class="error">
+      <summary><code>taxonomy_term_save()</code> has been removed.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/2266845">Entities are now classed objects implementing <code>EntityInterface</code></a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.test, line 130</li>
+            </ul>
+                  <aside>Flagged by _function_call:taxonomy_term_save</aside>    </details>
+    <details class="error">
+      <summary>The Field API CRUD functions have been removed.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/2012896">Fields and field instances are now entities</a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.test, line 161</li>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.test, line 1599</li>
+            </ul>
+                  <aside>Flagged by _function_call:field_create_field</aside>    </details>
+    <details class="error">
+      <summary>The Field API CRUD functions have been removed.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/2012896">Fields and field instances are now entities</a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.test, line 177</li>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.test, line 1607</li>
+            </ul>
+                  <aside>Flagged by _function_call:field_create_instance</aside>    </details>
+    <details class="error">
+      <summary><code>field_update_field()</code> is now <code>FieldStorageConfig::save()</code>.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/2012896">Field CRUD API replaced by Entity API</a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.module, line 1771</li>
+            </ul>
+                  <aside>Flagged by _function_call:field_update_field</aside>    </details>
+    <details class="error">
+      <summary><code>drupal_get_form()</code> has moved into the FormBuilder service.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/2121003">Form generation functions moved into FormBuilder service</a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.admin.inc, line 660</li>
+            </ul>
+                  <aside>Flagged by _function_call:drupal_get_form</aside>    </details>
+    <details class="error">
+      <summary><code>form_error()</code> is now a method of <code>FormStateInterface</code>.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/2121003">Form functions moved into <code>FormStateInterface</code></a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.create.inc, line 507</li>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.create.inc, line 544</li>
+            </ul>
+                  <aside>Flagged by _function_call:form_error</aside>    </details>
+    <details class="error">
+      <summary><code>form_set_value()</code> is now a method of <code>FormStateInterface</code>.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/2121003">Form functions moved into <code>FormStateInterface</code></a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.create.inc, line 530</li>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.create.inc, line 567</li>
+            </ul>
+                  <aside>Flagged by _function_call:form_set_value</aside>    </details>
+    <details class="error">
+      <summary><code>format_plural()</code> was moved into the translation service.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/2173787"><code>format_plural()</code> moved to translation service</a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.admin.inc, line 755</li>
+            </ul>
+                  <aside>Flagged by _function_call:format_plural</aside>    </details>
+    <details class="error">
+      <summary><code>l()</code> has been removed.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/2346779"><code>l()</code> replaced by URL generation API</a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.admin.inc, line 39</li>
+            </ul>
+                  <aside>Flagged by _function_call:l</aside>    </details>
+    <details class="error">
+      <summary><code>taxonomy_get_tree()</code> is now a method of the taxonomy term storage controller.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/2328205">Certain Taxonomy API functions have moved into <code>TermStorage</code> class</a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.admin.inc, line 277</li>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.module, line 863</li>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.module, line 901</li>
+            </ul>
+                  <aside>Flagged by _function_call:taxonomy_get_tree</aside>    </details>
+    <details class="error">
+      <summary><code>theme()</code> has been renamed to <code>_theme()</code>, and should never be called directly.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/2195739"><code>theme()</code> renamed to <code>_theme()</code> and should not be called directly</a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.admin.inc, line 507</li>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.module, line 1757</li>
+            </ul>
+                  <aside>Flagged by _function_call:theme</aside>    </details>
+    <details class="error">
+      <summary><code>drupal_strtolower()</code> has been moved into the Unicode utility class.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/1992584"><code>drupal_strtolower()</code> moved into Unicode component</a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.test, line 1593</li>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.create.inc, line 405</li>
+            </ul>
+                  <aside>Flagged by _function_call:drupal_strtolower</aside>    </details>
+    <details class="error">
+      <summary><code>url()</code> has been removed.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/2346779"><code>url()</code> replaced by URL generation API</a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.admin.inc, line 115</li>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.admin.inc, line 185</li>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.admin.inc, line 334</li>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.admin.inc, line 889</li>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.admin.inc, line 901</li>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.module, line 1669</li>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.module, line 1721</li>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.module, line 1731</li>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.module, line 1742</li>
+            </ul>
+                  <aside>Flagged by _function_call:url</aside>    </details>
+    <details class="error">
+      <summary><code>drupal_get_query_parameters()</code> has been replaced by the <code>UrlHelper</code> utility.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/2079005"><code>drupal_get_query_parameters()</code> is now a method of <code>\Drupal\Component\Utility\UrlHelper</code></a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.admin.inc, line 130</li>
+            </ul>
+                  <aside>Flagged by _function_call:drupal_get_query_parameters</aside>    </details>
+    <details class="error">
+      <summary><code>user_access()</code> is now <code>AccountInterface::hasPermission()</code>.</summary>
+
+      
+            <h5>Documentation</h5>
+      <ul>
+                <li><a target="_blank" href="https://www.drupal.org/node/2049309"><code>user_access()</code> got converted to a method on the user/account interface</a></li>
+              </ul>
+      
+            <h5>Files Affected</h5>
+      <ul>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.module, line 191</li>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.module, line 210</li>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.module, line 1515</li>
+              <li>/var/www/html/drupal-8.0.x/modules/taxonomy_access/taxonomy_access.create.inc, line 343</li>
+            </ul>
+                  <aside>Flagged by _function_call:user_access</aside>    </details>
+
+    </details>
+    </body>
+</html>

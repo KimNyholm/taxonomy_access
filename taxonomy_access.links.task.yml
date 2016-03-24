@@ -1,0 +1,4 @@
+taxonomy_access.admin:
+  route_name: taxonomy_access.admin
+  title: 'Configure role access rules'
+  base_route: taxonomy_access.admin

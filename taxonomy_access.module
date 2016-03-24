@@ -79,7 +79,15 @@ function _taxonomy_access_user_roles($permission = NULL) {
  */
 function taxonomy_access_init() {
   $path = drupal_get_path('module', 'taxonomy_access');
-  drupal_add_css($path . '/taxonomy_access.css');
+  // @FIXME
+// The Assets API has totally changed. CSS, JavaScript, and libraries are now
+// attached directly to render arrays using the #attached property.
+// 
+// 
+// @see https://www.drupal.org/node/2169605
+// @see https://www.drupal.org/node/2408597
+// drupal_add_css($path . '/taxonomy_access.css');
+
 
   // Register our shutdown function.
   drupal_register_shutdown_function('taxonomy_access_shutdown');
@@ -188,7 +196,7 @@ function taxonomy_access_role_edit_title($rid) {
  */
 function taxonomy_access_role_edit_access($rid) {
   // Allow access only if the user may administer permissions.
-  if (!user_access('administer permissions')) {
+  if (!\Drupal::currentUser()->hasPermission('administer permissions')) {
     return FALSE;
   }
 
@@ -207,10 +215,10 @@ function taxonomy_access_role_edit_access($rid) {
  * Access callback for role deletion form.
  */
 function taxonomy_access_role_delete_access($rid) {
-  if (!user_access('administer permissions')) {
+  if (!\Drupal::currentUser()->hasPermission('administer permissions')) {
     return FALSE;
   }
-  if (($rid == DRUPAL_ANONYMOUS_RID) || ($rid == DRUPAL_AUTHENTICATED_RID)) {
+  if (($rid == \Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE) || ($rid == \Drupal\Core\Session\AccountInterface::AUTHENTICATED_RID)) {
     return FALSE;
   }
 
@@ -240,8 +248,8 @@ function taxonomy_access_taxonomy_vocabulary_delete($vocab) {
 /**
  * Implements hook_taxonomy_term_delete().
  */
-function taxonomy_access_taxonomy_term_delete($term) {
-  taxonomy_access_delete_term_grants($term->tid);
+function taxonomy_access_taxonomy_term_delete(\Drupal\taxonomy\TermInterface $term) {
+  taxonomy_access_delete_term_grants($term->id());
 }
 
 /**
@@ -249,7 +257,7 @@ function taxonomy_access_taxonomy_term_delete($term) {
  *
  * Gives access to taxonomies based on the taxonomy_access table.
  */
-function taxonomy_access_node_grants($user, $op) {
+function taxonomy_access_node_grants(\Drupal\Core\Session\AccountInterface $user, $op) {
   $roles = is_array($user->roles) ? array_keys($user->roles) : -1;
   return array('taxonomy_access_role' => $roles);
 }
@@ -259,11 +267,11 @@ function taxonomy_access_node_grants($user, $op) {
  *
  * @ingroup tac_node_access
  */
-function taxonomy_access_node_access_records($node) {
+function taxonomy_access_node_access_records(\Drupal\node\NodeInterface $node) {
   // Only write grants for published nodes.
-  if ($node->status) {
+  if ($node->isPublished()) {
     // Make sure to reset caches for accurate grant values.
-    return _taxonomy_access_node_access_records($node->nid, TRUE);
+    return _taxonomy_access_node_access_records($node->id(), TRUE);
   }
 }
 
@@ -419,7 +427,7 @@ function taxonomy_access_enable_role($rid) {
   $row->rid = $rid;
 
   // Insert the row with defaults for all grants.
-  return drupal_write_record('taxonomy_access_default', $row);
+  return \Drupal::database()->insert('taxonomy_access_default')->fields($row)->execute();
 }
 
 /**
@@ -584,7 +592,9 @@ function _taxonomy_access_node_access_update(array $nids) {
     // If the number of nodes is small enough, update node access for each.
     if (sizeof($nids) < TAXONOMY_ACCESS_MAX_UPDATE) {
       foreach ($nids as $node) {
-        $loaded_node = node_load($node, NULL, TRUE);
+        $loaded_node = // @FIXME
+// To reset the node cache, use EntityStorageInterface::resetCache().
+\Drupal::entityManager()->getStorage('node')->loadRevision(NULL);
         if (!empty($loaded_node)) {
           node_access_acquire_grants($loaded_node);
         }
@@ -859,8 +869,8 @@ function _taxonomy_access_get_descendants($tid) {
     taxonomy_access_disable_list();
 
     $descendants[$tid] = array();
-    $term = taxonomy_term_load($tid);
-    $tree = taxonomy_get_tree($term->vid, $tid);
+    $term = \Drupal::entityManager()->getStorage("taxonomy_term")->load($tid);
+    $tree = \Drupal::entityManager()->getStorage("taxonomy_term")->loadTree($term->vid, $tid);
 
     foreach ($tree as $term) {
       $descendants[$tid][] = $term->tid;
@@ -898,7 +908,7 @@ function _taxonomy_access_get_vocabulary_terms($vocab_id) {
     taxonomy_access_disable_list();
 
     $descendants[$vocab_id] = array();
-    $tree = taxonomy_get_tree($vocab_id);
+    $tree = \Drupal::entityManager()->getStorage("taxonomy_term")->loadTree($vocab_id);
 
     foreach ($tree as $term) {
       $descendants[$vocab_id][] = $term->tid;
@@ -945,7 +955,7 @@ function taxonomy_access_delete_role_grants($rid, $update_nodes = TRUE) {
   if (empty($rid)) {
     return FALSE;
   }
-  if ($rid == DRUPAL_ANONYMOUS_RID || $rid == DRUPAL_AUTHENTICATED_RID) {
+  if ($rid == \Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE || $rid == \Drupal\Core\Session\AccountInterface::AUTHENTICATED_RID) {
     return FALSE;
   }
 
@@ -965,7 +975,7 @@ function taxonomy_access_delete_role_grants($rid, $update_nodes = TRUE) {
 
     // Find the ones we need.
     foreach ($gd_records as $gd) {
-      if ($gd['gid'] == DRUPAL_AUTHENTICATED_RID) {
+      if ($gd['gid'] == \Drupal\Core\Session\AccountInterface::AUTHENTICATED_RID) {
         $auth_gd = $gd;
       }
       elseif ($gd['gid'] == $rid) {
@@ -1179,7 +1189,7 @@ function taxonomy_access_set_term_grants(array $grant_rows, $update_nodes = TRUE
 
   // Insert new entries.
   foreach ($grant_rows as $row) {
-    drupal_write_record('taxonomy_access_term', $row);
+    \Drupal::database()->insert('taxonomy_access_term')->fields($row)->execute();
   }
 
   // Later we will refactor; for now return TRUE when this is called.
@@ -1217,7 +1227,7 @@ function taxonomy_access_set_default_grants(array $grant_rows, $update_nodes = T
 
   // Insert new entries.
   foreach ($grant_rows as $row) {
-    drupal_write_record('taxonomy_access_default', $row);
+    \Drupal::database()->insert('taxonomy_access_default')->fields($row)->execute();
   }
 
   // Later we will refactor; for now return TRUE when this is called.
@@ -1507,12 +1517,12 @@ function _taxonomy_access_user_term_grants($create = FALSE, array $vids = array(
 
   // If no account was passed, default to current user.
   if (is_null($account)) {
-    global $user;
+    $user = \Drupal::currentUser();
     $account = $user;
   }
 
   // If the user can administer taxonomy, return TRUE for a global grant.
-  if (user_access('administer taxonomy', $account)) {
+  if ($account->hasPermission('administer taxonomy')) {
     return TRUE;
   }
 
@@ -1632,67 +1642,70 @@ function taxonomy_access_help($path, $arg) {
   switch ($path) {
     case 'admin/help#taxonomy_access':
       $message = '';
-      $message .= ''
-        . '<p>' . t('The Taxonomy Access Control module allows users to specify how each category can be used by various roles.') . '</p>'
-        . '<p>' . t('Permissions can be set differently for each user role. Be aware that setting Taxonomy Access permissions works <em>only within one user role</em>.') . '</p>'
-        . '<p>' . t('(For users with multiple user roles, see section <a href="#good-to-know">Good to know</a> below.)') . '</p><hr /><br />'
-        . "<h3>" . t("On this page") . "</h3>"
-        . "<ol>"
-        . '<li><a href="#grant">' . t("Grant types") . '</a></li>'
-        . '<li><a href="#perm">' . t("Permission options") . '</a></li>'
-        . '<li><a href="#defaults">' . t("Global and vocabulary defaults") . '</a></li>'
-        . '<li><a href="#good-to-know">' . t("Good to know") . '</a></li>'
-        . "</ol><hr /><br />"
-        . '<h3 id="grant">' . t("Grant types") . '</h3>'
-        . '<p>' . t('On the category permissions page for each role, administrators can configure five types of permission for each term: <em>View, Update, Delete, Add Tag</em> (formerly <em>Create</em>), and <em>View Tag</em>: (formerly <em>List</em>') . '</p>'
-        . _taxonomy_access_grant_help_table()
-        . '<p>' . t('<em>View</em>, <em>Update</em>, and <em>Delete</em> control the node access system.  <em>View Tag</em> and <em>Add Tag</em> control the terms themselves.  (Note: In previous versions of Taxonomy Access Control, there was no <em>View Tag</em> permission its functionality was controlled by the <em>View</em> permission.)') . '</p><hr /><br />'
-        . '<h3 id="perm">' . t("Permission options") . "</h3>"
-        . '<p>' . t('<strong><em>View</em>, <em>Update</em>, and <em>Delete</em> have three options for each term:</strong> <em>Allow</em> (<acronym title="Allow">A</acronym>), <em>Ignore</em> (<acronym title="Ignore">I</acronym>), and <em>Deny</em> (<acronym title="Deny">D</acronym>).  Indicate which rights each role should have for each term.  If a node is tagged with multiple terms:') . '</p>'
-        . "<ul>\n"
-        . "<li>"
-        . t('<em>Deny</em> (<acronym title="Deny">D</acronym>) overrides <em>Allow</em> (<acronym title="Allow">A</acronym>) within a role.')
-        . "</li>"
-        . "<li>"
-        . t('Both <em>Allow</em> (<acronym title="Allow">A</acronym>) and <em>Deny</em> (<acronym title="Deny">D</acronym>) override <em>Ignore</em> (<acronym title="Ignore">I</acronym>) within a role.')
-        . "</li>"
-        . "<li>"
-        . t('If a user has <strong>multiple roles</strong>, an <em>Allow</em> (<acronym title="Allow">A</acronym>) from one role <strong>will</strong> override a <em>Deny</em> (<acronym title="Deny">D</acronym>) in another.  (For more information, see section <a href="#good-to-know">Good to know</a> below.)')
-        . "</li>"
-        . "</ul>\n\n"
-        . '<p>' . t('<strong><em>Add Tag</em> and <em>View Tag</em> have only two options for each term:</strong>  <em>Yes</em> (selected) or <em>No</em> (deselected).  Indicate what each role should be allowed to do with each term.') . '</p>'
-        . "<h4>" . t("Important notes") . "</h4>"
-        . "<ol>"
-        . "<li>"
-        . t('Custom roles <strong>will</strong> inherit permissions from the <em>authenticated user</em> role.  Be sure to <a href="@url">configure
-the authenticated user</a> properly.',
-          array("@url" => url(
-              TAXONOMY_ACCESS_CONFIG
-              . '/role/'
-              . DRUPAL_AUTHENTICATED_RID
-              . 'edit')))
-        . "</li>\n"
-        . '<li>'
-        . "<p>" . t('The <em>Deny</em> directives are processed after the <em>Allow</em> directives. (<strong><em>Deny</em> overrides <em>Allow</em></strong>.)</em>  So, if a multicategory node is in Categories "A" and "B" and a user has <em>Allow</em> permissions for <em>View</em> in Category "A" and <em>Deny</em> permissions for <em>View</em> in Category "B", then the user will NOT be permitted to <em>View</em> the node.') . '</p>'
-        . '<p>' . t('<em>Access is denied by default.</em> So, if a multicategory node is in Categories "C" and "D" and a user has <em>Ignore</em> permissions for <em>View</em> in both Category "C" and "D", then the user will <strong>not</strong> be permitted to view the node.') . '</p>'
-        . '<p>' . t('(If you are familiar with Apache mod_access, this permission system works similar to directive: <em>ORDER ALLOW, DENY</em>)') . '</p>'
-        . "</li>"
-        . "</ol>"
-        . "<hr /><br />"
-        . '<h3 id="defaults">' . t("Global and vocabulary defaults") . "</h3>"
-        . '<p>' . t('This option, just underneath the vocabulary title, <em>sets the permission that will automatically be given</em> to the role, <em>for any new terms</em> that are added within the vocabulary.  This includes terms that are added via free tagging.') . '</p><hr /><br />'
-        . '<h3 id="good-to-know">' . t('Good to know') . '</h3>'
-        . '<ol>'
-        . '<li>'
-        . '<p>' . t('<strong>Users with multiple user roles:</strong> Allow/Ignore/Deny options are interpreted <em>only within one user role</em>. When a user belongs to multiple user roles, then <strong>the user gets access if <em>any</em> of his/her user roles have the access granted.</strong>') . '</p>'
-        . '<p>' . t('In this case, permissions for the given user are calculated so that the <em>permissions of ALL of his user roles are "OR-ed" together</em>, which means that <em>Allow</em> in one role will take precedence over <em>Deny</em> in the other. This is different from how node access permissions (for multi-category nodes) are handled <em>within one user role</em>, as noted above.') . '</p>'
-        . '</li>'
-        . '<li>'
-        . '<p>' . t('<strong>Input formats:</strong>  <em>Node editing/deleting is blocked</em>, even when the user has <em>Update</em> or <em>Delete</em> permission to the node, <em>when the user is not allowed to use a filter format</em> that the node was saved at.') . '</p>'
-        . '</li>'
-        . '</ol>'
-        . '<hr /><br />'
-        ;
+      // @FIXME
+// url() expects a route name or an external URI.
+// $message .= ''
+//         . '<p>' . t('The Taxonomy Access Control module allows users to specify how each category can be used by various roles.') . '</p>'
+//         . '<p>' . t('Permissions can be set differently for each user role. Be aware that setting Taxonomy Access permissions works <em>only within one user role</em>.') . '</p>'
+//         . '<p>' . t('(For users with multiple user roles, see section <a href="#good-to-know">Good to know</a> below.)') . '</p><hr /><br />'
+//         . "<h3>" . t("On this page") . "</h3>"
+//         . "<ol>"
+//         . '<li><a href="#grant">' . t("Grant types") . '</a></li>'
+//         . '<li><a href="#perm">' . t("Permission options") . '</a></li>'
+//         . '<li><a href="#defaults">' . t("Global and vocabulary defaults") . '</a></li>'
+//         . '<li><a href="#good-to-know">' . t("Good to know") . '</a></li>'
+//         . "</ol><hr /><br />"
+//         . '<h3 id="grant">' . t("Grant types") . '</h3>'
+//         . '<p>' . t('On the category permissions page for each role, administrators can configure five types of permission for each term: <em>View, Update, Delete, Add Tag</em> (formerly <em>Create</em>), and <em>View Tag</em>: (formerly <em>List</em>') . '</p>'
+//         . _taxonomy_access_grant_help_table()
+//         . '<p>' . t('<em>View</em>, <em>Update</em>, and <em>Delete</em> control the node access system.  <em>View Tag</em> and <em>Add Tag</em> control the terms themselves.  (Note: In previous versions of Taxonomy Access Control, there was no <em>View Tag</em> permission its functionality was controlled by the <em>View</em> permission.)') . '</p><hr /><br />'
+//         . '<h3 id="perm">' . t("Permission options") . "</h3>"
+//         . '<p>' . t('<strong><em>View</em>, <em>Update</em>, and <em>Delete</em> have three options for each term:</strong> <em>Allow</em> (<acronym title="Allow">A</acronym>), <em>Ignore</em> (<acronym title="Ignore">I</acronym>), and <em>Deny</em> (<acronym title="Deny">D</acronym>).  Indicate which rights each role should have for each term.  If a node is tagged with multiple terms:') . '</p>'
+//         . "<ul>\n"
+//         . "<li>"
+//         . t('<em>Deny</em> (<acronym title="Deny">D</acronym>) overrides <em>Allow</em> (<acronym title="Allow">A</acronym>) within a role.')
+//         . "</li>"
+//         . "<li>"
+//         . t('Both <em>Allow</em> (<acronym title="Allow">A</acronym>) and <em>Deny</em> (<acronym title="Deny">D</acronym>) override <em>Ignore</em> (<acronym title="Ignore">I</acronym>) within a role.')
+//         . "</li>"
+//         . "<li>"
+//         . t('If a user has <strong>multiple roles</strong>, an <em>Allow</em> (<acronym title="Allow">A</acronym>) from one role <strong>will</strong> override a <em>Deny</em> (<acronym title="Deny">D</acronym>) in another.  (For more information, see section <a href="#good-to-know">Good to know</a> below.)')
+//         . "</li>"
+//         . "</ul>\n\n"
+//         . '<p>' . t('<strong><em>Add Tag</em> and <em>View Tag</em> have only two options for each term:</strong>  <em>Yes</em> (selected) or <em>No</em> (deselected).  Indicate what each role should be allowed to do with each term.') . '</p>'
+//         . "<h4>" . t("Important notes") . "</h4>"
+//         . "<ol>"
+//         . "<li>"
+//         . t('Custom roles <strong>will</strong> inherit permissions from the <em>authenticated user</em> role.  Be sure to <a href="@url">configure
+// the authenticated user</a> properly.',
+//           array("@url" => url(
+//               TAXONOMY_ACCESS_CONFIG
+//               . '/role/'
+//               . \Drupal\Core\Session\AccountInterface::AUTHENTICATED_RID
+//               . 'edit')))
+//         . "</li>\n"
+//         . '<li>'
+//         . "<p>" . t('The <em>Deny</em> directives are processed after the <em>Allow</em> directives. (<strong><em>Deny</em> overrides <em>Allow</em></strong>.)</em>  So, if a multicategory node is in Categories "A" and "B" and a user has <em>Allow</em> permissions for <em>View</em> in Category "A" and <em>Deny</em> permissions for <em>View</em> in Category "B", then the user will NOT be permitted to <em>View</em> the node.') . '</p>'
+//         . '<p>' . t('<em>Access is denied by default.</em> So, if a multicategory node is in Categories "C" and "D" and a user has <em>Ignore</em> permissions for <em>View</em> in both Category "C" and "D", then the user will <strong>not</strong> be permitted to view the node.') . '</p>'
+//         . '<p>' . t('(If you are familiar with Apache mod_access, this permission system works similar to directive: <em>ORDER ALLOW, DENY</em>)') . '</p>'
+//         . "</li>"
+//         . "</ol>"
+//         . "<hr /><br />"
+//         . '<h3 id="defaults">' . t("Global and vocabulary defaults") . "</h3>"
+//         . '<p>' . t('This option, just underneath the vocabulary title, <em>sets the permission that will automatically be given</em> to the role, <em>for any new terms</em> that are added within the vocabulary.  This includes terms that are added via free tagging.') . '</p><hr /><br />'
+//         . '<h3 id="good-to-know">' . t('Good to know') . '</h3>'
+//         . '<ol>'
+//         . '<li>'
+//         . '<p>' . t('<strong>Users with multiple user roles:</strong> Allow/Ignore/Deny options are interpreted <em>only within one user role</em>. When a user belongs to multiple user roles, then <strong>the user gets access if <em>any</em> of his/her user roles have the access granted.</strong>') . '</p>'
+//         . '<p>' . t('In this case, permissions for the given user are calculated so that the <em>permissions of ALL of his user roles are "OR-ed" together</em>, which means that <em>Allow</em> in one role will take precedence over <em>Deny</em> in the other. This is different from how node access permissions (for multi-category nodes) are handled <em>within one user role</em>, as noted above.') . '</p>'
+//         . '</li>'
+//         . '<li>'
+//         . '<p>' . t('<strong>Input formats:</strong>  <em>Node editing/deleting is blocked</em>, even when the user has <em>Update</em> or <em>Delete</em> permission to the node, <em>when the user is not allowed to use a filter format</em> that the node was saved at.') . '</p>'
+//         . '</li>'
+//         . '</ol>'
+//         . '<hr /><br />'
+//         ;
+
       return $message;
       break;
   }
@@ -1718,7 +1731,7 @@ function _taxonomy_access_grant_help_table() {
     . "</p>"
     . "<p>"
     . t('The role must <strong>have</strong> <em class="perm">access content</em> permission on the <a href="@path">permissions administration form</a>.',
-      array('@path' => url('admin/people/permissions', array('fragment' => 'module-node')))),
+      array('@path' => \Drupal\Core\Url::fromRoute('user.admin_permissions'))),
   );
 
   $rows[] = array(
@@ -1728,7 +1741,7 @@ function _taxonomy_access_grant_help_table() {
     . "</p>"
     . "<p>"
     . t('The role must <strong>not</strong> have <em class="perm">edit any [type] content</em> or <em class="perm">delete any [type] content</em> permission on the <a href="@path">permissions administration form</a> if you wish to control them here.',
-      array('@path' => url('admin/people/permissions', array('fragment' => 'module-node'))))
+      array('@path' => \Drupal\Core\Url::fromRoute('user.admin_permissions')))
     . "</p>",
   );
 
@@ -1739,7 +1752,7 @@ function _taxonomy_access_grant_help_table() {
     . "</p>"
     . "<p>"
     . t('(Formerly <em>Create</em>).  This does <strong>not</strong> give the role the ability to create nodes by itself; the role must <strong>have</strong> <em class="perm">create [type] content</em> permission on the <a href="@path">permissions administration form</a> in order to create new nodes.',
-      array('@path' => url('admin/people/permissions', array('fragment' => 'module-node'))))
+      array('@path' => \Drupal\Core\Url::fromRoute('user.admin_permissions')))
     . "</p>",
   );
 
@@ -1754,7 +1767,16 @@ function _taxonomy_access_grant_help_table() {
     . "<p>" . t("This does <strong>not</strong> control whether the role can see the <em>nodes</em> listed in Views, only the <em>term</em>.") . "</p>",
   );
 
-  return theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('class' => array('grant_help'))));
+  // @FIXME
+// theme() has been renamed to _theme() and should NEVER be called directly.
+// Calling _theme() directly can alter the expected output and potentially
+// introduce security issues (see https://www.drupal.org/node/2195739). You
+// should use renderable arrays instead.
+// 
+// 
+// @see https://www.drupal.org/node/2195739
+// return theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('class' => array('grant_help'))));
+
 }
 
 /**
@@ -1768,7 +1790,7 @@ function taxonomy_access_disable() {
     if ($field['type'] == 'taxonomy_term_reference') {
       if (!empty($field['settings']['options_list_callback']) && $field['settings']['options_list_callback'] == '_taxonomy_access_term_options') {
         $field['settings']['options_list_callback'] = '';
-        field_update_field($field);
+        $field->save();
       }
     }
   }

@@ -1,0 +1,39 @@
+taxonomy_access.admin:
+  path: /TAXONOMY_ACCESS_CONFIG/role
+  defaults:
+    _title: 'Configure role access rules'
+    _controller: '\Drupal\taxonomy_access\Controller\DefaultController::taxonomy_access_admin'
+  requirements:
+    _permission: 'administer permissions'
+taxonomy_access.admin_role:
+  path: '/TAXONOMY_ACCESS_CONFIG/role/%/edit/{rid}/{rid}/{rid}'
+  defaults:
+    _title_callback: '\Drupal\taxonomy_access\Form\TaxonomyAccessAdminRole::taxonomy_access_role_edit_title'
+    _form: \Drupal\taxonomy_access\Form\TaxonomyAccessAdminRole
+  requirements:
+    _custom_access: '\Drupal\taxonomy_access\Form\TaxonomyAccessAdminRole::taxonomy_access_role_edit_access'
+taxonomy_access.enable_role_validate:
+  path: '/TAXONOMY_ACCESS_CONFIG/role/%/enable/{rid}'
+  defaults:
+    _controller: '\Drupal\taxonomy_access\Controller\DefaultController::taxonomy_access_enable_role_validate'
+  requirements:
+    _permission: 'administer permissions'
+taxonomy_access.role_delete_confirm:
+  path: '/TAXONOMY_ACCESS_CONFIG/role/%/delete/{rid}/{rid}'
+  defaults:
+    _form: \Drupal\taxonomy_access\Form\TaxonomyAccessRoleDeleteConfirm
+  requirements:
+    _custom_access: '\Drupal\taxonomy_access\Form\TaxonomyAccessRoleDeleteConfirm::taxonomy_access_role_delete_access'
+taxonomy_access.disable_vocab_confirm_page:
+  path: '/TAXONOMY_ACCESS_CONFIG/role/%/disable/%taxonomy_vocabulary/{rid}/{vocab}'
+  defaults:
+    _controller: '\Drupal\taxonomy_access\Controller\DefaultController::taxonomy_access_disable_vocab_confirm_page'
+  requirements:
+    _permission: 'administer permissions'
+taxonomy_access.autocomplete:
+  path: /taxonomy_access/autocomplete
+  defaults:
+    _title: 'Autocomplete taxonomy'
+    _controller: '\Drupal\taxonomy_access\Controller\DefaultController::taxonomy_access_autocomplete'
+  requirements:
+    _permission: 'access content'

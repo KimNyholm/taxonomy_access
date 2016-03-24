@@ -28,7 +28,7 @@ function taxonomy_access_install() {
     (:vid, :rid, :node_allow, :ignore, :ignore, :term_allow, :term_allow)',
     array(
       ':vid' => TAXONOMY_ACCESS_GLOBAL_DEFAULT,
-      ':rid' => DRUPAL_ANONYMOUS_RID,
+      ':rid' => \Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE,
       ':node_allow' => TAXONOMY_ACCESS_NODE_ALLOW,
       ':ignore' => TAXONOMY_ACCESS_NODE_IGNORE,
       ':term_allow' => TAXONOMY_ACCESS_TERM_ALLOW)
@@ -40,7 +40,7 @@ function taxonomy_access_install() {
     (:vid, :rid, :node_allow, :ignore, :ignore, :term_allow, :term_allow)',
     array(
       ':vid' => TAXONOMY_ACCESS_GLOBAL_DEFAULT,
-      ':rid' => DRUPAL_AUTHENTICATED_RID,
+      ':rid' => \Drupal\Core\Session\AccountInterface::AUTHENTICATED_RID,
       ':node_allow' => TAXONOMY_ACCESS_NODE_ALLOW,
       ':ignore' => TAXONOMY_ACCESS_NODE_IGNORE,
       ':term_allow' => TAXONOMY_ACCESS_TERM_ALLOW)
@@ -252,10 +252,12 @@ function taxonomy_access_enable() {
     ->fetchField()
     ;
 
-  db_update('system')
-  ->fields(array('weight' => ($tax_weight + 1)))
-  ->condition('name', 'taxonomy_access')
-  ->execute();
+  // @FIXME
+// db_update('system')
+//   ->fields(array('weight' => ($tax_weight + 1)))
+//   ->condition('name', 'taxonomy_access')
+//   ->execute();
+
 
   // Delete any records for roles not in {roles}.
   $roles = _taxonomy_access_user_roles();

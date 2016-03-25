@@ -37,16 +37,15 @@ class TaxonomyAccessAdminRoleEnable extends FormBase {
     return 'taxonomy_access_admin_role_enable';
   }
 
-  public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state, $roleId = NULL) {
+  public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state, $roleId = NULL, $roleId=NULL) {
     $roles = DefaultController::_taxonomy_access_user_roles();
     $role=$roles[$roleId];
     $name=$role->label();
-    dpm($role, $roleId);
       $form['status'] = [
-        '#markup' => '<p>' . t('Access control for the %name role is disabled. <a href="@url">Enable @name</a>.', [
+        '#markup' => '<p>' . t('Access control for the %name role is enabled. Configuration TBD. <a href="@url">TBD disable @name</a>.', [
           '%name' => $name,
           '@name' => $name,
-          '@url' => DefaultController::taxonomy_access_enable_role_url($rid),
+          '@url' => DefaultController::taxonomy_access_enable_role_url($roleId),
         ]) . '</p>'
         ];
       return $form;

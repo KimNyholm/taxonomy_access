@@ -25,7 +25,7 @@ class TaxonomyAccessAdminRole extends FormBase {
 
   public function getTitle($roleId){
     $role=\Drupal\User\Entity\Role::load($roleId);
-    $roleName=$role->label();
+    $roleName=empty($role) ? "Invalid roleId '$roleId'" : $role->label();
     return "Access rules for $roleName";
   }
 

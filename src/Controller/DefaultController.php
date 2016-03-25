@@ -7,6 +7,11 @@ namespace Drupal\taxonomy_access\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Url;
+use Drupal\Component\Utility\UrlHelper;
+
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
 
 /**
  * Default controller for the taxonomy_access module.
@@ -29,7 +34,7 @@ static function taxonomy_access_enable_role_url($roleId) {
   // Build and return the URL with the token and destination.
   // TBD add role id and token
   $urlParameters=array('roleId' => $roleId);
-  $url=Url::fromRoute('taxonomy_access.settings_role_old', $urlParameters);
+  $url=Url::fromRoute('taxonomy_access.admin_role_enable', $urlParameters);
   return $url->toString();
 }
 
@@ -74,10 +79,6 @@ static function UserRoleList(){
     ];
 
     return $build;
-      return array(
-              '#title' => 'Hello World!',
-              '#markup' => 'Here is some new d8 content from taxonomy.',
-          );
   }
 
   public function xtaxonomy_access_admin() {
@@ -125,24 +126,26 @@ static function UserRoleList(){
     return $build;
   }
 
-  public function taxonomy_access_enable_role_validate($rid) {
-    $rid = intval($rid);
+  public function taxonomy_access_enable_role_validate($roleId=NULL) {
+    drupal_set_message('taxonomy_access_enable_role_validate requires more work',  'error');
     // If a valid token is not provided, return a 403.
-    $query = \Drupal\Component\Utility\UrlHelper::filterQueryParameters();
+    $uri = \Drupal::request()->getRequestUri();
+    $fragments=UrlHelper::parse($uri);
+    // If a valid token is not provided, return a 403.
     if (empty($query['token']) || !drupal_valid_token($query['token'], $rid)) {
-      return MENU_ACCESS_DENIED;
+      throw new AccessDeniedHttpException();
     }
     // Return a 404 for the anonymous or authenticated roles.
     if (in_array($rid, [
       \Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE,
       \Drupal\Core\Session\AccountInterface::AUTHENTICATED_RID,
     ])) {
-      return MENU_NOT_FOUND;
+      throw new NotFoundHttpException();
     }
     // Return a 404 for invalid role IDs.
     $roles = _taxonomy_access_user_roles();
     if (empty($roles[$rid])) {
-      return MENU_NOT_FOUND;
+      throw new NotFoundHttpException();
     }
 
     // If the parameters pass validation, enable the role and complete redirect.
@@ -151,6 +154,7 @@ static function UserRoleList(){
         '%name' => $roles[$rid]
         ]));
     }
+    // TBD redirect to role edit.
     drupal_goto();
   }
 

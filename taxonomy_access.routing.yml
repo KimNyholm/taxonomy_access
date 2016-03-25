@@ -7,6 +7,24 @@ taxonomy_access.settings:
     _permission: 'administer site configuration'
   options:
     _admin_route: TRUE
+taxonomy_access.admin_role_delete:
+  path: /admin/config/people/taxonomy_access/role/{roleId}/delete
+  defaults:
+    _title: Taxonomy access control role delete
+    _form: Drupal\taxonomy_access\Form\TaxonomyAccessRoleDeleteForm
+  requirements:
+    _permission: 'administer site configuration'
+  options:
+    _admin_route: TRUE
+taxonomy_access.admin_role_enable:
+  path: /admin/config/people/taxonomy_access/role/{roleId}/enable
+  defaults:
+    _title: Taxonomy access control validate
+    _controller: Drupal\taxonomy_access\Controller\DefaultController::taxonomy_access_enable_role_validate
+  requirements:
+    _permission: 'administer site configuration'
+  options:
+    _admin_route: TRUE
 taxonomy_access.settings_role:
   path: /admin/config/people/taxonomy_access/role/{roleId}
   defaults:

@@ -7,9 +7,15 @@
 
 namespace Drupal\taxonomy_access\Form;
 
+use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Form\ConfirmFormBase;
+use Drupal\Core\Render\Element;
+use Drupal\user\RoleInterface;
+use Drupal\taxonomy_access\Controller\DefaultController;
 use Drupal\Core\Url;
+
+
+use Drupal\Core\Form\ConfirmFormBase;
 
 /**
  * Defines a confirmation form for deleting mymodule data.
@@ -31,35 +37,25 @@ class TaxonomyAccessRoleDeleteForm extends ConfirmFormBase {
    * {@inheritdoc}
    */
   public function getQuestion() {
-    return t('Do you want to delete %id?', array('%id' => $this->id));
+    //$roleName = taxonomy_accessRoleName($this->id);
+    //$roleName = \Drupal\taxonomy_access\Form\TaxonomyAcccessAdminRole::taxonomy_accessRoleName($this->id);
+    //$role=\Drupal\User\Entity\Role::load($roleId);
+    $roleName = \Drupal\taxonomy_access\Controller\DefaultController::taxonomy_accessRoleName($this->id);
+    return t('Are you sure you want to delete all taxonomy access rules for the role %id?', array('%id' => $roleName));
   }
 
   /**
    * {@inheritdoc}
    */
     public function getCancelUrl() {
-      return new Url('my_module.myroute');
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-    public function getDescription() {
-    return t('Only do this if you are sure!');
+      return new Url('taxonomy_access.settings');
   }
 
   /**
    * {@inheritdoc}
    */
     public function getConfirmText() {
-    return t('Delete it!');
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-    public function getCancelText() {
-    return t('Nevermind');
+    return t('Delete all');
   }
 
   /**
@@ -69,10 +65,6 @@ class TaxonomyAccessRoleDeleteForm extends ConfirmFormBase {
    *   (optional) The ID of the item to be deleted.
    */
   public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state, $roleId = NULL) {
-        $form['status'] = [
-          '#markup' => '<p>TBD work for role delete</p>',
-          ];
-        return $form;
     $this->id = $roleId;
     return parent::buildForm($form, $form_state);
   }
@@ -81,6 +73,7 @@ class TaxonomyAccessRoleDeleteForm extends ConfirmFormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
+    drupal_set_message('delete role requires more work.', 'error');
   }
 
 }

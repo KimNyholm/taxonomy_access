@@ -7,15 +7,15 @@
 
 namespace Drupal\taxonomy_access\Form;
 
-use Drupal\Core\Form\FormBase;
-use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Render\Element;
-use Drupal\user\RoleInterface;
-//use Drupal\taxonomy_access\Controller;
 use Drupal\taxonomy_access\Controller\DefaultController;
-use Drupal\Core\Url;
 
-class TaxonomyAccessAdminRole extends FormBase {
+class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
+
+  static public function taxonomy_accessRoleName($roleId){
+    $role=\Drupal\User\Entity\Role::load($roleId);
+    $roleName=empty($role) ? "Unkownn role id '$roleId'" : $role->label();
+    return $roleName;
+  }
 
   protected function getEditableConfigNames() {
     return [
@@ -24,12 +24,11 @@ class TaxonomyAccessAdminRole extends FormBase {
   }
 
   public function getTitle($roleId){
-    $role=\Drupal\User\Entity\Role::load($roleId);
-    $roleName=empty($role) ? "Invalid roleId '$roleId'" : $role->label();
+    $roleName=TaxonomyAccessAdminRole::taxonomy_accessRoleName($roleId);
     return "Access rules for $roleName";
   }
 
-  public function submitForm(array &$form, FormStateInterface $form_state) {
+  public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
   }
   /**
    * {@inheritdoc}
@@ -45,8 +44,8 @@ class TaxonomyAccessAdminRole extends FormBase {
 
     // For custom roles, allow the user to enable or disable grants for the role.
     if (!in_array($roleId, [
-      RoleInterface::ANONYMOUS_ID,
-      RoleInterface::AUTHENTICATED_ID
+      \Drupal\user\RoleInterface::ANONYMOUS_ID,
+      \Drupal\user\RoleInterface::AUTHENTICATED_ID
     ])) {
       $roles = DefaultController::_taxonomy_access_user_roles();
       $role=$roles[$roleId];

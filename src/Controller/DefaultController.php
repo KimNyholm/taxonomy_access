@@ -11,12 +11,22 @@ use Drupal\Component\Utility\UrlHelper;
 
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-
+use Drupal\user\RoleInterface;
+use Drupal\taxonomy_access\TaxonomyAccessAdminRole;
 
 /**
  * Default controller for the taxonomy_access module.
  */
 class DefaultController extends ControllerBase {
+
+  static public function taxonomy_accessRoleName($roleId){
+    // Seems to be some bug in autoloader.
+    // To fix, but how?
+    // $role=\Drupal\User\Entity\Role::load($roleId);
+    // $roleName=empty($role) ? "Unkownn role id '$roleId'" : $role->label();
+    $roleName=$roleId;
+    return $roleName;
+  }
 
 /**
  * Generates a URL to enable a role with a token for CSRF protection.
@@ -169,63 +179,5 @@ static function UserRoleList(){
     return \Drupal::formBuilder()->getForm('taxonomy_access_disable_vocab_confirm', $rid, $vocab);
   }
 
-  public function taxonomy_access_autocomplete($field_name, $tags_typed = '') {
-    // Enforce that list grants do not filter the autocomplete.
-    taxonomy_access_disable_list();
-
-    $field = field_info_field($field_name);
-
-    // The user enters a comma-separated list of tags. We only autocomplete the last tag.
-    $tags_typed = drupal_explode_tags($tags_typed);
-    $tag_last = \Drupal\Component\Utility\Unicode::strtolower(array_pop($tags_typed));
-
-    $matches = [];
-    if ($tag_last != '') {
-
-      // Part of the criteria for the query come from the field's own settings.
-      $vids = [];
-      $vocabularies = taxonomy_vocabulary_get_names();
-      foreach ($field['settings']['allowed_values'] as $tree) {
-        $vids[] = $vocabularies[$tree['vocabulary']]->vid;
-      }
-
-      $query = db_select('taxonomy_term_data', 't');
-      $query->addTag('translatable');
-      $query->addTag('term_access');
-
-      // Do not select already entered terms.
-      if (!empty($tags_typed)) {
-        $query->condition('t.name', $tags_typed, 'NOT IN');
-      }
-      // Select rows that match by term name.
-      $tags_return = $query
-        ->fields('t', ['tid', 'name'])
-        ->condition('t.vid', $vids)
-        ->condition('t.name', '%' . db_like($tag_last) . '%', 'LIKE')
-        ->range(0, 10)
-        ->execute()
-        ->fetchAllKeyed();
-
-      // Unset suggestions disallowed by create grants.
-      $disallowed = taxonomy_access_create_disallowed(array_keys($tags_return));
-      foreach ($disallowed as $tid) {
-        unset($tags_return[$tid]);
-      }
-
-      $prefix = count($tags_typed) ? drupal_implode_tags($tags_typed) . ', ' : '';
-
-      $term_matches = [];
-      foreach ($tags_return as $tid => $name) {
-        $n = $name;
-        // Term names containing commas or quotes must be wrapped in quotes.
-        if (strpos($name, ',') !== FALSE || strpos($name, '"') !== FALSE) {
-          $n = '"' . str_replace('"', '""', $name) . '"';
-        }
-        $term_matches[$prefix . $n] = \Drupal\Component\Utility\Html::escape($name);
-      }
-    }
-
-    drupal_json_output($term_matches);
-  }
 
 }

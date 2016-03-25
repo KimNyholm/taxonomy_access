@@ -10,7 +10,10 @@ namespace Drupal\taxonomy_access\Form;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
-use Drupal\Core\EntityInterface;
+use Drupal\user\RoleInterface;
+//use Drupal\taxonomy_access\Controller;
+use Drupal\taxonomy_access\Controller\DefaultController;
+use Drupal\Core\Url;
 
 class TaxonomyAccessAdminRole extends FormBase {
 
@@ -35,26 +38,26 @@ class TaxonomyAccessAdminRole extends FormBase {
     return 'taxonomy_access_admin_role';
   }
 
-  public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state, $rid = NULL) {
+  public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state, $roleId = NULL) {
     // Always include the role ID in the form.
     $rid = intval($rid);
     $form['rid'] = ['#type' => 'value', '#value' => $rid];
 
     // For custom roles, allow the user to enable or disable grants for the role.
-    if (!in_array($rid, [
-      \Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE,
-      \Drupal\Core\Session\AccountInterface::AUTHENTICATED_ROLE,
-// use RoleInterface::AUTHENTICATED_ID og ANONYMOUS_ID
+    if (!in_array($roleId, [
+      RoleInterface::ANONYMOUS_ID,
+      RoleInterface::AUTHENTICATED_ID
     ])) {
-      $roles = _taxonomy_access_user_roles();
-
+      $roles = DefaultController::_taxonomy_access_user_roles();
+      $role=$roles[$roleId];
+      $name=$role->label();
       // If the role is not enabled, return only a link to enable it.
-      if (!taxonomy_access_role_enabled($rid)) {
+      if (!DefaultController::taxonomy_access_role_enabled($roleId)) {
         $form['status'] = [
-          '#markup' => '<p>' . t('Access control for the %name role is disabled. <a href="@url">Enable @name</a>.', [
-            '%name' => $roles[$rid],
-            '@name' => $roles[$rid],
-            '@url' => taxonomy_access_enable_role_url($rid),
+          '#markup' => '<p>' . t('Access control for the d8 %name role is disabled. <a href="@url">Enable @name</a>.', [
+            '%name' => $name,
+            '@name' => $name,
+            '@url' => DefaultController::taxonomy_access_enable_role_url($roleId),
           ]) . '</p>'
           ];
         return $form;
@@ -264,7 +267,7 @@ class TaxonomyAccessAdminRole extends FormBase {
           ],
       ];
     }
-
+dpm($form, 'form');
     return $form;
   }
 

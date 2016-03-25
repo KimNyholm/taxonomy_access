@@ -8,7 +8,36 @@ namespace Drupal\taxonomy_access\Controller;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Url;
 
-function _taxonomy_access_user_roles($permission = NULL) {
+/**
+ * Default controller for the taxonomy_access module.
+ */
+class DefaultController extends ControllerBase {
+
+/**
+ * Generates a URL to enable a role with a token for CSRF protection.
+ *
+ * @param int $rid
+ *   The role ID.
+ *
+ * @return string
+ *   The full URL for the request path.
+ */
+static function taxonomy_access_enable_role_url($roleId) {
+  // Create a query array with a token to validate the sumbission.
+//  $query = drupal_get_destination();
+//  $query['token'] = drupal_get_token($rid);
+  // Build and return the URL with the token and destination.
+  // TBD add role id and token
+  $urlParameters=array('roleId' => $roleId);
+  $url=Url::fromRoute('taxonomy_access.settings_role_old', $urlParameters);
+  return $url->toString();
+}
+
+static function taxonomy_access_role_enabled($roleId) {
+  return false ;
+}
+
+static function _taxonomy_access_user_roles($permission = NULL) {
   $roles = &drupal_static(__FUNCTION__, array());
   if (!isset($roles[$permission])) {
     $roles[$permission] = user_roles(FALSE, $permission);
@@ -16,12 +45,12 @@ function _taxonomy_access_user_roles($permission = NULL) {
   return $roles[$permission];
 }
 
-function UserRoleList(){
-  $roles=_taxonomy_access_user_roles();
+static function UserRoleList(){
+  $roles=DefaultController::_taxonomy_access_user_roles();
   $rows=array();
   foreach ($roles as $rid => $role) {
-    $roleId=array('roleId' => $rid);
-    $url=Url::fromRoute('taxonomy_access.settings_role', $roleId);
+    $urlParameters=array('roleId' => $rid);
+    $url=Url::fromRoute('taxonomy_access.settings_role', $urlParameters);
     $link = \Drupal::l(t('Configure'), $url);
     $row = array(
       $role->label(),
@@ -33,15 +62,10 @@ function UserRoleList(){
   return $rows  ;
 }
 
-/**
- * Default controller for the taxonomy_access module.
- */
-class DefaultController extends ControllerBase {
-
   public function taxonomy_access_admin() {
 
     $header = [t('Role'), t('Status'), t('Operations')];
-    $rows=UserRoleList();
+    $rows=$this->UserRoleList();
 
     $build['role_table'] = [
       '#theme' => 'table',

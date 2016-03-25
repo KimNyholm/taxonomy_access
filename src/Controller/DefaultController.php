@@ -19,6 +19,57 @@ use Drupal\taxonomy_access\TaxonomyAccessAdminRole;
  */
 class DefaultController extends ControllerBase {
 
+  /**
+   * Enables access control for a given role.
+   *
+   * @param int $rid
+   *   The role ID.
+   *
+   * @return bool
+   *   TRUE on success, or FALSE on failure.
+   *
+   * @todo
+   *   Should we default to the authenticated user global default?
+   */
+  static public function taxonomy_access_enable_role($rid) {
+    return true ;
+    $rid = intval($rid);
+
+    // Take no action if the role is already enabled. All valid role IDs are > 0.
+    if (!$rid || taxonomy_access_role_enabled($rid)) {
+      return FALSE;
+    }
+
+    // If we are adding a role, no global default is set yet, so insert it now.
+    // Assemble a $row object for Schema API.
+    $row = new stdClass();
+    $row->vid = TAXONOMY_ACCESS_GLOBAL_DEFAULT;
+    $row->rid = $rid;
+
+    // Insert the row with defaults for all grants.
+    return drupal_write_record('taxonomy_access_default', $row);
+  }
+
+  /**
+   * Indicates whether access control is enabled for a given role.
+   *
+   * @param int $rid
+   *   The role ID.
+   *
+   * @return bool
+   *   TRUE if access control is enabled for the role, or FALSE otherwise.
+   */
+  static public function taxonomy_access_role_enabled($rid) {
+    $role_status = &drupal_static(__FUNCTION__, array());
+    if (!isset($role_status[$rid])) {
+      $role_status['administrator'] = 0 ;
+      $role_status['authenticated'] = 1 ;
+      $role_status['anonymous']     = 1 ;
+    }
+    return (bool) $role_status[$rid];
+  }
+
+
   static public function taxonomy_accessRoleName($roleId){
     // Seems to be some bug in autoloader.
     // To fix, but how?
@@ -48,9 +99,6 @@ static function taxonomy_access_enable_role_url($roleId) {
   return $url->toString();
 }
 
-static function taxonomy_access_role_enabled($roleId) {
-  return false ;
-}
 
 static function _taxonomy_access_user_roles($permission = NULL) {
   $roles = &drupal_static(__FUNCTION__, array());
@@ -67,11 +115,9 @@ static function UserRoleList(){
     $urlParameters=array('roleId' => $rid);
     $url=Url::fromRoute('taxonomy_access.settings_role', $urlParameters);
     $link = \Drupal::l(t('Configure'), $url);
-    $row = array(
-      $role->label(),
-      'Disabled',
-      $link,
-      );
+    $roleEnabled = DefaultController::taxonomy_access_role_enabled($rid);
+    $state = $roleEnabled ? t('Enabled') : t('Disabled') ;
+    $row = array($role->label(), $state, $link,);
     $rows[]=$row;
   }
   return $rows  ;
@@ -91,51 +137,6 @@ static function UserRoleList(){
     return $build;
   }
 
-  public function xtaxonomy_access_admin() {
-    $roles = _taxonomy_access_user_roles();
-    $active_rids = db_query('SELECT rid FROM {taxonomy_access_default} WHERE vid = :vid', [
-      ':vid' => TAXONOMY_ACCESS_GLOBAL_DEFAULT
-      ])->fetchCol();
-
-    $header = [t('Role'), t('Status'), t('Operations')];
-    $rows = [];
-
-    foreach ($roles as $rid => $name) {
-      $row = [];
-      $row[] = $name;
-
-      if (in_array($rid, $active_rids)) {
-        // Add edit operation link for active roles.
-        $row[] = [
-          'data' => t('Enabled')
-          ];
-
-      }
-      else {
-        // Add enable link for unconfigured roles.
-        $row[] = [
-          'data' => t('Disabled')
-          ];
-      }
-      // @FIXME
-      // l() expects a Url object, created from a route name or external URI.
-      // $row[] = array('data' => l(
-      //       t("Configure"),
-      //       TAXONOMY_ACCESS_CONFIG . "/role/$rid/edit",
-      //       array('attributes' => array('class' => array('module-link', 'module-link-configure')))));
-
-      $rows[] = $row;
-    }
-
-    $build['role_table'] = [
-      '#theme' => 'table',
-      '#header' => $header,
-      '#rows' => $rows,
-    ];
-
-    return $build;
-  }
-
   public function taxonomy_access_enable_role_validate($roleId=NULL) {
     drupal_set_message('taxonomy_access_enable_role_validate requires more work',  'error');
     // If a valid token is not provided, return a 403.
@@ -143,30 +144,39 @@ static function UserRoleList(){
     $fragments=UrlHelper::parse($uri);
     // If a valid token is not provided, return a 403.
     if (empty($query['token']) || !drupal_valid_token($query['token'], $rid)) {
-      throw new AccessDeniedHttpException();
+// TBD
+//      throw new AccessDeniedHttpException();
     }
     // Return a 404 for the anonymous or authenticated roles.
     if (in_array($rid, [
       \Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE,
-      \Drupal\Core\Session\AccountInterface::AUTHENTICATED_RID,
+      \Drupal\Core\Session\AccountInterface::AUTHENTICATED_ROLE,
     ])) {
       throw new NotFoundHttpException();
     }
     // Return a 404 for invalid role IDs.
-    $roles = _taxonomy_access_user_roles();
-    if (empty($roles[$rid])) {
+    $roles = DefaultController::_taxonomy_access_user_roles();
+    if (empty($roles[$roleId])) {
       throw new NotFoundHttpException();
     }
 
     // If the parameters pass validation, enable the role and complete redirect.
-    if (taxonomy_access_enable_role($rid)) {
+    if (DefaultController::taxonomy_access_enable_role($rid)) {
       drupal_set_message(t('Role %name enabled successfully.', [
         '%name' => $roles[$rid]
         ]));
     }
     // TBD redirect to role edit.
-    drupal_goto();
-  }
+    //drupal_goto();
+    //return $this->redirect('taxonomy_access.settings_role');
+    $urlParameters=array('roleId' => $roleId);
+    $url=Url::fromRoute('taxonomy_access.settings_role', $urlParameters);
+    dpm($url, 'url');
+    $response = new \Symfony\Component\HttpFoundation\RedirectResponse($url->toString());
+    dpm($response, 'response');
+    return $response ;
+    return $this->taxonomy_access_admin();
+ }
 
   public function taxonomy_access_disable_vocab_confirm_page($rid, $vocab) {
     $rid = intval($rid);

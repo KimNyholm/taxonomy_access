@@ -19,7 +19,7 @@ taxonomy_access.admin_role_delete:
 taxonomy_access.admin_role_enable:
   path: /admin/config/people/taxonomy_access/role/{roleId}/enable
   defaults:
-    _title: Taxonomy access control validate
+    _title: Taxonomy access control enable role
     _controller: Drupal\taxonomy_access\Controller\DefaultController::taxonomy_access_enable_role_validate
   requirements:
     _permission: 'administer site configuration'

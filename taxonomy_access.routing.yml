@@ -10,7 +10,16 @@ taxonomy_access.settings:
 taxonomy_access.settings_role:
   path: /admin/config/people/taxonomy_access/role/{roleId}
   defaults:
-    _title: Access control for user
+    _title_callback: Drupal\taxonomy_access\Form\TaxonomyAccessAdminRole:getTitle
+    _form: Drupal\taxonomy_access\Form\TaxonomyAccessAdminRole
+  requirements:
+    _permission: 'administer site configuration'
+  options:
+    _admin_route: TRUE
+taxonomy_access.settings_role_old:
+  path: /admin/config/people/taxonomy_access/role_old/{roleId}
+  defaults:
+    _title: Access control for role
     _form: Drupal\taxonomy_access\Form\TaxonomyAccessSettings
   requirements:
     _permission: 'administer site configuration'

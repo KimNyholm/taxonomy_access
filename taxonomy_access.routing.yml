@@ -8,7 +8,7 @@ taxonomy_access.settings:
   options:
     _admin_route: TRUE
 taxonomy_access.settings_role:
-  path: /admin/config/people/taxonomy_access/role
+  path: /admin/config/people/taxonomy_access/role/{roleId}
   defaults:
     _title: Access control for user
     _form: Drupal\taxonomy_access\Form\TaxonomyAccessSettings

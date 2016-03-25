@@ -20,7 +20,8 @@ function UserRoleList(){
   $roles=_taxonomy_access_user_roles();
   $rows=array();
   foreach ($roles as $rid => $role) {
-    $url=Url::fromRoute('taxonomy_access.settings_role');
+    $roleId=array('roleId' => $rid);
+    $url=Url::fromRoute('taxonomy_access.settings_role', $roleId);
     $link = \Drupal::l(t('Configure'), $url);
     $row = array(
       $role->label(),

@@ -266,7 +266,6 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
           ],
       ];
     }
-dpm($form, 'form');
     return $form;
   }
 

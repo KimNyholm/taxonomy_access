@@ -171,11 +171,8 @@ static function UserRoleList(){
     //return $this->redirect('taxonomy_access.settings_role');
     $urlParameters=array('roleId' => $roleId);
     $url=Url::fromRoute('taxonomy_access.settings_role', $urlParameters);
-    dpm($url, 'url');
     $response = new \Symfony\Component\HttpFoundation\RedirectResponse($url->toString());
-    dpm($response, 'response');
     return $response ;
-    return $this->taxonomy_access_admin();
  }
 
   public function taxonomy_access_disable_vocab_confirm_page($rid, $vocab) {

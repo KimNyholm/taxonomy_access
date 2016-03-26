@@ -20,7 +20,7 @@ taxonomy_access.admin_role_enable:
   path: /admin/config/people/taxonomy_access/role/{roleId}/enable
   defaults:
     _title: Taxonomy access control enable role
-    _controller: Drupal\taxonomy_access\Controller\DefaultController::taxonomy_access_enable_role_validate
+    _form: Drupal\taxonomy_access\Form\TaxonomyAccessRoleEnableForm
   requirements:
     _permission: 'administer site configuration'
   options:

@@ -62,7 +62,7 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\ConfigFormBase {
       // If the role is not enabled, return only a link to enable it.
       if (!DefaultController::taxonomy_access_role_enabled($roleId)) {
         $form['status'] = [
-          '#markup' => '<p>' . t('Access control for the d8 %name role is disabled. <a href="@url">Enable @name</a>.', [
+          '#markup' => '<p>' . t('Access control for the %name role is disabled. <a href="@url">Enable @name</a>.', [
             '%name' => $name,
             '@name' => $name,
             '@url' => DefaultController::taxonomy_access_enable_role_url($roleId),

@@ -137,44 +137,6 @@ static function UserRoleList(){
     return $build;
   }
 
-  public function taxonomy_access_enable_role_validate($roleId=NULL) {
-    drupal_set_message('taxonomy_access_enable_role_validate requires more work',  'error');
-    // If a valid token is not provided, return a 403.
-    $uri = \Drupal::request()->getRequestUri();
-    $fragments=UrlHelper::parse($uri);
-    // If a valid token is not provided, return a 403.
-    if (empty($query['token']) || !drupal_valid_token($query['token'], $rid)) {
-// TBD
-//      throw new AccessDeniedHttpException();
-    }
-    // Return a 404 for the anonymous or authenticated roles.
-    if (in_array($rid, [
-      \Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE,
-      \Drupal\Core\Session\AccountInterface::AUTHENTICATED_ROLE,
-    ])) {
-      throw new NotFoundHttpException();
-    }
-    // Return a 404 for invalid role IDs.
-    $roles = DefaultController::_taxonomy_access_user_roles();
-    if (empty($roles[$roleId])) {
-      throw new NotFoundHttpException();
-    }
-
-    // If the parameters pass validation, enable the role and complete redirect.
-    if (DefaultController::taxonomy_access_enable_role($rid)) {
-      drupal_set_message(t('Role %name enabled successfully.', [
-        '%name' => $roles[$rid]
-        ]));
-    }
-    // TBD redirect to role edit.
-    //drupal_goto();
-    //return $this->redirect('taxonomy_access.settings_role');
-    $urlParameters=array('roleId' => $roleId);
-    $url=Url::fromRoute('taxonomy_access.settings_role', $urlParameters);
-    $response = new \Symfony\Component\HttpFoundation\RedirectResponse($url->toString());
-    return $response ;
- }
-
   public function taxonomy_access_disable_vocab_confirm_page($rid, $vocab) {
     $rid = intval($rid);
 

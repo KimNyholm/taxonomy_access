@@ -9,7 +9,7 @@ namespace Drupal\taxonomy_access\Form;
 
 use Drupal\taxonomy_access\Controller\DefaultController;
 
-class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
+class TaxonomyAccessAdminRole extends \Drupal\Core\Form\ConfigFormBase {
 
   static public function taxonomy_accessRoleName($roleId){
     $role=\Drupal\User\Entity\Role::load($roleId);
@@ -29,6 +29,13 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
   }
 
   public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
+    parent::submitForm($form, $form_state);
+    $roleId=$form_state->getValue('rid');
+    dpm($roleId, 'from formstate');
+    $config = $this->config('taxonomy_access.settings')
+       ->set('roleid', $roleId)
+       ->save();
+    dpm('subit done');
   }
   /**
    * {@inheritdoc}
@@ -38,9 +45,11 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
   }
 
   public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state, $roleId = NULL) {
+    $config = $this->config('taxonomy_access.settings');
+    dpm($config->get('roleid'),'roleid');
     // Always include the role ID in the form.
-    $rid = intval($rid);
-    $form['rid'] = ['#type' => 'value', '#value' => $rid];
+    $rid = intval($roleId);
+    $form['rid'] = ['#type' => 'value', '#value' => $roleId];
 
     // For custom roles, allow the user to enable or disable grants for the role.
     if (!in_array($roleId, [
@@ -253,9 +262,9 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
     $form['actions']['submit'] = [
       '#type' => 'submit',
       '#value' => t('Save all'),
-      '#submit' => [
-        'taxonomy_access_save_all_submit'
-        ],
+//      '#submit' => [
+//        'taxonomy_access_save_all_submit'
+//        ],
     ];
     if (!empty($term_grants)) {
       $form['actions']['delete'] = [

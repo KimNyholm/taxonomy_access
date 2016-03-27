@@ -23,10 +23,10 @@ class DefaultController extends ControllerBase {
 
   static public function taxonomy_access_role_enabled($rid) {
     $config = \Drupal::config('taxonomy_access.settings');
-    $roles=$config->get('roles');
+    $defaults=$config->get('taxonomy_access_default');
     dpm($rid, 'Checking enabled for');
-    dpm($roles, 'roles');
-    return (bool)(isset($roles[$rid]) ? $roles[$rid] : 0) ;
+    dpm($defaults, 'defaults');
+    return isset($defaults[$rid]) ? true : false ;
   }
 
   protected function getEditableConfigNames() {

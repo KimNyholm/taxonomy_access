@@ -18,7 +18,19 @@ use Drupal\Core\Url;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
+define('TAXONOMY_ACCESS_GLOBAL_DEFAULT', 0);
+
 class TaxonomyAccessRoleEnableForm extends ConfigFormBase {
+
+  protected function taxonomy_access_write_record($table, $row){
+    $config = $this->config('taxonomy_access.settings');
+    $rows=$config->get($table);
+    $rows[$row->rid]=  (array)$row;
+    $config
+      ->set($table, $rows)
+      ->save();
+    return true ;
+  }
 
   protected function taxonomy_access_enable_role($rid) {
     // Take no action if the role is already enabled. All valid role IDs are > 0.
@@ -26,20 +38,13 @@ class TaxonomyAccessRoleEnableForm extends ConfigFormBase {
       return FALSE;
     }
 
-    $config = $this->config('taxonomy_access.settings');
-    $roles=$config->get('roles');
-    $roles[$rid]= 1 ;
-    $config
-      ->set('roles', $roles)
-      ->save();
-    return true ;
     // If we are adding a role, no global default is set yet, so insert it now.
     // Assemble a $row object for Schema API.
-    $row = new stdClass();
+    $row = new \stdClass();
     $row->vid = TAXONOMY_ACCESS_GLOBAL_DEFAULT;
     $row->rid = $rid;
     // Insert the row with defaults for all grants.
-    return drupal_write_record('taxonomy_access_default', $row);
+    return $this->taxonomy_access_write_record('taxonomy_access_default', $row);
   }
 
   protected function taxonomy_access_enable_role_validate($roleId) {

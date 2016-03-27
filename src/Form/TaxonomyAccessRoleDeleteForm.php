@@ -22,6 +22,16 @@ use Drupal\Core\Form\ConfirmFormBase;
  */
 class TaxonomyAccessRoleDeleteForm extends ConfirmFormBase {
 
+  protected function taxonomy_access_delete_record($table, $roleId){
+    $config = \Drupal::service('config.factory')->getEditable('taxonomy_access.settings');
+    $rows=$config->get($table);
+    unset($rows[$roleId]);
+    $config
+      ->set($table, $rows)
+      ->save();
+    return true ;
+  }
+
   public function getFormId() {
     return 'taxonomy_access_role_delete';
   }
@@ -73,7 +83,8 @@ class TaxonomyAccessRoleDeleteForm extends ConfirmFormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    drupal_set_message('delete role requires more work.', 'error');
+    dpm($this->id, 'being deleted');
+    $this->taxonomy_access_delete_record('taxonomy_access_default', $this->id);
   }
 
 }

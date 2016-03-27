@@ -30,13 +30,14 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\ConfigFormBase {
 
   public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
     parent::submitForm($form, $form_state);
-    $roleId=$form_state->getValue('rid');
+    $roleId=$form_state->getValue('roleId');
     dpm($roleId, 'from formstate');
     $config = $this->config('taxonomy_access.settings')
        ->set('roleid', $roleId)
        ->save();
     dpm('subit done');
   }
+
   /**
    * {@inheritdoc}
    */
@@ -48,8 +49,7 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\ConfigFormBase {
     $config = $this->config('taxonomy_access.settings');
     dpm($config->get('roleid'),'roleid');
     // Always include the role ID in the form.
-    $rid = intval($roleId);
-    $form['rid'] = ['#type' => 'value', '#value' => $roleId];
+    $form['roleId'] = ['#type' => 'value', '#value' => $roleId];
 
     // For custom roles, allow the user to enable or disable grants for the role.
     if (!in_array($roleId, [
@@ -83,7 +83,7 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\ConfigFormBase {
           '#markup' => '<p>' . t('Access control for the %name role is enabled. <a href="@url">Disable @name</a>.', [
             '@name' => $roles[$rid],
             '%name' => $roles[$rid],
-            '@url' => $disable_url,
+            '@url' => DefaultController::taxonomy_access_delete_role_url($roleId),
           ]) . '</p>'
           ];
       }

@@ -20,6 +20,28 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class TaxonomyAccessRoleEnableForm extends ConfigFormBase {
 
+  protected function taxonomy_access_enable_role($rid) {
+    // Take no action if the role is already enabled. All valid role IDs are > 0.
+    if (!$rid || DefaultController::taxonomy_access_role_enabled($rid)) {
+      return FALSE;
+    }
+
+    $config = $this->config('taxonomy_access.settings');
+    $roles=$config->get('roles');
+    $roles[$rid]= 1 ;
+    $config
+      ->set('roles', $roles)
+      ->save();
+    return true ;
+    // If we are adding a role, no global default is set yet, so insert it now.
+    // Assemble a $row object for Schema API.
+    $row = new stdClass();
+    $row->vid = TAXONOMY_ACCESS_GLOBAL_DEFAULT;
+    $row->rid = $rid;
+    // Insert the row with defaults for all grants.
+    return drupal_write_record('taxonomy_access_default', $row);
+  }
+
   protected function taxonomy_access_enable_role_validate($roleId) {
     // If a valid token is not provided, return a 403.
     $uri = \Drupal::request()->getRequestUri();
@@ -44,7 +66,7 @@ class TaxonomyAccessRoleEnableForm extends ConfigFormBase {
     }
 
     // If the parameters pass validation, enable the role and complete redirect.
-    if (DefaultController::taxonomy_access_enable_role($rid)) {
+    if ($this->taxonomy_access_enable_role($roleId)) {
       drupal_set_message(t('Role %name enabled successfully.', [
         '%name' => $roleId,
         ]));

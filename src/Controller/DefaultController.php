@@ -14,59 +14,25 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Drupal\user\RoleInterface;
 use Drupal\taxonomy_access\TaxonomyAccessAdminRole;
 
+use Drupal\Core\Config\Config;
+
 /**
  * Default controller for the taxonomy_access module.
  */
 class DefaultController extends ControllerBase {
 
-  /**
-   * Enables access control for a given role.
-   *
-   * @param int $rid
-   *   The role ID.
-   *
-   * @return bool
-   *   TRUE on success, or FALSE on failure.
-   *
-   * @todo
-   *   Should we default to the authenticated user global default?
-   */
-  static public function taxonomy_access_enable_role($rid) {
-    return true ;
-    $rid = intval($rid);
-
-    // Take no action if the role is already enabled. All valid role IDs are > 0.
-    if (!$rid || taxonomy_access_role_enabled($rid)) {
-      return FALSE;
-    }
-
-    // If we are adding a role, no global default is set yet, so insert it now.
-    // Assemble a $row object for Schema API.
-    $row = new stdClass();
-    $row->vid = TAXONOMY_ACCESS_GLOBAL_DEFAULT;
-    $row->rid = $rid;
-
-    // Insert the row with defaults for all grants.
-    return drupal_write_record('taxonomy_access_default', $row);
+  static public function taxonomy_access_role_enabled($rid) {
+    $config = \Drupal::config('taxonomy_access.settings');
+    $roles=$config->get('roles');
+    dpm($rid, 'Checking enabled for');
+    dpm($roles, 'roles');
+    return (bool)(isset($roles[$rid]) ? $roles[$rid] : 0) ;
   }
 
-  /**
-   * Indicates whether access control is enabled for a given role.
-   *
-   * @param int $rid
-   *   The role ID.
-   *
-   * @return bool
-   *   TRUE if access control is enabled for the role, or FALSE otherwise.
-   */
-  static public function taxonomy_access_role_enabled($rid) {
-    $role_status = &drupal_static(__FUNCTION__, array());
-    if (!isset($role_status[$rid])) {
-      $role_status['administrator'] = 0 ;
-      $role_status['authenticated'] = 1 ;
-      $role_status['anonymous']     = 1 ;
-    }
-    return (bool) $role_status[$rid];
+  protected function getEditableConfigNames() {
+    return [
+      'taxonomy_access.settings',
+    ];
   }
 
 

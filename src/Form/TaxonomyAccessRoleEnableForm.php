@@ -81,9 +81,6 @@ class TaxonomyAccessRoleEnableForm extends ConfigFormBase {
     $urlParameters=array('roleId' => $roleId);
     $url=Url::fromRoute('taxonomy_access.settings_role', $urlParameters);
     $response = new \Symfony\Component\HttpFoundation\RedirectResponse($url->toString());
-    $config = $this->config('taxonomy_access.settings')
-       ->set('roleid', $roleId)
-       ->save();
     return $response ;
  }
 

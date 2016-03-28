@@ -30,12 +30,6 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\ConfigFormBase {
 
   public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
     parent::submitForm($form, $form_state);
-    $roleId=$form_state->getValue('roleId');
-    dpm($roleId, 'from formstate');
-    $config = $this->config('taxonomy_access.settings')
-       ->set('roleid', $roleId)
-       ->save();
-    dpm('subit done');
   }
 
   /**

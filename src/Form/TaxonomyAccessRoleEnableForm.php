@@ -42,6 +42,10 @@ class TaxonomyAccessRoleEnableForm extends ConfigFormBase {
     // Assemble a $row object for Schema API.
     $row = new \stdClass();
     $row->vid = TAXONOMY_ACCESS_GLOBAL_DEFAULT;
+    $row->grant_view = 0 ;
+    $row->grant_update = 0 ;
+    $row->grant_delete = 0 ;
+    $row->grant_create = 0 ;
     $row->rid = $rid;
     // Insert the row with defaults for all grants.
     return $this->taxonomy_access_write_record('taxonomy_access_default', $row);

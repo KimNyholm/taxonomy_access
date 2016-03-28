@@ -41,7 +41,6 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\ConfigFormBase {
 
   public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state, $roleId = NULL) {
     $config = $this->config('taxonomy_access.settings');
-    dpm($config->get('roleid'),'roleid');
     // Always include the role ID in the form.
     $form['roleId'] = ['#type' => 'value', '#value' => $roleId];
 
@@ -82,11 +81,10 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\ConfigFormBase {
           ];
       }
     }
-/*
     // Retrieve role grants and display an administration form.
     // Disable list filtering while preparing this form.
-    taxonomy_access_disable_list();
-
+    //taxonomy_access_disable_list();
+/*
     // Fetch all grants for the role.
     $defaults = db_query('SELECT vid, grant_view, grant_update, grant_delete, grant_create,
               grant_list
@@ -95,7 +93,7 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\ConfigFormBase {
       ':rid' => $rid
       ])
       ->fetchAllAssoc('vid', PDO::FETCH_ASSOC);
-
+/*
     $records = db_query('SELECT ta.tid, td.vid, ta.grant_view, ta.grant_update, ta.grant_delete,
               ta.grant_create, ta.grant_list
        FROM {taxonomy_access_term} ta

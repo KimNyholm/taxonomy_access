@@ -46,6 +46,7 @@ class TaxonomyAccessRoleEnableForm extends ConfigFormBase {
     $row->grant_update = 0 ;
     $row->grant_delete = 0 ;
     $row->grant_create = 0 ;
+    $row->grant_list = 0 ;
     $row->rid = $rid;
     // Insert the row with defaults for all grants.
     return $this->taxonomy_access_write_record('taxonomy_access_default', $row);
@@ -62,7 +63,7 @@ class TaxonomyAccessRoleEnableForm extends ConfigFormBase {
 //      throw new AccessDeniedHttpException();
     }
     // Return a 404 for the anonymous or authenticated roles.
-    if (in_array($rid, [
+    if (in_array($roleId, [
       \Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE,
       \Drupal\Core\Session\AccountInterface::AUTHENTICATED_ROLE,
     ])) {

@@ -53,6 +53,30 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\ConfigFormBase {
     return $roleName;
   }
 
+  /**
+   * Form submission handler for taxonomy_access_admin_role().
+   *
+   * Processes submissions for the vocabulary 'Add' button.
+   */
+  function taxonomy_access_enable_vocab_submit($form, &$form_state) {
+    dpm('we got here');
+    return ;
+    $roleId = $form_state['values']['roleId'];
+    $vid = $form_state['values']['enable_vocab'];
+    $roles = _taxonomy_access_user_roles();
+    $vocab = taxonomy_vocabulary_load($vid);
+    if (taxonomy_access_enable_vocab($vid, $rid)) {
+      drupal_set_message(t(
+        'Vocabulary %vocab enabled successfully for the %role role.',
+        array(
+          '%vocab' => $vocab->name,
+          '%role' => $roles[$rid])));
+    }
+    else {
+      drupal_set_message(t('The vocabulary could not be enabled.'), 'error');
+    }
+  }
+
   protected function taxonomy_access_grant_add_table($row, $id) {
     $header = $this->taxonomy_access_grant_table_header();
     $table = array(
@@ -181,6 +205,7 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\ConfigFormBase {
 
   public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
     parent::submitForm($form, $form_state);
+    dpm('standard submit');
   }
 
   /**
@@ -218,8 +243,8 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\ConfigFormBase {
       else {
         $form['status'] = [
           '#markup' => '<p>' . t('Access control for the %name role is enabled. <a href="@url">Disable @name</a>.', [
-            '@name' => $roles[$rid],
-            '%name' => $roles[$rid],
+            '@name' => $name,
+            '%name' => $name,
             '@url' => DefaultController::taxonomy_access_delete_role_url($roleId),
           ]) . '</p>'
           ];
@@ -287,11 +312,10 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\ConfigFormBase {
       ];
       $form['enable_vocabs']['add'] = [
         '#type' => 'submit',
-// FIX ME call back 
         '#submit' => [
-          'taxonomy_access_enable_vocab_submit'
+          '::taxonomy_access_enable_vocab_submit'
           ],
-        '#value' => t('Add'),
+        '#value' => t('Add me'),
       ];
     }
 

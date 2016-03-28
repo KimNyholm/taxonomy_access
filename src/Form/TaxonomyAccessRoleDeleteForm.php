@@ -83,8 +83,14 @@ class TaxonomyAccessRoleDeleteForm extends ConfirmFormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    dpm($this->id, 'being deleted');
-    $this->taxonomy_access_delete_record('taxonomy_access_default', $this->id);
+    $roleId = $this->id;
+    if (!in_array($roleId, [
+      \Drupal\user\RoleInterface::ANONYMOUS_ID,
+      \Drupal\user\RoleInterface::AUTHENTICATED_ID
+      ])) {
+      dpm($this->id, 'being deleted');
+      $this->taxonomy_access_delete_record('taxonomy_access_default', $this->id);
+    }
   }
 
 }

@@ -25,7 +25,7 @@ class TaxonomyAccessRoleEnableForm extends ConfigFormBase {
   protected function taxonomy_access_write_record($table, $row){
     $config = $this->config('taxonomy_access.settings');
     $rows=$config->get($table);
-    $rows[$row->rid]=  (array)$row;
+    $rows[$row->rid]=  array((array)$row);
     $config
       ->set($table, $rows)
       ->save();

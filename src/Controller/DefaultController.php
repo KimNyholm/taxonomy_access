@@ -96,16 +96,8 @@ static function taxonomy_access_delete_role_url($roleId) {
   return $url->toString();
 }
 
-static function _taxonomy_access_user_roles($permission = NULL) {
-  $roles = &drupal_static(__FUNCTION__, array());
-  if (!isset($roles[$permission])) {
-    $roles[$permission] = user_roles(FALSE, $permission);
-  }
-  return $roles[$permission];
-}
-
-static function UserRoleList(){
-  $roles=DefaultController::_taxonomy_access_user_roles();
+function UserRoleList(){
+  $roles=$this->taxonomyAccessService->_taxonomy_access_user_roles();
   $rows=array();
   foreach ($roles as $rid => $role) {
     $urlParameters=array('roleId' => $rid);

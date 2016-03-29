@@ -30,22 +30,13 @@ class DefaultController extends ControllerBase {
   public function __construct($taxonomyAccessService) {
     $this->taxonomyAccessService = $taxonomyAccessService;
   }
-  
+
   /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('taxonomy_access.taxonomy_access_service')
-    );
-  }
-  
-  /**
-   * Generates an example page.
-   */
-  public function demo() {
-    return array(
-      '#markup' => t('Hello @value!', array('@value' => $this->taxonomyAccessService->getDemoValue())),
     );
   }
 
@@ -60,7 +51,6 @@ class DefaultController extends ControllerBase {
       'taxonomy_access.settings',
     ];
   }
-
 
   static public function taxonomy_accessRoleName($roleId){
     // Seems to be some bug in autoloader.
@@ -135,6 +125,5 @@ function UserRoleList(){
 
     return \Drupal::formBuilder()->getForm('taxonomy_access_disable_vocab_confirm', $rid, $vocab);
   }
-
 
 }

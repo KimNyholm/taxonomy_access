@@ -8,6 +8,7 @@
 namespace Drupal\taxonomy_access\Form;
 
 use Drupal\taxonomy_access\Controller\DefaultController;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
   /**
    * Global default.
@@ -46,6 +47,23 @@ use Drupal\taxonomy_access\Controller\DefaultController;
 
 class TaxonomyAccessAdminRole extends \Drupal\Core\Form\ConfigFormBase {
 
+  protected $taxonomyAccessService ;
+
+  /**
+   * Class constructor.
+   */
+  public function __construct($taxonomyAccessService) {
+    $this->taxonomyAccessService = $taxonomyAccessService;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('taxonomy_access.taxonomy_access_service')
+    );
+  }
 
   static public function taxonomy_accessRoleName($roleId){
     $role=\Drupal\User\Entity\Role::load($roleId);
@@ -225,7 +243,7 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\ConfigFormBase {
       \Drupal\user\RoleInterface::ANONYMOUS_ID,
       \Drupal\user\RoleInterface::AUTHENTICATED_ID
     ])) {
-      $roles = DefaultController::_taxonomy_access_user_roles();
+      $roles = $this->taxonomyAccessService->_taxonomy_access_user_roles();
       $role=$roles[$roleId];
       $name=$role->label();
       // If the role is not enabled, return only a link to enable it.

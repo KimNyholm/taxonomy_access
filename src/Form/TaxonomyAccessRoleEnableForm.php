@@ -15,12 +15,31 @@ use Drupal\taxonomy_access\Controller;
 use Drupal\taxonomy_access\Controller\DefaultController;
 use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Url;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 define('TAXONOMY_ACCESS_GLOBAL_DEFAULT', 0);
 
 class TaxonomyAccessRoleEnableForm extends ConfigFormBase {
+
+  protected $taxonomyAccessService ;
+
+  /**
+   * Class constructor.
+   */
+  public function __construct($taxonomyAccessService) {
+    $this->taxonomyAccessService = $taxonomyAccessService;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('taxonomy_access.taxonomy_access_service')
+    );
+  }
 
   protected function taxonomy_access_write_record($table, $row){
     $config = $this->config('taxonomy_access.settings');
@@ -70,7 +89,7 @@ class TaxonomyAccessRoleEnableForm extends ConfigFormBase {
       throw new NotFoundHttpException();
     }
     // Return a 404 for invalid role IDs.
-    $roles = DefaultController::_taxonomy_access_user_roles();
+    $roles = $this->taxonomyAccessService->_taxonomy_access_user_roles();
     if (empty($roles[$roleId])) {
       throw new NotFoundHttpException();
     }

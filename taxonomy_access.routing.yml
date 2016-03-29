@@ -7,6 +7,15 @@ taxonomy_access.settings:
     _permission: 'administer site configuration'
   options:
     _admin_route: TRUE
+taxonomy_access.check_service:
+  path: /admin/config/people/taxonomy_access/check
+  defaults:
+    _title: Taxonomy access service check
+    _controller: Drupal\taxonomy_access\Controller\DefaultController::demo
+  requirements:
+    _permission: 'administer site configuration'
+  options:
+    _admin_route: TRUE
 taxonomy_access.admin_role_delete:
   path: /admin/config/people/taxonomy_access/role/{roleId}/delete
   defaults:

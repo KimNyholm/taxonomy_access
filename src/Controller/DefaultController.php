@@ -9,6 +9,7 @@ use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Url;
 use Drupal\Component\Utility\UrlHelper;
 
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Drupal\user\RoleInterface;
@@ -20,6 +21,33 @@ use Drupal\Core\Config\Config;
  * Default controller for the taxonomy_access module.
  */
 class DefaultController extends ControllerBase {
+
+  protected $taxonomyAccessService ;
+
+  /**
+   * Class constructor.
+   */
+  public function __construct($taxonomyAccessService) {
+    $this->taxonomyAccessService = $taxonomyAccessService;
+  }
+  
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('taxonomy_access.taxonomy_access_service')
+    );
+  }
+  
+  /**
+   * Generates an example page.
+   */
+  public function demo() {
+    return array(
+      '#markup' => t('Hello @value!', array('@value' => $this->taxonomyAccessService->getDemoValue())),
+    );
+  }
 
   static public function taxonomy_access_role_enabled($rid) {
     $config = \Drupal::config('taxonomy_access.settings');

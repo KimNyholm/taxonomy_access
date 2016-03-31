@@ -1,0 +1,171 @@
+<?php
+/**
+ * @file
+ *  Install, update, and uninstall functions for Taxonomy Access Control.
+ */
+
+/**
+ * Global default.
+ */
+define('TAXONOMY_ACCESS_GLOBAL_DEFAULT', 0);
+
+/**
+ * Vocabulary default.
+ */
+define('TAXONOMY_ACCESS_VOCABULARY_DEFAULT', 0);
+
+/**
+ * 'Allow' grant value for nodes.
+ */
+define('TAXONOMY_ACCESS_NODE_ALLOW', 1);
+
+/**
+ * 'Ignore' grant value for nodes.
+ */
+define('TAXONOMY_ACCESS_NODE_IGNORE', 0);
+
+/**
+ * 'Deny' grant value for nodes.
+ */
+define('TAXONOMY_ACCESS_NODE_DENY', 2);
+
+/**
+ * 'Allow' grant value for terms.
+ */
+define('TAXONOMY_ACCESS_TERM_ALLOW', 1);
+
+/**
+ * 'Deny' grant value for terms.
+ */
+define('TAXONOMY_ACCESS_TERM_DENY', 0);
+
+
+
+/**
+ * Implements hook_schema().
+ */
+function taxonomy_access_schema() {
+  $schema = array();
+
+  $schema['taxonomy_access_term'] = array(
+    'description' => 'Identifies which roles may view, update, delete, create, and list nodes with a given term.',
+    'fields' => array(
+      'tid' => array(
+        'description' => 'The term_data.tid this record affects.  Overrides vocabulary default in taxonomy_access_default.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => TAXONOMY_ACCESS_VOCABULARY_DEFAULT,
+      ),
+      'rid' => array(
+        'description' => "The role.rid a user must possess to gain this row's privileges on nodes for this term.",
+        'type' => 'varchar',
+        'length'  => 128,
+        'not null' => TRUE,
+      ),
+      'grant_view' => array(
+        'description' => 'Whether this role can view nodes with this term. 0=>Ignore, 1=>Allow, 2=>Deny.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => TAXONOMY_ACCESS_NODE_IGNORE,
+      ),
+      'grant_update' => array(
+        'description' => 'Whether this role can edit nodes with this term. 0=>Ignore, 1=>Allow, 2=>Deny.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => TAXONOMY_ACCESS_NODE_IGNORE,
+      ),
+      'grant_delete' => array(
+        'description' => 'Whether this role can delete nodes with this term. 0=>Ignore, 1=>Allow, 2=>Deny.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => TAXONOMY_ACCESS_NODE_IGNORE,
+      ),
+      'grant_create' => array(
+        'description' => 'Whether this role can set this term when adding or editing a node. 0=>No, 1=>Yes.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => TAXONOMY_ACCESS_TERM_DENY,
+      ),
+      'grant_list' => array(
+        'description' => 'Whether this role can view the name of this term on a node or in category lists. 0=>No, 1=>Yes.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => TAXONOMY_ACCESS_TERM_ALLOW,
+      ),
+    ),
+    'primary key' => array('tid', 'rid'),
+  );
+
+  $schema['taxonomy_access_default'] = array(
+    'description' => 'Sets vocabulary defaults for which roles may view, update, delete, create, and list nodes with a given term. Overridden by {taxonomy_access_term}.',
+    'fields' => array(
+      'vid' => array(
+        'description' => 'The vocabulary.vid for which this row sets defaults.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => TAXONOMY_ACCESS_VOCABULARY_DEFAULT,
+      ),
+      'rid' => array(
+        'description' => "The role.rid a user must possess to gain this row's privileges on nodes for terms in this vocabulary.",
+        'type' => 'varchar',
+        'length'  => 128,
+        'not null' => TRUE,
+      ),
+      'grant_view' => array(
+        'description' => 'Whether this role can view nodes with terms in this vocabulary. 0=>Ignore, 1=>Allow, 2=>Deny.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => TAXONOMY_ACCESS_NODE_IGNORE,
+      ),
+      'grant_update' => array(
+        'description' => 'Whether this role can edit nodes with terms in this vocabulary. 0=>Ignore, 1=>Allow, 2=>Deny.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => TAXONOMY_ACCESS_NODE_IGNORE,
+      ),
+      'grant_delete' => array(
+        'description' => 'Whether this role can delete nodes with terms in this vocabulary. 0=>Ignore, 1=>Allow, 2=>Deny.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => TAXONOMY_ACCESS_NODE_IGNORE,
+      ),
+      'grant_create' => array(
+        'description' => 'Whether this role can set terms in this vocabulary when adding or editing a node. 0=>No, 1=>Yes.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => TAXONOMY_ACCESS_TERM_DENY,
+      ),
+      'grant_list' => array(
+        'description' => 'Whether this role can view the name of terms in this vocabulary on a node or in category lists. 0=>No, 1=>Yes.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => TAXONOMY_ACCESS_TERM_DENY,
+      ),
+    ),
+    'primary key' => array('vid', 'rid'),
+  );
+
+  return $schema;
+}

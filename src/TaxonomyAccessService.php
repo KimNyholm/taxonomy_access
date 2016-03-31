@@ -468,11 +468,9 @@ function taxonomy_access_role_enabled($rid) {
  * @see taxnomomy_access_enable_role()
  */
 function taxonomy_access_enable_vocab($vid, $rid) {
-  $rid = intval($rid);
-  $vid = intval($vid);
 
   // All valid role IDs are > 0, and we do not enable the global default here.
-  if (!$rid || !$vid) {
+  if (empty($rid) || empty($vid)) {
     return FALSE;
   }
   // Take no action if the vocabulary is already enabled for the role.
@@ -495,8 +493,8 @@ function taxonomy_access_enable_vocab($vid, $rid) {
        WHERE vid = :vid AND rid = :rid',
        array(':rid' => $rid, ':vid' => TAXONOMY_ACCESS_GLOBAL_DEFAULT))
     ->fetchAssoc();
-  $record = _taxonomy_access_format_grant_record($vid, $rid, $global_default, TRUE);
-  return taxonomy_access_set_default_grants(array($vid => $record));
+  $record = $this->_taxonomy_access_format_grant_record($vid, $rid, $global_default, TRUE);
+  return $this->taxonomy_access_set_default_grants(array($vid => $record));
 }
 
 /**

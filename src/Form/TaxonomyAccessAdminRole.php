@@ -196,7 +196,6 @@ $defaults =
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
       '#title' => t('Add vocabulary'),
-      '#attributes' => array('class' => array('container-inline', 'taxonomy-access-add')),
     );
     $form['enable_vocabs']['enable_vocab'] = array(
       '#type' => 'select',
@@ -214,7 +213,7 @@ $defaults =
   foreach ($defaults as $vid => $vocab_default) {
     if (!empty($vocabs[$vid])) {
       $vocab = $vocabs[$vid];
-      $name = $vocab->machine_name;
+      $name = $vocab->id();
 
       // Fetch unconfigured terms and reorder term records by hierarchy.
       $sort = array();
@@ -268,7 +267,7 @@ $defaults =
           '#title' => t('with descendants'),
         );
         $form[$name]['new'][$vid]['grants'] =
-          taxonomy_access_grant_add_table($vocab_default, $vid);
+          $this->taxonomy_access_grant_add_table($vocab_default, $vid);
         $form[$name]['new'][$vid]['add'] = array(
           '#type' => 'submit',
           '#name' => $vid,
@@ -276,8 +275,9 @@ $defaults =
           '#value' => t('Add'),
         );
       }
-      $urlParameters=array('rid' => $rid, 'query' => $query);
-      $url=Url::fromRoute('taxonomy_access.admin_role_delete', $urlParameters);
+      $query = drupal_get_destination();
+      $urlParameters=array('rid' => $rid, 'vid' => $vid, 'query' => $query);
+      $url=Url::fromRoute('taxonomy_access.admin_role_disable', $urlParameters);
       $disable_url = $url->toString();
       $form[$name]['disable'] = array(
           '#markup' => '<p>' . t(

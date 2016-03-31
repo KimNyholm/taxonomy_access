@@ -461,7 +461,6 @@ function taxonomy_access_role_enabled($rid) {
         array(':rid' => $rid, ':vid' => TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT))
       ->fetchField();
   }
-  dpm($role_status, 'role status for '. $rid);
   return (bool) $role_status[$rid];
 }
 

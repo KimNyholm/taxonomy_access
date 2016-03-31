@@ -23,12 +23,6 @@ use Drupal\Core\Form\ConfirmFormBase;
 class TaxonomyAccessRoleDeleteForm extends ConfirmFormBase {
 
   protected function taxonomy_access_delete_record($table, $roleId){
-    $config = \Drupal::service('config.factory')->getEditable('taxonomy_access.settings');
-    $rows=$config->get($table);
-    unset($rows[$roleId]);
-    $config
-      ->set($table, $rows)
-      ->save();
     return true ;
   }
 
@@ -41,7 +35,7 @@ class TaxonomyAccessRoleDeleteForm extends ConfirmFormBase {
    *
    * @var string
    */
-  protected $id;
+  protected $rid;
 
   /**
    * {@inheritdoc}
@@ -57,8 +51,10 @@ class TaxonomyAccessRoleDeleteForm extends ConfirmFormBase {
   /**
    * {@inheritdoc}
    */
-    public function getCancelUrl() {
-      return new Url('taxonomy_access.settings');
+  public function getCancelUrl() {
+    $urlParameters=array('rid' => $this->rid);
+    $url=Url::fromRoute('taxonomy_access.admin_role_edit', $urlParameters);
+    return $url ;
   }
 
   /**
@@ -75,7 +71,7 @@ class TaxonomyAccessRoleDeleteForm extends ConfirmFormBase {
    *   (optional) The ID of the item to be deleted.
    */
   public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state, $rid= NULL) {
-    $this->id = $rid;
+    $this->rid = $rid;
     return parent::buildForm($form, $form_state);
   }
 
@@ -88,8 +84,8 @@ class TaxonomyAccessRoleDeleteForm extends ConfirmFormBase {
       \Drupal\user\RoleInterface::ANONYMOUS_ID,
       \Drupal\user\RoleInterface::AUTHENTICATED_ID
       ])) {
-      dpm($this->id, 'being deleted');
-      $this->taxonomy_access_delete_record('taxonomy_access_default', $this->id);
+      dpm($this->rid, 'being deleted');
+      $this->taxonomy_access_delete_record('taxonomy_access_default', $this->rid);
     }
   }
 

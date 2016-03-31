@@ -54,10 +54,10 @@ class TaxonomyAccessRoleDisableForm extends ConfirmFormBase {
   /**
    * {@inheritdoc}
    */
-    public function getCancelUrl() {
-      $urlParameters=array('rid' => $this->rid);
-      $url=Url::fromRoute('taxonomy_access.admin_role_edit', $urlParameters);
-      return $url ;
+  public function getCancelUrl() {
+    $urlParameters=array('rid' => $this->rid);
+    $url=Url::fromRoute('taxonomy_access.admin_role_edit', $urlParameters);
+    return $url ;
   }
 
   /**

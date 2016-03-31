@@ -40,6 +40,39 @@ define('TAXONOMY_ACCESS_TERM_ALLOW', 1);
 define('TAXONOMY_ACCESS_TERM_DENY', 0);
 
 
+/**
+ * Implements hook_install().
+ *
+ * Adds tables to database: 'taxonomy_access_term', 'taxonomy_access_default'
+ */
+function taxonomy_access_install() {
+
+  // Default global perms for roles 1 (anonymous) and 2 (authenticated).
+  db_query(
+    'INSERT INTO {taxonomy_access_default}
+    (vid, rid, grant_view, grant_update, grant_delete, grant_create, grant_list)
+    VALUES
+    (:vid, :rid, :node_allow, :ignore, :ignore, :term_allow, :term_allow)',
+    array(
+      ':vid' => TAXONOMY_ACCESS_GLOBAL_DEFAULT,
+      ':rid' => DRUPAL_ANONYMOUS_RID,
+      ':node_allow' => TAXONOMY_ACCESS_NODE_ALLOW,
+      ':ignore' => TAXONOMY_ACCESS_NODE_IGNORE,
+      ':term_allow' => TAXONOMY_ACCESS_TERM_ALLOW)
+  );
+  db_query(
+    'INSERT INTO {taxonomy_access_default}
+    (vid, rid, grant_view, grant_update, grant_delete, grant_create, grant_list)
+    VALUES
+    (:vid, :rid, :node_allow, :ignore, :ignore, :term_allow, :term_allow)',
+    array(
+      ':vid' => TAXONOMY_ACCESS_GLOBAL_DEFAULT,
+      ':rid' => DRUPAL_AUTHENTICATED_RID,
+      ':node_allow' => TAXONOMY_ACCESS_NODE_ALLOW,
+      ':ignore' => TAXONOMY_ACCESS_NODE_IGNORE,
+      ':term_allow' => TAXONOMY_ACCESS_TERM_ALLOW)
+  );
+}
 
 /**
  * Implements hook_schema().

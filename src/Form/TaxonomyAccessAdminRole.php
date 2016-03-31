@@ -220,6 +220,7 @@ $defaults =
       $add_options = array();
       if ($tree = \Drupal::entityManager()->getStorage("taxonomy_term")->loadTree($vid)) {
         foreach ($tree as $term) {
+            dpm($term->name, 'term');
           if (empty($term_grants[$vid][$term->tid])) {
             $add_options["term $term->tid"] = str_repeat('-', $term->depth) . ' ' . \Drupal\Component\Utility\Html::escape($term->name);
           }
@@ -232,7 +233,7 @@ $defaults =
       }
 
       $grants = array(TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT => $vocab_default);
-      $grants[TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT]['name'] = t('Default');
+      $grants[TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT]['name'] = (string)t('Default');
       if (!empty($term_grants[$vid])) {
         $grants += $term_grants[$vid];
       }
@@ -246,7 +247,7 @@ $defaults =
       );
       // Term grant table.
       $form[$name]['grants'] =
-        $this->taxonomy_access_grant_table($grants, $vocab->id(), t('Term'), !empty($term_grants[$vid]));
+        $this->taxonomy_access_grant_table($grants, $vocab->id(), (string)t('Term'), !empty($term_grants[$vid]));
       // Fieldset to add a new term if there are any.
       if (!empty($add_options)) {
         $form[$name]['new'] = array(
@@ -290,13 +291,13 @@ $defaults =
   $form['actions']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save all'),
-    '#submit' => array('taxonomy_access_save_all_submit'),
+    '#submit' => array('::taxonomy_access_save_all_submit'),
   );
   if (!empty($term_grants)) {
     $form['actions']['delete'] = array(
       '#type' => 'submit',
       '#value' => t('Delete selected'),
-      '#submit' => array('taxonomy_access_delete_selected_submit'),
+      '#submit' => array('::taxonomy_access_delete_selected_submit'),
     );
   }
 
@@ -470,6 +471,7 @@ function taxonomy_access_admin_build_row(array $grants, $label_key = NULL, $dele
     );
   }
   if ($label_key) {
+    dpm($grants[$label_key], 'label_key');
     $form[$label_key] = array(
       '#type' => 'markup',
       '#markup' => \Drupal\Component\Utility\Html::escape($grants[$label_key]),
@@ -506,7 +508,7 @@ function taxonomy_access_admin_build_row(array $grants, $label_key = NULL, $dele
  */
 function _taxonomy_access_grant_field_label($grant, $for = NULL) {
   if ($for) {
-    $label = array('@label', $for);
+    $label = array('@label' => $for);
     $titles = array(
       'view' => t('View grant for @label', $label),
       'update' => t('Update grant for @label', $label),
@@ -712,9 +714,8 @@ function taxonomy_access_delete_selected_submit($form, &$form_state) {
  * Processes submissions for the 'Save all' button.
  */
 function taxonomy_access_save_all_submit($form, &$form_state) {
-  $values = $form_state['values'];
-  $rid = $values['rid'];
-  $vocabs = taxonomy_get_vocabularies();
+  $rid = $form_state->getValue('rid');
+  $vocabs = \Drupal\taxonomy\Entity\Vocabulary::loadMultiple();
 
   // Create four lists of records to update.
   $update_terms = array();
@@ -722,13 +723,13 @@ function taxonomy_access_save_all_submit($form, &$form_state) {
   $update_defaults = array();
   $skip_defaults = array();
 
-  foreach ($values['grants'] as $vid => $rows) {
-    if ($vid == TAXONOMY_ACCESS_GLOBAL_DEFAULT) {
+  foreach ($form_state->getValue('grants') as $vid => $rows) {
+    if ($vid == TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT) {
       $element = $form['global_default'];
     }
     else {
       $vocab = $vocabs[$vid];
-      $element = $form[$vocab->machine_name];
+      $element = $form[$vocab->id()];
     }
     foreach ($rows as $tid => $row) {
       // Check the default values for this row.
@@ -756,25 +757,25 @@ function taxonomy_access_save_all_submit($form, &$form_state) {
           // Term record with node grant changes.
           case ($tid && $update_nodes):
             $update_terms[$tid] =
-              _taxonomy_access_format_grant_record($tid, $rid, $grants);
+              $this->taxonomyAccessService->_taxonomy_access_format_grant_record($tid, $rid, $grants);
             break;
 
           // Term record and no node grant changes.
           case ($tid && !$update_nodes):
             $skip_terms[$tid] =
-              _taxonomy_access_format_grant_record($tid, $rid, $grants);
+              $this->taxonomyAccessService->_taxonomy_access_format_grant_record($tid, $rid, $grants);
             break;
 
           // Vocab record with node grant changes.
           case (!$tid && $update_nodes):
             $update_defaults[$vid] =
-              _taxonomy_access_format_grant_record($vid, $rid, $grants, TRUE);
+              $this->taxonomyAccessService->_taxonomy_access_format_grant_record($vid, $rid, $grants, TRUE);
             break;
 
           // Vocab record and no node grant changes.
           case (!$tid && !$update_nodes):
             $skip_defaults[$vid] =
-              _taxonomy_access_format_grant_record($vid, $rid, $grants, TRUE);
+              $this->taxonomyAccessService->_taxonomy_access_format_grant_record($vid, $rid, $grants, TRUE);
             break;
         }
       }
@@ -783,16 +784,16 @@ function taxonomy_access_save_all_submit($form, &$form_state) {
 
   // Process each set.
   if (!empty($update_terms)) {
-    taxonomy_access_set_term_grants($update_terms);
+    $this->taxonomyAccessService->taxonomy_access_set_term_grants($update_terms);
   }
   if (!empty($skip_terms)) {
-    taxonomy_access_set_term_grants($skip_terms, FALSE);
+    $this->taxonomyAccessService->taxonomy_access_set_term_grants($skip_terms, FALSE);
   }
   if (!empty($update_defaults)) {
-    taxonomy_access_set_default_grants($update_defaults);
+    $this->taxonomyAccessService->taxonomy_access_set_default_grants($update_defaults);
   }
   if (!empty($skip_defaults)) {
-    taxonomy_access_set_default_grants($skip_defaults, FALSE);
+    $this->taxonomyAccessService->taxonomy_access_set_default_grants($skip_defaults, FALSE);
   }
 }
 

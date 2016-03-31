@@ -55,21 +55,11 @@ const TAXONOMY_ACCESS_TERM_DENY = 0 ;
   protected function drupal_write_record($table, $row)
   {
    dpm($row, 'drupal_write_record table=' .  $table);
-  $active_rids = db_query(
-    'SELECT rid, vid FROM {taxonomy_access_default} WHERE vid = :vid',
-    array(':vid' => TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT)
-  )->fetchAll();
-    dpm($active_rids, 'rids before');
     $fields=(array)$row;
     \Drupal::database()->merge($table)
       ->key(array('rid' => $row->rid, 'vid' => $row->vid))
       ->fields($fields)
       ->execute();
-  $active_rids = db_query(
-    'SELECT rid FROM {taxonomy_access_default} WHERE vid = :vid',
-    array(':vid' => TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT)
-  )->fetchCol();
-    dpm($active_rids, 'rids after');
     dpm('added to table ' . $table);
   }
 /**

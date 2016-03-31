@@ -216,8 +216,8 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\ConfigFormBase {
     ];
   }
 
-  public function getTitle($roleId){
-    $roleName=TaxonomyAccessAdminRole::taxonomy_accessRoleName($roleId);
+  public function getTitle($rid){
+    $roleName=TaxonomyAccessAdminRole::taxonomy_accessRoleName($rid);
     return "Access rules for $roleName";
   }
 
@@ -233,6 +233,226 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\ConfigFormBase {
     return 'taxonomy_access_admin_role';
   }
 
+function make_array($list){
+  $result=[];
+  foreach($list as $key =>$item){
+    $result[$key]=(array)$item;
+  }
+  return $result;
+}
+
+/**
+ * Form constructor for a form to manage grants by role.
+ *
+ * Drupal 7: taxonomy_access_admin_role($form, $form_state, $rid) {
+ *
+ * @param int $rid
+ *   The role ID.
+ *
+ * @see taxonomy_access_admin_form_submit()
+ * @see taxonomy_access_menu()
+ * @ingroup forms
+ */
+public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state, $rid = NULL) {
+  // Always include the role ID in the form.
+  $form['rid'] = array('#type' => 'value', '#value' => $rid);
+
+  // For custom roles, allow the user to enable or disable grants for the role.
+  if (!in_array($rid, array(
+      \Drupal\user\RoleInterface::ANONYMOUS_ID,
+      \Drupal\user\RoleInterface::AUTHENTICATED_ID))){
+    $roles = $this->taxonomyAccessService->_taxonomy_access_user_roles();
+    // If the role is not enabled, return only a link to enable it.
+    if (!$this->taxonomyAccessService->taxonomy_access_role_enabled($rid)) {
+      $form['status'] = array(
+        '#markup' => '<p>' . t(
+          'Access control for the %name role is disabled. <a href="@url">Enable @name</a>.',
+          array(
+            '%name' => $roles[$rid],
+            '@name' => $roles[$rid],
+            '@url' => DefaultController::taxonomy_access_enable_role_url($rid))) . '</p>'
+      );
+      return $form;
+    }
+    // Otherwise, add a link to disable and build the rest of the form.
+    else {
+      $disable_url = DefaultController::taxonomy_access_delete_role_url($rid);
+      $form['status'] = array(
+        '#markup' => '<p>' . t(
+          'Access control for the %name role is enabled. <a href="@url">Disable @name</a>.',
+          array('@name' => $roles[$rid], '%name' => $roles[$rid], '@url' => $disable_url)) . '</p>'
+      );
+    }
+  }
+
+  // Retrieve role grants and display an administration form.
+  // Disable list filtering while preparing this form.
+  $this->taxonomyAccessService->taxonomy_access_disable_list();
+
+// Fetch all grants for the role.
+$defaults =
+  db_query(
+    'SELECT vid, grant_view, grant_update, grant_delete, grant_create,
+            grant_list
+     FROM {taxonomy_access_default}
+       WHERE rid = :rid',
+      array(':rid' => $rid))
+    ->fetchAllAssoc('vid');
+  $defaults=$this->make_array($defaults);
+  $records =
+  array();
+/*    db_query(
+      'SELECT ta.tid, td.vid, ta.grant_view, ta.grant_update, ta.grant_delete,
+              ta.grant_create, ta.grant_list
+       FROM {taxonomy_access_term} ta
+       INNER JOIN {taxonomy_term_data} td ON ta.tid = td.tid
+       WHERE rid = :rid',
+      array(':rid' => $rid))
+    ->fetchAllAssoc('tid', PDO::FETCH_ASSOC);
+*/
+  $term_grants = array();
+  foreach ($records as $record) {
+    $term_grants[$record['vid']][$record['tid']] = $record;
+  }
+
+  // Add a fieldset for the global default.
+  $form['global_default'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Global default'),
+    '#description' => t('The global default controls access to untagged nodes. It is also used as the default for disabled vocabularies.'),
+    '#collapsible' => TRUE,
+    // Collapse if there are vocabularies configured.
+    '#collapsed' => (sizeof($defaults) > 1),
+  );
+  // Print term grant table.
+  $form['global_default']['grants'] = $this->taxonomy_access_grant_add_table($defaults[TAXONOMY_ACCESS_GLOBAL_DEFAULT], TAXONOMY_ACCESS_VOCABULARY_DEFAULT);
+
+  // Fetch all vocabularies and determine which are enabled for the role.
+  $vocabs = array();
+  $disabled = array();
+  foreach (\Drupal\taxonomy\Entity\Vocabulary::loadMultiple() as $vocab) {
+    $vocabs[$vocab->id()] = $vocab;
+    if (!isset($defaults[$vocab->id()])) {
+      $disabled[$vocab->id()] = $vocab->label();
+    }
+  }
+
+  // Add a fieldset to enable vocabularies.
+  if (!empty($disabled)) {
+    $form['enable_vocabs'] = array(
+      '#type' => 'fieldset',
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#title' => t('Add vocabulary'),
+      '#attributes' => array('class' => array('container-inline', 'taxonomy-access-add')),
+    );
+    $form['enable_vocabs']['enable_vocab'] = array(
+      '#type' => 'select',
+      '#title' => t('Vocabulary'),
+      '#options' => $disabled,
+    );
+    $form['enable_vocabs']['add'] = array(
+      '#type' => 'submit',
+      '#submit' => array('taxonomy_access_enable_vocab_submit'),
+      '#value' => t('Add'),
+    );
+  }
+
+  // Add a fieldset for each enabled vocabulary.
+  foreach ($defaults as $vid => $vocab_default) {
+    if (!empty($vocabs[$vid])) {
+      $vocab = $vocabs[$vid];
+      $name = $vocab->machine_name;
+
+      // Fetch unconfigured terms and reorder term records by hierarchy.
+      $sort = array();
+      $add_options = array();
+      if ($tree = taxonomy_get_tree($vid)) {
+        foreach ($tree as $term) {
+          if (empty($term_grants[$vid][$term->tid])) {
+            $add_options["term $term->tid"] = str_repeat('-', $term->depth) . ' ' .check_plain($term->name);
+          }
+          else {
+            $sort[$term->tid] = $term_grants[$vid][$term->tid];
+            $sort[$term->tid]['name'] =  str_repeat('-', $term->depth) . ' ' . check_plain($term->name);
+          }
+        }
+        $term_grants[$vid] = $sort;
+      }
+
+      $grants = array(TAXONOMY_ACCESS_VOCABULARY_DEFAULT => $vocab_default);
+      $grants[TAXONOMY_ACCESS_VOCABULARY_DEFAULT]['name'] = t('Default');
+      if (!empty($term_grants[$vid])) {
+        $grants += $term_grants[$vid];
+      }
+      $form[$name] = array(
+        '#type' => 'fieldset',
+        '#title' => $vocab->name,
+        '#attributes' => array('class' => array('taxonomy-access-vocab')),
+        '#description' => t('The default settings apply to all terms in %vocab that do not have their own below.', array('%vocab' => $vocab->name)),
+        '#collapsible' => TRUE,
+        '#collapsed' => FALSE,
+      );
+      // Term grant table.
+      $form[$name]['grants'] =
+        taxonomy_access_grant_table($grants, $vocab->vid, t('Term'), !empty($term_grants[$vid]));
+      // Fieldset to add a new term if there are any.
+      if (!empty($add_options)) {
+        $form[$name]['new'] = array(
+          '#type' => 'fieldset',
+          '#collapsible' => TRUE,
+          '#collapsed' => TRUE,
+          '#title' => t('Add term'),
+          '#tree' => TRUE,
+          '#attributes' => array('class' => array('container-inline', 'taxonomy-access-add')),
+        );
+        $form[$name]['new'][$vid]['item'] = array(
+          '#type' => 'select',
+          '#title' => t('Term'),
+          '#options' => $add_options,
+        );
+        $form[$name]['new'][$vid]['recursive'] = array(
+          '#type' => 'checkbox',
+          '#title' => t('with descendants'),
+        );
+        $form[$name]['new'][$vid]['grants'] =
+          taxonomy_access_grant_add_table($vocab_default, $vid);
+        $form[$name]['new'][$vid]['add'] = array(
+          '#type' => 'submit',
+          '#name' => $vid,
+          '#submit' => array('taxonomy_access_add_term_submit'),
+          '#value' => t('Add'),
+        );
+      }
+      $disable_url = url(
+        TAXONOMY_ACCESS_CONFIG . "/role/$rid/disable/$vid",
+        array('query' => drupal_get_destination())
+      );
+      $form[$name]['disable'] = array(
+          '#markup' => '<p>' . t(
+            'To disable the %vocab vocabulary, <a href="@url">delete all @vocab access rules</a>.',
+            array('%vocab' => $vocab->name, '@vocab' => $vocab->name, '@url' => $disable_url)) . '</p>'
+      );
+    }
+  }
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save all'),
+    '#submit' => array('taxonomy_access_save_all_submit'),
+  );
+  if (!empty($term_grants)) {
+    $form['actions']['delete'] = array(
+      '#type' => 'submit',
+      '#value' => t('Delete selected'),
+      '#submit' => array('taxonomy_access_delete_selected_submit'),
+    );
+  }
+
+  return $form;
+}
+
+/*
   public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state, $roleId = NULL) {
     $config = $this->config('taxonomy_access.settings');
     // Always include the role ID in the form.
@@ -272,8 +492,6 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\ConfigFormBase {
     // Disable list filtering while preparing this form.
     //taxonomy_access_disable_list();
     $defaults=$this->GetDefaultsForRole($roleId);
-    $records = array();
-/*
     $records = db_query('SELECT ta.tid, td.vid, ta.grant_view, ta.grant_update, ta.grant_delete,
               ta.grant_create, ta.grant_list
        FROM {taxonomy_access_term} ta
@@ -282,7 +500,6 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\ConfigFormBase {
       ':rid' => $rid
       ])
       ->fetchAllAssoc('tid', PDO::FETCH_ASSOC);
-*/
     $term_grants = [];
     foreach ($records as $record) {
       $term_grants[$record['vid']][$record['tid']] = $record;
@@ -430,7 +647,6 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\ConfigFormBase {
           ];
       }
     }
-*/
     $form['actions'] = ['#type' => 'actions'];
     $form['actions']['submit'] = [
       '#type' => 'submit',
@@ -450,6 +666,6 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\ConfigFormBase {
     }
     return $form;
   }
+*/
 
 }
-

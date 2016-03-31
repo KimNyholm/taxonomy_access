@@ -74,8 +74,11 @@ static function taxonomy_access_enable_role_url($roleId) {
   // Create a query array with a token to validate the sumbission.
   //  $query = drupal_get_destination();
   //  $query['token'] = drupal_get_token($rid);
+  return '';
   $urlParameters=array('roleId' => $roleId);
   $url=Url::fromRoute('taxonomy_access.admin_role_enable', $urlParameters);
+  dpm($urlParameters);
+  return '';
   return $url->toString();
 }
 
@@ -90,7 +93,7 @@ function UserRoleList(){
   $roles=$this->taxonomyAccessService->_taxonomy_access_user_roles();
   $rows=array();
   foreach ($roles as $rid => $role) {
-    $urlParameters=array('roleId' => $rid);
+    $urlParameters=array('rid' => $rid);
     $url=Url::fromRoute('taxonomy_access.settings_role', $urlParameters);
     $link = \Drupal::l(t('Configure'), $url);
     $roleEnabled = $this->taxonomyAccessService->taxonomy_access_role_enabled($rid);

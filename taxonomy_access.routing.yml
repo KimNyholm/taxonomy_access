@@ -26,7 +26,7 @@ taxonomy_access.admin_role_enable:
   options:
     _admin_route: TRUE
 taxonomy_access.settings_role:
-  path: /admin/config/people/taxonomy_access/role/{roleId}
+  path: /admin/config/people/taxonomy_access/role/{rid}
   defaults:
     _title_callback: Drupal\taxonomy_access\Form\TaxonomyAccessAdminRole:getTitle
     _form: Drupal\taxonomy_access\Form\TaxonomyAccessAdminRole

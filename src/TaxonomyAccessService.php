@@ -1476,7 +1476,7 @@ function taxonomy_access_enable_list() {
  * @see _taxonomy_access_list_state()
  */
 function taxonomy_access_disable_list() {
-  _taxonomy_access_list_state(FALSE);
+  $this->_taxonomy_access_list_state(FALSE);
 }
 
 /**

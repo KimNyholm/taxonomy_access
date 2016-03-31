@@ -74,8 +74,8 @@ class TaxonomyAccessRoleDeleteForm extends ConfirmFormBase {
    * @param int $id
    *   (optional) The ID of the item to be deleted.
    */
-  public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state, $roleId = NULL) {
-    $this->id = $roleId;
+  public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state, $rid= NULL) {
+    $this->id = $rid;
     return parent::buildForm($form, $form_state);
   }
 

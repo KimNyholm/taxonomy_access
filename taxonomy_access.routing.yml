@@ -17,7 +17,7 @@ taxonomy_access.admin_role_delete:
   options:
     _admin_route: TRUE
 taxonomy_access.admin_role_enable:
-  path: /admin/config/people/taxonomy_access/role/{roleId}/enable
+  path: /admin/config/people/taxonomy_access/role/{rid}/enable
   defaults:
     _title: Taxonomy access control enable role
     _form: Drupal\taxonomy_access\Form\TaxonomyAccessRoleEnableForm

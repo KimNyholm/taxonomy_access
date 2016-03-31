@@ -211,6 +211,24 @@ function make_array($list){
 }
 
 /**
+ * Generates a URL to enable a role with a token for CSRF protection.
+ *
+ * @param int $rid
+ *   The role ID.
+ *
+ * @return string
+ *   The full URL for the request path.
+ */
+static function taxonomy_access_enable_role_url($rid) {
+  // Create a query array with a token to validate the sumbission.
+  //  $query = drupal_get_destination();
+  //  $query['token'] = drupal_get_token($rid);
+  $urlParameters=array('rid' => $rid);
+  $url=Url::fromRoute('taxonomy_access.admin_role_enable', $urlParameters);
+  return $url->toString();
+}
+
+/**
  * Form constructor for a form to manage grants by role.
  *
  * Drupal 7: taxonomy_access_admin_role($form, $form_state, $rid) {
@@ -239,7 +257,7 @@ public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $for
           array(
             '%name' => $roles[$rid],
             '@name' => $roles[$rid],
-            '@url' => DefaultController::taxonomy_access_enable_role_url($rid))) . '</p>'
+            '@url' => $this->taxonomy_access_enable_role_url($rid))) . '</p>'
       );
       return $form;
     }
@@ -257,8 +275,6 @@ public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $for
             '@name' => $roles[$rid],
             '@url' => $disable_url)) . '</p>'
       );
-      return $form;
-      //$disable_url = DefaultController::taxonomy_access_delete_role_url($rid);
     }
   }
 

@@ -424,7 +424,7 @@ function taxonomy_access_enable_role($rid) {
   // If we are adding a role, no global default is set yet, so insert it now.
   // Assemble a $row object for Schema API.
   $row = new \stdClass();
-  $row->vid = TAXONOMY_ACCESS_GLOBAL_DEFAULT;
+  $row->vid = TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT;
   $row->rid = $rid;
 
   // Insert the row with defaults for all grants.

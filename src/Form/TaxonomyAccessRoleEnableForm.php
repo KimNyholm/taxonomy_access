@@ -19,8 +19,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-define('TAXONOMY_ACCESS_GLOBAL_DEFAULT', 0);
-
 class TaxonomyAccessRoleEnableForm extends ConfigFormBase {
 
   protected $taxonomyAccessService ;
@@ -41,72 +39,49 @@ class TaxonomyAccessRoleEnableForm extends ConfigFormBase {
     );
   }
 
-  protected function taxonomy_access_write_record($table, $row){
-    $config = $this->config('taxonomy_access.settings');
-    $rows=$config->get($table);
-    $rows[$row->rid]=  array((array)$row);
-    $config
-      ->set($table, $rows)
-      ->save();
-    return true ;
-  }
-
-  protected function taxonomy_access_enable_role($rid) {
-    // Take no action if the role is already enabled. All valid role IDs are > 0.
-    if (!$rid || DefaultController::taxonomy_access_role_enabled($rid)) {
-      return FALSE;
-    }
-
-    // If we are adding a role, no global default is set yet, so insert it now.
-    // Assemble a $row object for Schema API.
-    $row = new \stdClass();
-    $row->vid = TAXONOMY_ACCESS_GLOBAL_DEFAULT;
-    $row->grant_view = 0 ;
-    $row->grant_update = 0 ;
-    $row->grant_delete = 0 ;
-    $row->grant_create = 0 ;
-    $row->grant_list = 0 ;
-    $row->rid = $rid;
-    // Insert the row with defaults for all grants.
-    return $this->taxonomy_access_write_record('taxonomy_access_default', $row);
-  }
-
-  protected function taxonomy_access_enable_role_validate($roleId) {
-    // If a valid token is not provided, return a 403.
-    $uri = \Drupal::request()->getRequestUri();
-    $fragments=UrlHelper::parse($uri);
-    // If a valid token is not provided, return a 403.
-    if (empty($query['token']) || !drupal_valid_token($query['token'], $rid)) {
-      drupal_set_message('taxonomy_access_enable_role_validate needs more validation',  'error');
-// TBD
+/**
+ * Page callback: Enables a role if the proper token is provided.
+ *
+ * @param int $rid
+ *   The role ID.
+ */
+function taxonomy_access_enable_role_validate($rid) {
+  // If a valid token is not provided, return a 403.
+  $uri = \Drupal::request()->getRequestUri();
+  $fragments=UrlHelper::parse($uri);
+  // If a valid token is not provided, return a 403.
+  if (empty($query['token']) || !drupal_valid_token($query['token'], $rid)) {
+    drupal_set_message('taxonomy_access_enable_role_validate needs more validation',  'error');
 //      throw new AccessDeniedHttpException();
     }
-    // Return a 404 for the anonymous or authenticated roles.
-    if (in_array($roleId, [
-      \Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE,
-      \Drupal\Core\Session\AccountInterface::AUTHENTICATED_ROLE,
-    ])) {
-      throw new NotFoundHttpException();
-    }
-    // Return a 404 for invalid role IDs.
-    $roles = $this->taxonomyAccessService->_taxonomy_access_user_roles();
-    if (empty($roles[$roleId])) {
-      throw new NotFoundHttpException();
-    }
+  // Return a 404 for the anonymous or authenticated roles.
+  if (in_array($roleId, [
+    \Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE,
+    \Drupal\Core\Session\AccountInterface::AUTHENTICATED_ROLE,
+  ])) {
+    throw new NotFoundHttpException();
+  }
+  // Return a 404 for invalid role IDs.
+  $roles = $this->taxonomyAccessService->_taxonomy_access_user_roles();
+  if (empty($roles[$rid])) {
+    throw new NotFoundHttpException();
+  }
 
-    // If the parameters pass validation, enable the role and complete redirect.
-    if ($this->taxonomyAccessService->taxonomy_access_enable_role($roleId)) {
-      drupal_set_message(t('Role %name enabled successfully.', [
-        '%name' => $roleId,
-        ]));
-    }
-
-    // redirect
-    $urlParameters=array('roleId' => $roleId);
-    $url=Url::fromRoute('taxonomy_access.settings_role', $urlParameters);
-    $response = new \Symfony\Component\HttpFoundation\RedirectResponse($url->toString());
-    return $response ;
- }
+  // If the parameters pass validation, enable the role and complete redirect.
+  if ($this->taxonomyAccessService->taxonomy_access_enable_role($rid)) {
+    drupal_set_message(t('Role %name enabled successfully.', [
+      '%name' => $rid,
+      ]));
+  }
+  dpm($rid, 'now enabled');
+  // redirect
+  $urlParameters=array('rid' => $rid);
+  $url=Url::fromRoute('taxonomy_access.admin_role_edit', $urlParameters);
+  $response = new \Symfony\Component\HttpFoundation\RedirectResponse($url->toString());
+  dpm($rid, 'now redirected');
+  // redirect
+  return $response ;
+}
 
   protected function getEditableConfigNames() {
     return [
@@ -123,8 +98,8 @@ class TaxonomyAccessRoleEnableForm extends ConfigFormBase {
     return 'taxonomy_access_role_enable';
   }
 
-  public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state, $roleId = NULL) {
-    return $this->taxonomy_access_enable_role_validate($roleId);
+  public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state, $rid = NULL) {
+    return $this->taxonomy_access_enable_role_validate($rid);
   }
 }
 

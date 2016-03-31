@@ -6,10 +6,8 @@
  */
 
 namespace Drupal\taxonomy_access;
-/**
- * @file
- * Allows administrators to specify access control for taxonomy categories.
- */
+
+class TaxonomyAccessService {
 
 /**
  * Maximum number of nodes for which to update node access within the module.
@@ -17,50 +15,42 @@ namespace Drupal\taxonomy_access;
  * If the number of affected nodes is greater, then node_access_needs_rebuild()
  * will be set instead.
  */
-define('TAXONOMY_ACCESS_MAX_UPDATE', 500);
-
-/**
- * Base path for module administration pages.
- */
-define('TAXONOMY_ACCESS_CONFIG', 'admin/config/people/taxonomy_access');
+const TAXONOMY_ACCESS_MAX_UPDATE = 500 ;
 
 /**
  * Global default.
  */
-define('TAXONOMY_ACCESS_GLOBAL_DEFAULT', 0);
+const TAXONOMY_ACCESS_GLOBAL_DEFAULT = 0 ;
 
 /**
  * Vocabulary default.
  */
-define('TAXONOMY_ACCESS_VOCABULARY_DEFAULT', 0);
+const TAXONOMY_ACCESS_VOCABULARY_DEFAULT = 0 ;
 
 /**
  * 'Allow' grant value for nodes.
  */
-define('TAXONOMY_ACCESS_NODE_ALLOW', 1);
+const TAXONOMY_ACCESS_NODE_ALLOW = 1 ;
 
 /**
  * 'Ignore' grant value for nodes.
  */
-define('TAXONOMY_ACCESS_NODE_IGNORE', 0);
+const TAXONOMY_ACCESS_NODE_IGNORE = 0 ;
 
 /**
  * 'Deny' grant value for nodes.
  */
-define('TAXONOMY_ACCESS_NODE_DENY', 2);
+const TAXONOMY_ACCESS_NODE_DENY = 2 ;
 
 /**
  * 'Allow' grant value for terms.
  */
-define('TAXONOMY_ACCESS_TERM_ALLOW', 1);
+const TAXONOMY_ACCESS_TERM_ALLOW = 1 ;
 
 /**
  * 'Deny' grant value for terms.
  */
-define('TAXONOMY_ACCESS_TERM_DENY', 0);
-
-
-class TaxonomyAccessService {
+const TAXONOMY_ACCESS_TERM_DENY = 0 ;
 
   protected function drupal_write_record($table, $row)
   {

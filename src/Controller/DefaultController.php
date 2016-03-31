@@ -5,17 +5,11 @@
 
 namespace Drupal\taxonomy_access\Controller;
 
+use Drupal\taxonomy_access\TaxonomyAccessService;
+
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Url;
-use Drupal\Component\Utility\UrlHelper;
-
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Drupal\user\RoleInterface;
-use Drupal\taxonomy_access\TaxonomyAccessAdminRole;
-
-use Drupal\Core\Config\Config;
 
 /**
  * Default controller for the taxonomy_access module.
@@ -93,9 +87,9 @@ function taxonomy_access_admin() {
   $roles = $this->taxonomyAccessService->_taxonomy_access_user_roles();
   $active_rids = db_query(
     'SELECT rid FROM {taxonomy_access_default} WHERE vid = :vid',
-    array(':vid' => TAXONOMY_ACCESS_GLOBAL_DEFAULT)
+    array(':vid' => TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT)
   )->fetchCol();
-
+    dpm($active_rids, 'rids');
   $header = array(t('Role'), t('Status'), t('Operations'));
   $rows = array();
 

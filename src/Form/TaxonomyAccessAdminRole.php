@@ -7,45 +7,12 @@
 
 namespace Drupal\taxonomy_access\Form;
 
+use Drupal\taxonomy_access\TaxonomyAccessService;
 
 use Drupal\Core\Url;
 use Drupal\taxonomy_access\Controller\DefaultController;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-  /**
-   * Global default.
-   */
-  define('TAXONOMY_ACCESS_GLOBAL_DEFAULT', 0);
-
-  /**
-   * Vocabulary default.
-   */
-  define('TAXONOMY_ACCESS_VOCABULARY_DEFAULT', 0);
-
-  /**
-   * 'Allow' grant value for nodes.
-   */
-  define('TAXONOMY_ACCESS_NODE_ALLOW', 1);
-
-  /**
-   * 'Ignore' grant value for nodes.
-   */
-  define('TAXONOMY_ACCESS_NODE_IGNORE', 0);
-
-  /**
-   * 'Deny' grant value for nodes.
-   */
-  define('TAXONOMY_ACCESS_NODE_DENY', 2);
-
-  /**
-   * 'Allow' grant value for terms.
-   */
-  define('TAXONOMY_ACCESS_TERM_ALLOW', 1);
-
-  /**
-   * 'Deny' grant value for terms.
-   */
-  define('TAXONOMY_ACCESS_TERM_DENY', 0);
 
 class TaxonomyAccessAdminRole extends \Drupal\Core\Form\ConfigFormBase {
 
@@ -335,7 +302,7 @@ $defaults =
     '#collapsed' => (sizeof($defaults) > 1),
   );
   // Print term grant table.
-  $form['global_default']['grants'] = $this->taxonomy_access_grant_add_table($defaults[TAXONOMY_ACCESS_GLOBAL_DEFAULT], TAXONOMY_ACCESS_VOCABULARY_DEFAULT);
+  $form['global_default']['grants'] = $this->taxonomy_access_grant_add_table($defaults[TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT], TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT);
 
   // Fetch all vocabularies and determine which are enabled for the role.
   $vocabs = array();

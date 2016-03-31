@@ -54,13 +54,23 @@ const TAXONOMY_ACCESS_TERM_DENY = 0 ;
 
   protected function drupal_write_record($table, $row)
   {
-    dpm($row, 'write_record');
+   dpm($row, 'drupal_write_record table=' .  $table);
+  $active_rids = db_query(
+    'SELECT rid, vid FROM {taxonomy_access_default} WHERE vid = :vid',
+    array(':vid' => TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT)
+  )->fetchAll();
+    dpm($active_rids, 'rids before');
     $fields=(array)$row;
     \Drupal::database()->merge($table)
-      ->key(array('rid' => $row->rid))
+      ->key(array('rid' => $row->rid, 'vid' => $row->vid))
       ->fields($fields)
       ->execute();
-    dpm($row , 'added to table ' . $table);
+  $active_rids = db_query(
+    'SELECT rid FROM {taxonomy_access_default} WHERE vid = :vid',
+    array(':vid' => TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT)
+  )->fetchCol();
+    dpm($active_rids, 'rids after');
+    dpm('added to table ' . $table);
   }
 /**
  * Caches a list of all roles.
@@ -448,9 +458,10 @@ function taxonomy_access_role_enabled($rid) {
         'SELECT 1
          FROM {taxonomy_access_default}
          WHERE rid = :rid AND vid = :vid',
-        array(':rid' => $rid, ':vid' => TAXONOMY_ACCESS_GLOBAL_DEFAULT))
+        array(':rid' => $rid, ':vid' => TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT))
       ->fetchField();
   }
+  dpm($role_status, 'role status for '. $rid);
   return (bool) $role_status[$rid];
 }
 
@@ -468,7 +479,7 @@ function taxonomy_access_role_enabled($rid) {
  * @see taxnomomy_access_enable_role()
  */
 function taxonomy_access_enable_vocab($vid, $rid) {
-
+  dpm('taxonomy_access_enable_vocab');
   // All valid role IDs are > 0, and we do not enable the global default here.
   if (empty($rid) || empty($vid)) {
     return FALSE;
@@ -491,8 +502,9 @@ function taxonomy_access_enable_vocab($vid, $rid) {
       'SELECT grant_view, grant_update, grant_delete, grant_create, grant_list
        FROM {taxonomy_access_default}
        WHERE vid = :vid AND rid = :rid',
-       array(':rid' => $rid, ':vid' => TAXONOMY_ACCESS_GLOBAL_DEFAULT))
+       array(':rid' => $rid, ':vid' => TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT))
     ->fetchAssoc();
+  dpm($global_default, 'gd');
   $record = $this->_taxonomy_access_format_grant_record($vid, $rid, $global_default, TRUE);
   return $this->taxonomy_access_set_default_grants(array($vid => $record));
 }
@@ -632,8 +644,8 @@ function taxonomy_access_affected_nodes(array $affected_nodes = NULL, $reset = F
     $nodes = array_unique(array_merge($nodes, $affected_nodes));
 
     // Stop caching if there are more nodes than the limit.
-    if (sizeof($nodes) >= TAXONOMY_ACCESS_MAX_UPDATE) {
-      _taxonomy_access_flag_rebuild();
+    if (sizeof($nodes) >= TaxonomyAccessService::TAXONOMY_ACCESS_MAX_UPDATE) {
+      $this->_taxonomy_access_flag_rebuild();
       unset($nodes);
     }
   }
@@ -654,7 +666,8 @@ function taxonomy_access_affected_nodes(array $affected_nodes = NULL, $reset = F
  *    An array of node IDs associated with terms or vocabularies that are
  *    controlled for the role.
  */
-function _taxonomy_access_get_controlled_nodes_for_role($rid) {
+function taxonomy_access_get_controlled_nodes_for_role($rid) {
+  dpm('taxonomy_access_get_controlled_nodes_for_role entry');
   $query = db_select('taxonomy_index', 'ti')
     ->fields('ti', array('nid'))
     ->addTag('taxonomy_access_node');
@@ -726,6 +739,8 @@ function _taxonomy_access_get_nodes_for_global_default($rid) {
  *    An array of node IDs associated with the given vocabulary.
  */
 function _taxonomy_access_get_nodes_for_defaults($vocab_ids, $rid = NULL) {
+  dpm('taxonomy_access_get_nodes_for_defaults');
+  return array();
   // Accept either a single vocabulary ID or an array thereof.
   if (is_numeric($vocab_ids)) {
     $vocab_ids = array($vocab_ids);
@@ -736,7 +751,7 @@ function _taxonomy_access_get_nodes_for_defaults($vocab_ids, $rid = NULL) {
 
   // If a role was passed, get terms controlled for that role.
   if (!empty($rid)) {
-    $tids = _taxonomy_access_vocab_controlled_terms($vocab_ids, $rid);
+    $tids = $this->_taxonomy_access_vocab_controlled_terms($vocab_ids, $rid);
   }
 
   $query =
@@ -757,9 +772,9 @@ function _taxonomy_access_get_nodes_for_defaults($vocab_ids, $rid = NULL) {
   unset($query);
 
   // If the global default is in the list, fetch those nodes as well.
-  if (in_array(TAXONOMY_ACCESS_GLOBAL_DEFAULT, $vocab_ids)) {
+  if (in_array(TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT, $vocab_ids)) {
     $nids =
-      array_merge($nids, _taxonomy_access_get_nodes_for_global_default($rid));
+      array_merge($nids, $this->_taxonomy_access_get_nodes_for_global_default($rid));
   }
 
   return $nids;
@@ -799,6 +814,7 @@ function _taxonomy_access_global_controlled_terms($rid) {
  *   A list of term IDs.
  */
 function _taxonomy_access_vocab_controlled_terms($vids, $rid) {
+  dpm('_taxonomy_access_vocab_controlled_terms');
   // Accept either a single vocabulary ID or an array thereof.
   if (is_numeric($vids)) {
     $vids = array($vids);
@@ -1017,6 +1033,7 @@ function taxonomy_access_delete_role_grants($rid, $update_nodes = TRUE) {
     unset($affected_nodes);
   }
 
+  dpm($vocab_ids, 'i sd deleting for role ' . $rid);
   db_delete('taxonomy_access_term')
     ->condition('rid', $rid)
     ->execute();
@@ -1043,20 +1060,28 @@ function taxonomy_access_delete_role_grants($rid, $update_nodes = TRUE) {
  *   TRUE on success, or FALSE on failure.
  */
 function taxonomy_access_delete_default_grants($vocab_ids, $rid = NULL, $update_nodes = TRUE) {
+  dpm($vocabs_ids, 'taxonomy_access_delete_default_grants entry');
+
   // Accept either a single vocabulary ID or an array thereof.
-  if ($vocab_ids !== TAXONOMY_ACCESS_GLOBAL_DEFAULT && empty($vocab_ids)) {
+  if ($vocab_ids !== TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT && empty($vocab_ids)) {
     return FALSE;
   }
 
   if ($update_nodes) {
     // Cache the list of nodes that will be affected by this change.
     $affected_nodes =
-      _taxonomy_access_get_nodes_for_defaults($vocab_ids, $rid);
-    taxonomy_access_affected_nodes($affected_nodes);
+      $this->_taxonomy_access_get_nodes_for_defaults($vocab_ids, $rid);
+    $this->taxonomy_access_affected_nodes($affected_nodes);
     unset($affected_nodes);
   }
 
   // The query builder will use = or IN() automatically as appropriate.
+  $active_rids = db_query(
+    'SELECT rid FROM {taxonomy_access_default} WHERE vid = :vid',
+    array(':vid' => TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT)
+  )->fetchCol();
+    dpm($active_rids, 'rids before');
+  dpm($vocab_ids, 'deleting for role ' . $rid);
   $query =
     db_delete('taxonomy_access_default')
     ->condition('vid', $vocab_ids);
@@ -1067,6 +1092,11 @@ function taxonomy_access_delete_default_grants($vocab_ids, $rid = NULL, $update_
 
   $query->execute();
   unset($query);
+  $active_rids = db_query(
+    'SELECT rid FROM {taxonomy_access_default} WHERE vid = :vid',
+    array(':vid' => TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT)
+  )->fetchCol();
+    dpm($active_rids, 'rids after');
   return TRUE;
 }
 
@@ -1139,7 +1169,7 @@ function taxonomy_access_delete_term_grants($term_ids, $rid = NULL, $update_node
  *   A grant row object formatted for Schema API.
  */
 function _taxonomy_access_format_grant_record($id, $rid, array $grants, $default = FALSE) {
-  $row = new stdClass();
+  $row = new \stdClass();
   if ($default) {
     $row->vid = $id;
   }
@@ -1149,7 +1179,7 @@ function _taxonomy_access_format_grant_record($id, $rid, array $grants, $default
   $row->rid = $rid;
   foreach ($grants as $op => $value) {
     if (is_numeric($value)) {
-      $grant_name = strpos($op, 'grant_') ? $op : "grant_$op";
+      $grant_name = 0===strpos($op, 'grant_') ? $op : "grant_$op";
       $row->$grant_name = $value;
     }
   }
@@ -1210,6 +1240,7 @@ function taxonomy_access_set_term_grants(array $grant_rows, $update_nodes = TRUE
  * @see _taxonomy_access_format_grant_record()
  */
 function taxonomy_access_set_default_grants(array $grant_rows, $update_nodes = TRUE) {
+  dpm($grant_rows, 'taxonomy_access_set_default_grants');
   // Collect lists of term and role IDs in the list.
   $vocabs_for_roles = array();
   foreach ($grant_rows as $grant_row) {
@@ -1219,12 +1250,12 @@ function taxonomy_access_set_default_grants(array $grant_rows, $update_nodes = T
   // Delete existing records for the roles and vocabularies.
   // This will also cache a list of the affected nodes.
   foreach ($vocabs_for_roles as $rid => $vids) {
-    taxonomy_access_delete_default_grants($vids, $rid, $update_nodes);
+    $this->taxonomy_access_delete_default_grants($vids, $rid, $update_nodes);
   }
 
   // Insert new entries.
   foreach ($grant_rows as $row) {
-    drupal_write_record('taxonomy_access_default', $row);
+    $this->drupal_write_record('taxonomy_access_default', $row);
   }
 
   // Later we will refactor; for now return TRUE when this is called.

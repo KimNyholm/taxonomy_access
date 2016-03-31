@@ -145,15 +145,14 @@ function taxonomy_access_schema() {
     'fields' => array(
       'vid' => array(
         'description' => 'The vocabulary.vid for which this row sets defaults.',
-        'type' => 'int',
-        'unsigned' => TRUE,
+        'type' => 'varchar',
+        'length'  => 64,
         'not null' => TRUE,
-        'default' => TAXONOMY_ACCESS_VOCABULARY_DEFAULT,
       ),
       'rid' => array(
         'description' => "The role.rid a user must possess to gain this row's privileges on nodes for terms in this vocabulary.",
         'type' => 'varchar',
-        'length'  => 128,
+        'length'  => 64,
         'not null' => TRUE,
       ),
       'grant_view' => array(

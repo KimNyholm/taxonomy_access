@@ -219,35 +219,35 @@ $defaults =
       // Fetch unconfigured terms and reorder term records by hierarchy.
       $sort = array();
       $add_options = array();
-      if ($tree = taxonomy_get_tree($vid)) {
+      if ($tree = \Drupal::entityManager()->getStorage("taxonomy_term")->loadTree($vid)) {
         foreach ($tree as $term) {
           if (empty($term_grants[$vid][$term->tid])) {
-            $add_options["term $term->tid"] = str_repeat('-', $term->depth) . ' ' .check_plain($term->name);
+            $add_options["term $term->tid"] = str_repeat('-', $term->depth) . ' ' . \Drupal\Component\Utility\Html::escape($term->name);
           }
           else {
             $sort[$term->tid] = $term_grants[$vid][$term->tid];
-            $sort[$term->tid]['name'] =  str_repeat('-', $term->depth) . ' ' . check_plain($term->name);
+            $sort[$term->tid]['name'] = str_repeat('-', $term->depth) . ' ' . \Drupal\Component\Utility\Html::escape($term->name);
           }
         }
         $term_grants[$vid] = $sort;
       }
 
-      $grants = array(TAXONOMY_ACCESS_VOCABULARY_DEFAULT => $vocab_default);
-      $grants[TAXONOMY_ACCESS_VOCABULARY_DEFAULT]['name'] = t('Default');
+      $grants = array(TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT => $vocab_default);
+      $grants[TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT]['name'] = t('Default');
       if (!empty($term_grants[$vid])) {
         $grants += $term_grants[$vid];
       }
       $form[$name] = array(
         '#type' => 'fieldset',
-        '#title' => $vocab->name,
+        '#title' => $vocab->label(),
         '#attributes' => array('class' => array('taxonomy-access-vocab')),
-        '#description' => t('The default settings apply to all terms in %vocab that do not have their own below.', array('%vocab' => $vocab->name)),
+        '#description' => t('The default settings apply to all terms in %vocab that do not have their own below.', array('%vocab' => $vocab->label())),
         '#collapsible' => TRUE,
         '#collapsed' => FALSE,
       );
       // Term grant table.
       $form[$name]['grants'] =
-        taxonomy_access_grant_table($grants, $vocab->vid, t('Term'), !empty($term_grants[$vid]));
+        $this->taxonomy_access_grant_table($grants, $vocab->id(), t('Term'), !empty($term_grants[$vid]));
       // Fieldset to add a new term if there are any.
       if (!empty($add_options)) {
         $form[$name]['new'] = array(
@@ -276,14 +276,13 @@ $defaults =
           '#value' => t('Add'),
         );
       }
-      $disable_url = url(
-        TAXONOMY_ACCESS_CONFIG . "/role/$rid/disable/$vid",
-        array('query' => drupal_get_destination())
-      );
+      $urlParameters=array('rid' => $rid, 'query' => $query);
+      $url=Url::fromRoute('taxonomy_access.admin_role_delete', $urlParameters);
+      $disable_url = $url->toString();
       $form[$name]['disable'] = array(
           '#markup' => '<p>' . t(
             'To disable the %vocab vocabulary, <a href="@url">delete all @vocab access rules</a>.',
-            array('%vocab' => $vocab->name, '@vocab' => $vocab->name, '@url' => $disable_url)) . '</p>'
+            array('%vocab' => $vocab->label(), '@vocab' => $vocab->label(), '@url' => $disable_url)) . '</p>'
       );
     }
   }
@@ -333,7 +332,7 @@ $defaults =
  * @see taxonomy_access_grant_table()
  */
 function taxonomy_access_grant_table(array $rows, $parent_vid, $first_col, $delete = TRUE) {
-  $header = taxonomy_access_grant_table_header();
+  $header = $this->taxonomy_access_grant_table_header();
   if ($first_col) {
     array_unshift(
       $header,
@@ -350,11 +349,11 @@ function taxonomy_access_grant_table(array $rows, $parent_vid, $first_col, $dele
     '#header' => $header,
   );
   foreach ($rows as $id => $row) {
-    $table[$parent_vid][$id] = taxonomy_access_admin_build_row($row, 'name', $delete);
+    $table[$parent_vid][$id] = $this->taxonomy_access_admin_build_row($row, 'name', $delete);
   }
   // Disable the delete checkbox for the default.
-  if ($delete && isset($table[$parent_vid][TAXONOMY_ACCESS_VOCABULARY_DEFAULT])) {
-    $table[$parent_vid][TAXONOMY_ACCESS_VOCABULARY_DEFAULT]['remove']['#disabled'] = TRUE;
+  if ($delete && isset($table[$parent_vid][TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT])) {
+    $table[$parent_vid][TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT]['remove']['#disabled'] = TRUE;
   }
 
   return $table;

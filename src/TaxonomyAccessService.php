@@ -61,18 +61,17 @@ define('TAXONOMY_ACCESS_TERM_DENY', 0);
 
 
 class TaxonomyAccessService {
-  
-  protected $demo_value;
-  
-  public function __construct() {
-    $this->demo_value = 'Upchuk';
-  }
-  
-  public function getDemoValue() {
-    return $this->demo_value;
-  }
-  
 
+  protected function drupal_write_record($table, $row)
+  {
+    dpm($row, 'write_record');
+    $fields=(array)$row;
+    \Drupal::database()->merge($table)
+      ->key(array('rid' => $row->rid))
+      ->fields($fields)
+      ->execute();
+    dpm($row , 'added to table ' . $table);
+  }
 /**
  * Caches a list of all roles.
  *
@@ -425,21 +424,21 @@ function taxonomy_access_field_widget_form_alter(&$element, &$form_state, $conte
  *   Should we default to the authenticated user global default?
  */
 function taxonomy_access_enable_role($rid) {
-  $rid = intval($rid);
+  dpm($rid, 'enable role');
 
   // Take no action if the role is already enabled. All valid role IDs are > 0.
-  if (!$rid || taxonomy_access_role_enabled($rid)) {
+  if (empty($rid) || $this->taxonomy_access_role_enabled($rid)) {
     return FALSE;
   }
 
   // If we are adding a role, no global default is set yet, so insert it now.
   // Assemble a $row object for Schema API.
-  $row = new stdClass();
+  $row = new \stdClass();
   $row->vid = TAXONOMY_ACCESS_GLOBAL_DEFAULT;
   $row->rid = $rid;
 
   // Insert the row with defaults for all grants.
-  return drupal_write_record('taxonomy_access_default', $row);
+  return $this->drupal_write_record('taxonomy_access_default', $row);
 }
 
 /**

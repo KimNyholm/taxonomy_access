@@ -93,7 +93,7 @@ function UserRoleList(){
     $urlParameters=array('roleId' => $rid);
     $url=Url::fromRoute('taxonomy_access.settings_role', $urlParameters);
     $link = \Drupal::l(t('Configure'), $url);
-    $roleEnabled = DefaultController::taxonomy_access_role_enabled($rid);
+    $roleEnabled = $this->taxonomyAccessService->taxonomy_access_role_enabled($rid);
     $state = $roleEnabled ? t('Enabled') : t('Disabled') ;
     $row = array($role->label(), $state, $link,);
     $rows[]=$row;

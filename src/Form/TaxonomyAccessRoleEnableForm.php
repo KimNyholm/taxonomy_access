@@ -95,7 +95,7 @@ class TaxonomyAccessRoleEnableForm extends ConfigFormBase {
     }
 
     // If the parameters pass validation, enable the role and complete redirect.
-    if ($this->taxonomy_access_enable_role($roleId)) {
+    if ($this->taxonomyAccessService->taxonomy_access_enable_role($roleId)) {
       drupal_set_message(t('Role %name enabled successfully.', [
         '%name' => $roleId,
         ]));

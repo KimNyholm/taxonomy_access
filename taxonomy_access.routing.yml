@@ -8,7 +8,7 @@ taxonomy_access.settings:
   options:
     _admin_route: TRUE
 taxonomy_access.admin_role_delete:
-  path: /admin/config/people/taxonomy_access/role/{roleId}/delete
+  path: /admin/config/people/taxonomy_access/role/{rid}/delete
   defaults:
     _title: Taxonomy access control role delete
     _form: Drupal\taxonomy_access\Form\TaxonomyAccessRoleDeleteForm
@@ -26,7 +26,7 @@ taxonomy_access.admin_role_enable:
   options:
     _admin_route: TRUE
 taxonomy_access.admin_role_edit:
-  path: /admin/config/people/taxonomy_access/role/{rid}
+  path: /admin/config/people/taxonomy_access/role/{rid}/edit
   defaults:
     _title_callback: Drupal\taxonomy_access\Form\TaxonomyAccessAdminRole:getTitle
     _form: Drupal\taxonomy_access\Form\TaxonomyAccessAdminRole

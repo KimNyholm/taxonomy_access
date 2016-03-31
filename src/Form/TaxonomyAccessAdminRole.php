@@ -7,6 +7,8 @@
 
 namespace Drupal\taxonomy_access\Form;
 
+
+use Drupal\Core\Url;
 use Drupal\taxonomy_access\Controller\DefaultController;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -276,12 +278,20 @@ public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $for
     }
     // Otherwise, add a link to disable and build the rest of the form.
     else {
-      $disable_url = DefaultController::taxonomy_access_delete_role_url($rid);
+      $query = drupal_get_destination();
+      $urlParameters=array('rid' => $rid, 'query' => $query);
+      $url=Url::fromRoute('taxonomy_access.admin_role_delete', $urlParameters);
+      $disable_url = $url->toString();
       $form['status'] = array(
         '#markup' => '<p>' . t(
           'Access control for the %name role is enabled. <a href="@url">Disable @name</a>.',
-          array('@name' => $roles[$rid], '%name' => $roles[$rid], '@url' => $disable_url)) . '</p>'
+          array(
+            '%name' => $roles[$rid],
+            '@name' => $roles[$rid],
+            '@url' => $disable_url)) . '</p>'
       );
+      return $form;
+      //$disable_url = DefaultController::taxonomy_access_delete_role_url($rid);
     }
   }
 

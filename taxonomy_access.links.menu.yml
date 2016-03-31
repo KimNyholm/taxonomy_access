@@ -4,6 +4,6 @@ taxonomy_access.settings:
   description: 'Configure taxonomy access control.'
   parent: user.admin_index
 taxonomy_access.settings_role:
-  route_name: taxonomy_access.settings_role
+  route_name: taxonomy_access.admin_role_edit
   description: 'Configure taxonomy access control for role.'
   parent: taxonomy_access.settings

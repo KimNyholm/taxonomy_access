@@ -1049,7 +1049,7 @@ function taxonomy_access_delete_role_grants($rid, $update_nodes = TRUE) {
  *   TRUE on success, or FALSE on failure.
  */
 function taxonomy_access_delete_default_grants($vocab_ids, $rid = NULL, $update_nodes = TRUE) {
-  dpm('taxonomy_access_delete_default_grants entry');
+  dpm($vocab_ids, 'taxonomy_access_delete_default_grants entry');
 
   // Accept either a single vocabulary ID or an array thereof.
   if ($vocab_ids !== TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT && empty($vocab_ids)) {

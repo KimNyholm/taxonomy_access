@@ -108,14 +108,15 @@ public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $for
       \Drupal\user\RoleInterface::ANONYMOUS_ID,
       \Drupal\user\RoleInterface::AUTHENTICATED_ID))){
     $roles = $this->taxonomyAccessService->_taxonomy_access_user_roles();
+    $roleName=$roles[$rid]->label();
     // If the role is not enabled, return only a link to enable it.
     if (!$this->taxonomyAccessService->taxonomy_access_role_enabled($rid)) {
       $form['status'] = array(
         '#markup' => '<p>' . t(
           'Access control for the %name role is disabled. <a href="@url">Enable @name</a>.',
           array(
-            '%name' => $roles[$rid],
-            '@name' => $roles[$rid],
+            '%name' => $roleName,
+            '@name' => $roleName,
             '@url' => $this->taxonomy_access_enable_role_url($rid))) . '</p>'
       );
       return $form;
@@ -130,8 +131,8 @@ public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $for
         '#markup' => '<p>' . t(
           'Access control for the %name role is enabled. <a href="@url">Disable @name</a>.',
           array(
-            '%name' => $roles[$rid],
-            '@name' => $roles[$rid],
+            '%name' => $roleName,
+            '@name' => $roleName,
             '@url' => $disable_url)) . '</p>'
       );
     }

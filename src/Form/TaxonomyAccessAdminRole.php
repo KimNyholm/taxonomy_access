@@ -12,7 +12,7 @@ use Drupal\Core\Url;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 
-class TaxonomyAccessAdminRole extends \Drupal\Core\Form\ConfigFormBase {
+class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
 
   protected $taxonomyAccessService ;
 
@@ -689,9 +689,9 @@ function taxonomy_access_disable_vocab_confirm_submit($form, &$form_state) {
  *   taxonomy_access_grant_table() and taxonomy_access_build_row().
  */
 function taxonomy_access_delete_selected_submit($form, &$form_state) {
-  $rid = intval($form_state['values']['rid']);
+  $rid = $form_state->getValue('rid');
   $delete_tids = array();
-  foreach ($form_state['values']['grants'] as $vid => $tids) {
+  foreach ($form_state->getValue('grants') as $vid => $tids) {
     foreach ($tids as $tid => $record) {
       if (!empty($record['remove'])) {
         $delete_tids[] = $tid;
@@ -699,11 +699,13 @@ function taxonomy_access_delete_selected_submit($form, &$form_state) {
     }
   }
   if ($rid) {
-    if (taxonomy_access_delete_term_grants($delete_tids, $rid)) {
-      drupal_set_message(format_plural(
-          sizeof($delete_tids),
-          '1 term access rule was deleted.',
-          '@count term access rules were deleted.'));
+    if ($this->taxonomyAccessService->taxonomy_access_delete_term_grants($delete_tids, $rid)) {
+// FIX ME kiny
+//      drupal_set_message(format_plural(
+//          sizeof($delete_tids),
+//          '1 term access rule was deleted.',
+//          '@count term access rules were deleted.'));
+      drupal_set_message('Some count term access rules were deleted.');
     }
     else {
       drupal_set_message(t('The records could not be deleted.'), 'warning');

@@ -518,17 +518,15 @@ function taxonomy_access_enable_vocab($vid, $rid) {
  * @see taxonomy_access_delete_role_grants()
  */
 function taxonomy_access_disable_vocab($vid, $rid) {
-  $rid = intval($rid);
-  $vid = intval($vid);
 
   // Do not allow the global default to be deleted this way.
   // Deleting the global default would disable the role.
-  if (!$vid || !$rid) {
+  if (empty($vid) || empty($rid)) {
     return FALSE;
   }
 
   // Delete the vocabulary default.
-  taxonomy_access_delete_default_grants($vid, $rid);
+  $this->taxonomy_access_delete_default_grants($vid, $rid);
 
   // Delete the role's term access rules for the vocabulary.
   // First check which term records are enabled so we can update node access.
@@ -540,7 +538,7 @@ function taxonomy_access_disable_vocab($vid, $rid) {
        WHERE td.vid = :vid AND ta.rid = :rid",
       array(':vid' => $vid, ':rid' => $rid))
     ->fetchCol();
-  taxonomy_access_delete_term_grants($tids, $rid);
+  $this->taxonomy_access_delete_term_grants($tids, $rid);
 
   return TRUE;
 }
@@ -1100,6 +1098,7 @@ function taxonomy_access_delete_default_grants($vocab_ids, $rid = NULL, $update_
  *   TRUE on success, or FALSE on failure.
  */
 function taxonomy_access_delete_term_grants($term_ids, $rid = NULL, $update_nodes = TRUE) {
+  dpm($term_ids, 'taxonomy_access_delete_term_grants role='.$rid);
   // Accept either a single term ID or an array thereof.
   if (is_numeric($term_ids)) {
     $term_ids = array($term_ids);
@@ -1117,6 +1116,8 @@ function taxonomy_access_delete_term_grants($term_ids, $rid = NULL, $update_node
   }
 
   // Delete our database records for these terms.
+// FIX ME kiny
+// Fails when $term_ids contains more than one id.
   $query =
     db_delete('taxonomy_access_term')
     ->condition('tid', $term_ids);

@@ -14,19 +14,40 @@ use Drupal\user\RoleInterface;
 use Drupal\taxonomy_access\Controller\DefaultController;
 use Drupal\Core\Url;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-
-
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Form\ConfirmFormBase;
 
-/**
- * Defines a confirmation form for deleting mymodule data.
- */
 class TaxonomyAccessRoleDisableForm extends ConfirmFormBase {
 
-  protected function taxonomy_access_disable_record($rid, $vid){
-    dpm($rid, 'to be implemented disabling voc ' . $vid);
-    return true ;
+  protected $taxonomyAccessService ;
+
+  /**
+   * Class constructor.
+   */
+  public function __construct($taxonomyAccessService) {
+    $this->taxonomyAccessService = $taxonomyAccessService;
   }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('taxonomy_access.taxonomy_access_service')
+    );
+  }
+
+/**
+ * Form submission handler for taxonomy_access_disable_vocab_confirm().
+ *
+ * @param int $rid
+ *   The role ID to disable.
+ *
+ * @todo
+ *   Set a message on invalid $rid or $vid?
+ */
+function taxonomy_access_disable_vocab_confirm_submit($rid, $vid) {
+}
 
   public function getFormId() {
     return 'taxonomy_access_role_disable';
@@ -87,7 +108,28 @@ class TaxonomyAccessRoleDisableForm extends ConfirmFormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $this->taxonomy_access_disable_record($this->rid, $this->vid);
+    $rid = $this->rid ;
+    $vid = $this->vid ;
+    $roles = $this->taxonomyAccessService->_taxonomy_access_user_roles();
+    // Do not proceed for invalid role IDs, and do not allow the global default
+    // to be deleted.
+    if (empty($vid) || empty($rid) || !isset($roles[$rid])) {
+      return FALSE;
+    }
+    if ($this->taxonomyAccessService->taxonomy_access_disable_vocab($vid, $rid)) {
+      drupal_set_message(
+        t('All Taxonomy access rules deleted for %vocab in role %role.',
+          array(
+            '%vocab' => $form_state->getValue('vocab_name'),
+            '%role' => $roles[$rid]->label())
+         ));
+      $urlParameters=array('rid' => $rid);
+      $url=Url::fromRoute('taxonomy_access.admin_role_edit', $urlParameters);
+      $response = new \Symfony\Component\HttpFoundation\RedirectResponse($url->toString());
+// FIX ME kiny.
+// Redirect does not work.
+      return $response ;
+    }
   }
 
 }

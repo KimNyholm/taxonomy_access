@@ -54,13 +54,19 @@ const TAXONOMY_ACCESS_TERM_DENY = 0 ;
 
   protected function drupal_write_record($table, $row)
   {
-   dpm($row, 'drupal_write_record table=' .  $table);
+    $key=array('rid' => $row->rid);
+    if (isset($row->tid)){
+      $key['tid']=$row->tid;
+    }
+    if (isset($row->vid)){
+      $key['vid']=$row->vid;
+    }
     $fields=(array)$row;
     \Drupal::database()->merge($table)
-      ->key(array('rid' => $row->rid, 'vid' => $row->vid))
+      ->key($key)
       ->fields($fields)
       ->execute();
-    dpm('added to table ' . $table);
+    dpm($row, 'added to table ' . $table);
   }
 /**
  * Caches a list of all roles.
@@ -1105,8 +1111,8 @@ function taxonomy_access_delete_term_grants($term_ids, $rid = NULL, $update_node
 
   if ($update_nodes) {
     // Cache the list of nodes that will be affected by this change.
-    $affected_nodes = _taxonomy_access_get_nodes_for_terms($term_ids);
-    taxonomy_access_affected_nodes($affected_nodes);
+    $affected_nodes = $this->_taxonomy_access_get_nodes_for_terms($term_ids);
+    $this->taxonomy_access_affected_nodes($affected_nodes);
     unset($affected_nodes);
   }
 
@@ -1181,6 +1187,7 @@ function _taxonomy_access_format_grant_record($id, $rid, array $grants, $default
  * @see _taxonomy_access_format_grant_record()
  */
 function taxonomy_access_set_term_grants(array $grant_rows, $update_nodes = TRUE) {
+  dpm('taxonomy_access_set_term_grants');
   // Collect lists of term and role IDs in the list.
   $terms_for_roles = array();
   foreach ($grant_rows as $grant_row) {
@@ -1190,12 +1197,12 @@ function taxonomy_access_set_term_grants(array $grant_rows, $update_nodes = TRUE
   // Delete existing records for the roles and terms.
   // This will also cache a list of the affected nodes.
   foreach ($terms_for_roles as $rid => $tids) {
-    taxonomy_access_delete_term_grants($tids, $rid, $update_nodes);
+    $this->taxonomy_access_delete_term_grants($tids, $rid, $update_nodes);
   }
 
   // Insert new entries.
   foreach ($grant_rows as $row) {
-    drupal_write_record('taxonomy_access_term', $row);
+    $this->drupal_write_record('taxonomy_access_term', $row);
   }
 
   // Later we will refactor; for now return TRUE when this is called.
@@ -1219,6 +1226,7 @@ function taxonomy_access_set_term_grants(array $grant_rows, $update_nodes = TRUE
  * @see _taxonomy_access_format_grant_record()
  */
 function taxonomy_access_set_default_grants(array $grant_rows, $update_nodes = TRUE) {
+  dpm('taxonomy_access_set_default_grants');
   // Collect lists of term and role IDs in the list.
   $vocabs_for_roles = array();
   foreach ($grant_rows as $grant_row) {

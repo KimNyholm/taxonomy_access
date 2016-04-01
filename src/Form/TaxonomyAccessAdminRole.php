@@ -241,7 +241,7 @@ $defaults =
         '#type' => 'fieldset',
         '#title' => $vocab->label(),
         '#attributes' => array('class' => array('taxonomy-access-vocab')),
-        '#description' => t('The default settings apply to all terms in %vocab that do not have their own below.', array('%vocab' => $vocab->label())),
+        '#description' => (string)t('The default settings apply to all terms in %vocab that do not have their own below.', array('%vocab' => $vocab->label())),
         '#collapsible' => TRUE,
         '#collapsed' => FALSE,
       );
@@ -254,13 +254,13 @@ $defaults =
           '#type' => 'fieldset',
           '#collapsible' => TRUE,
           '#collapsed' => TRUE,
-          '#title' => t('Add term'),
+          '#title' => (string)t('Add term'),
           '#tree' => TRUE,
           '#attributes' => array('class' => array('container-inline', 'taxonomy-access-add')),
         );
         $form[$name]['new'][$vid]['item'] = array(
           '#type' => 'select',
-          '#title' => t('Term'),
+          '#title' => (string)t('Term'),
           '#options' => $add_options,
         );
         $form[$name]['new'][$vid]['recursive'] = array(
@@ -273,7 +273,7 @@ $defaults =
           '#type' => 'submit',
           '#name' => $vid,
           '#submit' => array('::taxonomy_access_add_term_submit'),
-          '#value' => t('Add'),
+          '#value' => (string)t('Add'),
         );
       }
       $query = drupal_get_destination();
@@ -281,7 +281,7 @@ $defaults =
       $url=Url::fromRoute('taxonomy_access.admin_role_disable', $urlParameters);
       $disable_url = $url->toString();
       $form[$name]['disable'] = array(
-          '#markup' => '<p>' . t(
+          '#markup' => '<p>' . (string)t(
             'To disable the %vocab vocabulary, <a href="@url">delete all @vocab access rules</a>.',
             array('%vocab' => $vocab->label(), '@vocab' => $vocab->label(), '@url' => $disable_url)) . '</p>'
       );
@@ -290,13 +290,13 @@ $defaults =
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Save all'),
+    '#value' => (string)t('Save all'),
     '#submit' => array('::taxonomy_access_save_all_submit'),
   );
   if (!empty($term_grants)) {
     $form['actions']['delete'] = array(
       '#type' => 'submit',
-      '#value' => t('Delete selected'),
+      '#value' => (string)t('Delete selected'),
       '#submit' => array('::taxonomy_access_delete_selected_submit'),
     );
   }
@@ -341,7 +341,7 @@ function taxonomy_access_grant_table(array $rows, $parent_vid, $first_col, $dele
     );
   }
   if ($delete) {
-    drupal_add_js('misc/tableselect.js');
+//    drupal_add_js('misc/tableselect.js');
     array_unshift($header, array('class' => array('select-all')));
   }
   $table = array(
@@ -555,27 +555,31 @@ function taxonomy_access_enable_vocab_submit(array &$form, \Drupal\Core\Form\For
  *
  * Processes submissions for the term 'Add' button.
  */
-function taxonomy_access_add_term_submit($form, &$form_state) {
-  $vid = $form_state['clicked_button']['#name'];
-  $new = $form_state['values']['new'][$vid];
-  $rid = $form_state['values']['rid'];
+function taxonomy_access_add_term_submit($form, \Drupal\Core\Form\FormStateInterface &$form_state) {
+  $submitButton = $form_state->getTriggeringElement();
+  $vid = $submitButton['#name'];
+  $newArray = $form_state->getValue('new');
+  $new = $newArray[$vid];
+  $rid = $form_state->getValue('rid');
   list($type, $id) = explode(' ', $new['item']);
+  dpm($type, 'type');
+  dpm($id, 'id');
   $rows = array();
 
   $rows[$id] =
-    _taxonomy_access_format_grant_record($id, $rid, $new['grants'][$vid][TAXONOMY_ACCESS_VOCABULARY_DEFAULT]);
+    $this->taxonomyAccessService->_taxonomy_access_format_grant_record($id, $rid, $new['grants'][$vid][TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT]);
 
   // If we are adding children recursively, add those as well.
   if ($new['recursive'] == 1) {
-    $children = _taxonomy_access_get_descendants($id);
+    $children = $this->taxonomyAccessService->_taxonomy_access_get_descendants($id);
     foreach ($children as $tid) {
       $rows[$tid] =
-        _taxonomy_access_format_grant_record($tid, $rid, $new['grants'][$vid][TAXONOMY_ACCESS_VOCABULARY_DEFAULT]);
+        $this->taxonomyAccessService->_taxonomy_access_format_grant_record($tid, $rid, $new['grants'][$vid][TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT]);
     }
   }
 
   // Set the grants for the row or rows.
-  taxonomy_access_set_term_grants($rows);
+  $this->taxonomyAccessService->taxonomy_access_set_term_grants($rows);
 }
 
 /**

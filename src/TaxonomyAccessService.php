@@ -1049,7 +1049,7 @@ function taxonomy_access_delete_role_grants($rid, $update_nodes = TRUE) {
  *   TRUE on success, or FALSE on failure.
  */
 function taxonomy_access_delete_default_grants($vocab_ids, $rid = NULL, $update_nodes = TRUE) {
-  dpm($vocabs_ids, 'taxonomy_access_delete_default_grants entry');
+  dpm('taxonomy_access_delete_default_grants entry');
 
   // Accept either a single vocabulary ID or an array thereof.
   if ($vocab_ids !== TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT && empty($vocab_ids)) {
@@ -1065,11 +1065,6 @@ function taxonomy_access_delete_default_grants($vocab_ids, $rid = NULL, $update_
   }
 
   // The query builder will use = or IN() automatically as appropriate.
-  $active_rids = db_query(
-    'SELECT rid FROM {taxonomy_access_default} WHERE vid = :vid',
-    array(':vid' => TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT)
-  )->fetchCol();
-    dpm($active_rids, 'rids before');
   dpm($vocab_ids, 'deleting for role ' . $rid);
   $query =
     db_delete('taxonomy_access_default')
@@ -1081,11 +1076,6 @@ function taxonomy_access_delete_default_grants($vocab_ids, $rid = NULL, $update_
 
   $query->execute();
   unset($query);
-  $active_rids = db_query(
-    'SELECT rid FROM {taxonomy_access_default} WHERE vid = :vid',
-    array(':vid' => TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT)
-  )->fetchCol();
-    dpm($active_rids, 'rids after');
   return TRUE;
 }
 
@@ -1229,7 +1219,6 @@ function taxonomy_access_set_term_grants(array $grant_rows, $update_nodes = TRUE
  * @see _taxonomy_access_format_grant_record()
  */
 function taxonomy_access_set_default_grants(array $grant_rows, $update_nodes = TRUE) {
-  dpm($grant_rows, 'taxonomy_access_set_default_grants');
   // Collect lists of term and role IDs in the list.
   $vocabs_for_roles = array();
   foreach ($grant_rows as $grant_row) {

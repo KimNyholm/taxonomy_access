@@ -89,7 +89,6 @@ function taxonomy_access_admin() {
     'SELECT rid FROM {taxonomy_access_default} WHERE vid = :vid',
     array(':vid' => TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT)
   )->fetchCol();
-    dpm($active_rids, 'rids');
   $header = array(t('Role'), t('Status'), t('Operations'));
   $rows = array();
 

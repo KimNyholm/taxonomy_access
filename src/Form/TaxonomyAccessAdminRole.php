@@ -220,7 +220,6 @@ $defaults =
       $add_options = array();
       if ($tree = \Drupal::entityManager()->getStorage("taxonomy_term")->loadTree($vid)) {
         foreach ($tree as $term) {
-            dpm($term->name, 'term');
           if (empty($term_grants[$vid][$term->tid])) {
             $add_options["term $term->tid"] = str_repeat('-', $term->depth) . ' ' . \Drupal\Component\Utility\Html::escape($term->name);
           }
@@ -356,7 +355,6 @@ function taxonomy_access_grant_table(array $rows, $parent_vid, $first_col, $dele
   if ($delete && isset($table[$parent_vid][TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT])) {
     $table[$parent_vid][TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT]['remove']['#disabled'] = TRUE;
   }
-
   return $table;
 }
 
@@ -398,11 +396,11 @@ function taxonomy_access_grant_add_table($row, $id) {
  */
 function taxonomy_access_grant_table_header() {
   $header = array(
-    array('data' => t('View')),
-    array('data' => t('Update')),
-    array('data' => t('Delete')),
-    array('data' => t('Add Tag')),
-    array('data' => t('View Tag')),
+    array('data' => (string)t('View')),
+    array('data' => (string)t('Update')),
+    array('data' => (string)t('Delete')),
+    array('data' => (string)t('Add Tag')),
+    array('data' => (string)t('View Tag')),
   );
   foreach ($header as &$cell) {
     $cell['class'] = array('taxonomy-access-grant');
@@ -466,12 +464,11 @@ function taxonomy_access_admin_build_row(array $grants, $label_key = NULL, $dele
   if ($delete) {
     $form['remove'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Delete access rule for @name', array('@name' => $grants[$label_key])),
+      '#title' => (string)t('Delete access rule for @name', array('@name' => $grants[$label_key])),
       '#title_display' => 'invisible',
     );
   }
   if ($label_key) {
-    dpm($grants[$label_key], 'label_key');
     $form[$label_key] = array(
       '#type' => 'markup',
       '#markup' => \Drupal\Component\Utility\Html::escape($grants[$label_key]),
@@ -489,15 +486,15 @@ function taxonomy_access_admin_build_row(array $grants, $label_key = NULL, $dele
   }
   foreach (array('view', 'update', 'delete') as $grant) {
     $form[$grant]['#options'] = array(
-      TaxonomyAccessService::TAXONOMY_ACCESS_NODE_ALLOW => t('Allow'),
-      TaxonomyAccessService::TAXONOMY_ACCESS_NODE_IGNORE => t('Ignore'),
-      TaxonomyAccessService::TAXONOMY_ACCESS_NODE_DENY => t('Deny'),
+      TaxonomyAccessService::TAXONOMY_ACCESS_NODE_ALLOW => (string)t('Allow'),
+      TaxonomyAccessService::TAXONOMY_ACCESS_NODE_IGNORE => (string)t('Ignore'),
+      TaxonomyAccessService::TAXONOMY_ACCESS_NODE_DENY => (string)t('Deny'),
     );
   }
   foreach (array('create', 'list') as $grant) {
     $form[$grant]['#options'] = array(
-      TaxonomyAccessService::TAXONOMY_ACCESS_TERM_ALLOW => t('Allow'),
-      TaxonomyAccessService::TAXONOMY_ACCESS_TERM_DENY => t('Deny'),
+      TaxonomyAccessService::TAXONOMY_ACCESS_TERM_ALLOW => (string)t('Allow'),
+      TaxonomyAccessService::TAXONOMY_ACCESS_TERM_DENY => (string)t('Deny'),
     );
   }
   return $form;
@@ -510,20 +507,20 @@ function _taxonomy_access_grant_field_label($grant, $for = NULL) {
   if ($for) {
     $label = array('@label' => $for);
     $titles = array(
-      'view' => t('View grant for @label', $label),
-      'update' => t('Update grant for @label', $label),
-      'delete' => t('Delete grant for @label', $label),
-      'create' => t('Add tag grant for @label', $label),
-      'list' => t('View tag grant for @label', $label),
+      'view' => (string)t('View grant for @label', $label),
+      'update' => (string)t('Update grant for @label', $label),
+      'delete' => (string)t('Delete grant for @label', $label),
+      'create' => (string)t('Add tag grant for @label', $label),
+      'list' => (string)t('View tag grant for @label', $label),
     );
   }
   else {
     $titles = array(
-      'view' => t('View grant'),
-      'update' => t('Update grant'),
-      'delete' => t('Delete grant'),
-      'create' => t('Add tag grant'),
-      'list' => t('View tag grant'),
+      'view' => (string)t('View grant'),
+      'update' => (string)t('Update grant'),
+      'delete' => (string)t('Delete grant'),
+      'create' => (string)t('Add tag grant'),
+      'list' => (string)t('View tag grant'),
     );
   }
 
@@ -724,7 +721,7 @@ function taxonomy_access_save_all_submit($form, &$form_state) {
   $skip_defaults = array();
 
   foreach ($form_state->getValue('grants') as $vid => $rows) {
-    if ($vid == TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT) {
+    if ($vid == (string)TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT) {
       $element = $form['global_default'];
     }
     else {

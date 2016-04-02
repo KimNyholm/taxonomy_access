@@ -659,8 +659,8 @@ function taxonomy_access_affected_nodes(array $affected_nodes = NULL, $reset = F
  *    An array of node IDs associated with terms or vocabularies that are
  *    controlled for the role.
  */
-function taxonomy_access_get_controlled_nodes_for_role($rid) {
-  dpm('taxonomy_access_get_controlled_nodes_for_role entry');
+function _taxonomy_access_get_controlled_nodes_for_role($rid) {
+  dpm('_taxonomy_access_get_controlled_nodes_for_role entry');
   $query = db_select('taxonomy_index', 'ti')
     ->fields('ti', array('nid'))
     ->addTag('taxonomy_access_node');
@@ -961,7 +961,7 @@ function taxonomy_access_delete_role_grants($rid, $update_nodes = TRUE) {
   if (empty($rid)) {
     return FALSE;
   }
-  if ($rid == DRUPAL_ANONYMOUS_RID || $rid == DRUPAL_AUTHENTICATED_RID) {
+  if ($rid == \Drupal\user\RoleInterface::ANONYMOUS_ID || $rid == \Drupal\user\RoleInterface::AUTHENTICATED_ID) {
     return FALSE;
   }
 
@@ -973,15 +973,15 @@ function taxonomy_access_delete_role_grants($rid, $update_nodes = TRUE) {
 
     // If any global defaults are more permissive, we need to update all nodes.
     // Fetch global defaults.
-    $global_defaults = taxonomy_access_global_defaults();
+    $global_defaults = $this->taxonomy_access_global_defaults();
     $gd_records = array();
     foreach ($global_defaults as $row) {
-      $gd_records[] = _taxonomy_access_format_node_access_record($row);
+      $gd_records[] = $this->_taxonomy_access_format_node_access_record($row);
     }
 
     // Find the ones we need.
     foreach ($gd_records as $gd) {
-      if ($gd['gid'] == DRUPAL_AUTHENTICATED_RID) {
+      if ($gd['gid'] == \Drupal\user\RoleInterface::AUTHENTICATED_ID) {
         $auth_gd = $gd;
       }
       elseif ($gd['gid'] == $rid) {
@@ -1019,14 +1019,13 @@ function taxonomy_access_delete_role_grants($rid, $update_nodes = TRUE) {
     // Otherwise, just get nodes controlled by specific configurations.
     else {
       $affected_nodes =
-        _taxonomy_access_get_controlled_nodes_for_role($rid);
+        $this->_taxonomy_access_get_controlled_nodes_for_role($rid);
     }
-    taxonomy_access_affected_nodes($affected_nodes);
+    $this->taxonomy_access_affected_nodes($affected_nodes);
 
     unset($affected_nodes);
   }
 
-  dpm($vocab_ids, 'i sd deleting for role ' . $rid);
   db_delete('taxonomy_access_term')
     ->condition('rid', $rid)
     ->execute();

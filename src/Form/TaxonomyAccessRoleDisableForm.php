@@ -65,10 +65,6 @@ function taxonomy_access_disable_vocab_confirm_submit($rid, $vid) {
    * {@inheritdoc}
    */
   public function getQuestion() {
-    //$roleName = taxonomy_accessRoleName($this->id);
-    //$roleName = \Drupal\taxonomy_access\Form\TaxonomyAcccessAdminRole::taxonomy_accessRoleName($this->id);
-    //$role=\Drupal\User\Entity\Role::load($roleId);
-    $roleName = \Drupal\taxonomy_access\Controller\DefaultController::taxonomy_accessRoleName($this->id);
     return t('Are you sure you want to delete all taxonomy access rules for %vid in the %rid role?', array('%vid' => $this->vid, '%rid' => $this->rid));
   }
 

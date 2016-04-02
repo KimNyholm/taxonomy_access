@@ -543,7 +543,7 @@ function taxonomy_access_enable_vocab_submit(array &$form, \Drupal\Core\Form\For
       'Vocabulary %vocab enabled successfully for the %role role.',
       array(
         '%vocab' => $vocab->label(),
-        '%role' => $roles[$rid])));
+        '%role' => $roles[$rid]->label())));
   }
   else {
     drupal_set_message(t('The vocabulary could not be enabled.'), 'error');
@@ -582,101 +582,6 @@ function taxonomy_access_add_term_submit($form, \Drupal\Core\Form\FormStateInter
   $this->taxonomyAccessService->taxonomy_access_set_term_grants($rows);
 }
 
-/**
- * Page callback: Returns a confirmation form to disable a vocabulary.
- *
- * @param int $rid
- *   The role ID.
- * @param object $vocab
- *   The vocabulary object.
- *
- * @todo
- *   Check if vocab is enabled and return a 404 otherwise?
- *
- * @see taxonomy_access_menu()
- * @see taxonomy_access_admin_role().
- * @see taxonomy_access_disable_vocab_confirm_page()
- */
-function taxonomy_access_disable_vocab_confirm_page($rid, $vocab) {
-  $rid = intval($rid);
-
-  // Return a 404 on invalid vid or rid.
-  if (!$vocab->vid || !$rid) {
-    return MENU_NOT_FOUND;
-  }
-
-  return drupal_get_form('taxonomy_access_disable_vocab_confirm', $rid, $vocab);
-}
-
-/**
- * Returns a confirmation form for disabling a vocabulary for a role.
- *
- * @param int $rid
- *   The role ID.
- * @param object $vocab
- *   The vocabulary object.
- *
- * @see taxonomy_access_disable_vocab_confirm_page()
- * @see taxonomy_access_disable_vocab_confirm_submit()
- * @ingroup forms
- */
-function taxonomy_access_disable_vocab_confirm($form, &$form_state, $rid, $vocab) {
-  $roles = _taxonomy_access_user_roles();
-  if (taxonomy_access_role_enabled($rid)) {
-    $form['rid'] = array(
-      '#type' => 'value',
-      '#value' => $rid,
-    );
-    $form['vid'] = array(
-      '#type' => 'value',
-      '#value' => $vocab->vid,
-    );
-    $form['vocab_name'] = array(
-      '#type' => 'value',
-      '#value' => $vocab->name,
-    );
-    return confirm_form($form,
-      t("Are you sure you want to delete all Taxonomy access rules for %vocab in the %role role?",
-        array('%role' => $roles[$rid], '%vocab' => $vocab->name)),
-      TAXONOMY_ACCESS_CONFIG . '/role/%/edit',
-      t('This action cannot be undone.'),
-      t('Delete all'),
-      t('Cancel'));
-  }
-}
-
-/**
- * Form submission handler for taxonomy_access_disable_vocab_confirm().
- *
- * @param int $rid
- *   The role ID to disable.
- *
- * @todo
- *   Set a message on invalid $rid or $vid?
- */
-function taxonomy_access_disable_vocab_confirm_submit($form, &$form_state) {
-  $roles = _taxonomy_access_user_roles();
-  $rid = intval($form_state['values']['rid']);
-  $vid = intval($form_state['values']['vid']);
-  // Do not proceed for invalid role IDs, and do not allow the global default
-  // to be deleted.
-  if (!$vid || !$rid || empty($roles[$rid])) {
-    return FALSE;
-  }
-
-  if ($form_state['values']['confirm']) {
-    $form_state['redirect'] = TAXONOMY_ACCESS_CONFIG;
-    if (taxonomy_access_disable_vocab($vid, $rid)) {
-      drupal_set_message(
-        t('All Taxonomy access rules deleted for %vocab in role %role.',
-          array(
-            '%vocab' => $form_state['values']['vocab_name'],
-            '%role' => $roles[$rid])
-         ));
-      return TRUE;
-    }
-  }
-}
 
 /**
  * Form submission handler for taxonomy_access_admin_role().

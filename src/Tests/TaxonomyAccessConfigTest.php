@@ -7,6 +7,7 @@ namespace Drupal\taxonomy_access\Tests;
  * @group z_taxonomy_access
  */
 class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAccessTestCase {
+
   protected $articles = array();
   protected $pages = array();
   protected $vocabs = array();
@@ -23,6 +24,34 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
   public function setUp() {
     parent::setUp();
 
+    // Add two taxonomy fields to pages.
+    foreach (array('v1', 'v2') as $vocab) {
+      $this->vocabs[$vocab] = $this->createVocab($vocab);
+      $this->createField($vocab);
+      $this->terms[$vocab . 't1'] =
+        $this->createTerm($vocab . 't1', $this->vocabs[$vocab]);
+      $this->terms[$vocab . 't2'] =
+        $this->createTerm($vocab . 't2', $this->vocabs[$vocab]);
+    }
+
+    // Set up a variety of nodes with different term combinations.
+    $this->articles['no_tags'] = $this->createArticle();
+    $this->articles['one_tag'] =
+      $this->createArticle(array($this->randomName()));
+    $this->articles['two_tags'] =
+      $this->createArticle(array($this->randomName(), $this->randomName()));
+
+    $this->pages['no_tags'] = $this->createPage();
+    foreach ($this->terms as $t1) {
+      $this->pages[$t1->name] = $this->createPage(array($t1->name));
+      foreach ($this->terms as $t2) {
+        $this->pages[$t1->name . '_' . $t2->name] =
+          $this->createPage(array($t1->name, $t2->name));
+      }
+    }
+  }
+
+  /**
     // Add two taxonomy fields to pages.
     foreach (array('v1', 'v2') as $vocab) {
       $this->vocabs[$vocab] = $this->createVocab($vocab);

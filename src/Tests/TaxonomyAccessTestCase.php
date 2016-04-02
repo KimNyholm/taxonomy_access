@@ -9,6 +9,8 @@ namespace Drupal\taxonomy_access\Tests;
 class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
 
 
+  public static $modules = array('taxonomy_access');
+
   protected $taxonomyAccessService ;
 
   protected $profile = 'standard';
@@ -46,11 +48,15 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
     'regular_user' => ['access content'],
   ];
 
+  public function randomName(){
+    $random = new \Drupal\Component\Utility\Random();
+    return $random->name();
+  }
+
   public function setUp() {
     // Enable module and dependencies.
-    parent::setUp('taxonomy_access');
-
-    $taxonomyAccessService = \Drupal::service('taxonomy_access.taxonomy_access_service');
+    parent::setUp();
+    $this->taxonomyAccessService = \Drupal::service('taxonomy_access.taxonomy_access_service');
 
     // Rebuild node access on installation.
     node_access_rebuild();
@@ -75,7 +81,7 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
         'update' => TAXONOMY_ACCESS_NODE_IGNORE,
         'delete' => TAXONOMY_ACCESS_NODE_IGNORE,
       ];
-      $rows[] = _taxonomy_access_format_grant_record(TAXONOMY_ACCESS_GLOBAL_DEFAULT, $rid, $ignore, TRUE);
+      $rows[] = $this->taxonomyAccessService->_taxonomy_access_format_grant_record(TAXONOMY_ACCESS_GLOBAL_DEFAULT, $rid, $ignore, TRUE);
     }
     $this->taxonomyAccessService->taxonomy_access_set_default_grants($rows);
 
@@ -92,6 +98,12 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
     }
   }
 
+  public function taxonomy_vocabulary_save($vocabulary){
+    // FIX ME, what about remaining fields.
+    \Drupal\taxonomy\Entity\Term::create([ 'name' => $vocabulary->name, 'vid' => $vocabulary->machine_name, ])
+      ->save();
+  }
+
   public /**
    * Creates a vocabulary with a certain name.
    *
@@ -102,13 +114,13 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
    *   The vocabulary object.
    */
   function createVocab($machine_name) {
-    $vocabulary = new stdClass();
+    $vocabulary = new \stdClass();
     $vocabulary->name = $machine_name;
     $vocabulary->description = $this->randomName();
     $vocabulary->machine_name = $machine_name;
     $vocabulary->help = '';
     $vocabulary->weight = mt_rand(0, 10);
-    taxonomy_vocabulary_save($vocabulary);
+    $this->taxonomy_vocabulary_save($vocabulary);
     return $vocabulary;
   }
 
@@ -126,7 +138,7 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
    *   The taxonomy term object.
    */
   function createTerm($machine_name, $vocab, $parent = NULL) {
-    $term = new stdClass();
+    $term = new \stdClass();
     $term->name = $machine_name;
     $term->description = $machine_name;
     // Use the first available text format.
@@ -138,6 +150,14 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
     }
     taxonomy_term_save($term);
     return $term;
+  }
+
+  public function field_create_field($field){
+// FIX ME, functionality missing.
+  }
+
+  public function field_create_instance($instance){
+// FIX ME, functionality missing.
   }
 
   public /**
@@ -153,7 +173,7 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
    * @return array
    *   Array of instance data.
    */
-  function createField($machine_name, $widget = 'options_select', $count = FIELD_CARDINALITY_UNLIMITED) {
+  function createField($machine_name, $widget = 'options_select', $count = \Drupal\Core\Field\FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED) {
     $field = [
       'field_name' => $machine_name,
       'type' => 'taxonomy_term_reference',
@@ -167,7 +187,7 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
           ]
         ],
     ];
-    $field = field_create_field($field);
+    $field = $this->field_create_field($field);
 
     $instance = [
       'field_name' => $machine_name,
@@ -181,7 +201,7 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
         ],
     ];
 
-    return field_create_instance($instance);
+    return $this->field_create_instance($instance);
   }
 
   public /**
@@ -240,7 +260,7 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
    *   should be TRUE if the role is enabled, and FALSE otherwise.
    */
   function checkRoleConfig(array $statuses) {
-    $roles = _taxonomy_access_user_roles();
+    $roles = $this->taxonomyAccessService->_taxonomy_access_user_roles();
 
     // Log in as the administrator.
     $this->drupalLogout();

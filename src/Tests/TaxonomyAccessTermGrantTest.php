@@ -2,28 +2,31 @@
 namespace Drupal\taxonomy_access;
 
 /**
- * Tests node access for all possible grant combinations.
+ * Tests term grants for all possible grant combinations.
+ *
+ * @group z_taxonomy_access
  */
-class TaxonomyAccessNodeGrantTest extends TaxonomyAccessTestCase {
-
-  // There are three roles for node access testing:
-  // global_allow   Receives "Allow" in the global default.
-  // global_ignore  Receives "Ignore" in the global default.
-  // global_deny    Receives "Deny" in the global default.
+class TaxonomyAccessTermGrantTest extends TaxonomyAccessTestCase {
+  // There are four roles for term access testing:
+  // ctlt   Receives both "Create" and "List" in the global default.
+  // ctlf   Receives "Create" but not "List" in the global default.
+  // cflt   Receives "List" but not "Create" in the global default.
+  // cflf   Receives neither "Create" nor "List" in the global default.
   // All roles receive the same permissions for terms and vocab defaults.
   protected $roles = array();
   protected $role_config = array(
-    'global_allow' => array(),
-    'global_ignore' => array(),
-    'global_deny' => array(),
+    'ctlt' => array(),
+    'ctlf' => array(),
+    'cflt' => array(),
+    'cflf' => array(),
   );
 
   protected $vocabs = array();
 
   public static function getInfo() {
     return array(
-      'name' => 'Node access',
-      'description' => 'Test node access for various grant configurations.',
+      'name' => 'Term grants',
+      'description' => 'Test node access for View tag (create) and Add tag (list) grants.',
       'group' => 'Taxonomy Access Control',
     );
   }
@@ -36,62 +39,57 @@ class TaxonomyAccessNodeGrantTest extends TaxonomyAccessTestCase {
       $this->roles[$role_name] = $this->drupalCreateRole(array(), $role_name);
     }
 
-    $node_grants = array('view', 'update', 'delete');
-
     // Set up our testing taxonomy.
 
-    // We will create 4 vocabularies: a, i, d, and nc
-    // These names indicate what grant the vocab. default will have for view.
-    // (NC means the vocab default is not configured.)
-
-    $grant_types = array(
-      'a' => array(),
-      'i' => array(),
-      'd' => array(),
-      'nc' => array(),
+    // We will create four vocabularies:
+    // vctlt   Receives both "Create" and "List" in the vocabulary default.
+    // vctlf   Receives "Create" but not "List" in the vocabulary default.
+    // vcflt   Receives "List" but not "Create" in the vocabulary default.
+    // vcflf   Receives neither "Create" nor "List" in the vocabulary default.
+    $grant_combos = array(
+      'ctlt' => array('create' => TAXONOMY_ACCESS_TERM_ALLOW, 'list' => TAXONOMY_ACCESS_TERM_ALLOW),
+      'ctlf' => array('create' => TAXONOMY_ACCESS_TERM_ALLOW, 'list' => TAXONOMY_ACCESS_TERM_DENY),
+      'cflt' => array('create' => TAXONOMY_ACCESS_TERM_DENY, 'list' => TAXONOMY_ACCESS_TERM_ALLOW),
+      'cflf' => array('create' => TAXONOMY_ACCESS_TERM_DENY, 'list' => TAXONOMY_ACCESS_TERM_DENY),
     );
 
-    // View alone can be used to test V/U/D because the logic is identical.
-    foreach ($node_grants as $grant) {
-      $grant_types['a'][$grant] = TAXONOMY_ACCESS_NODE_ALLOW;
-      $grant_types['i'][$grant] = TAXONOMY_ACCESS_NODE_IGNORE;
-      $grant_types['d'][$grant] = TAXONOMY_ACCESS_NODE_DENY;
+    // Grant all rows view, update, and delete.
+    foreach ($grant_combos as $combo) {
+      $combo['view'] = TAXONOMY_ACCESS_NODE_ALLOW;
+      $combo['update'] = TAXONOMY_ACCESS_NODE_ALLOW;
+      $combo['delete'] = TAXONOMY_ACCESS_NODE_ALLOW;
     }
 
     // Each vocabulary will have four parent terms in the same fashion:
-    // a_parent, i_parent, d_parent, and nc_parent.
+    // ctlt_parent, ctlf_parent, cflt_parent, and cflf_parent.
 
     // Each of these_parent terms will have children in each class, as well:
-    // a_child, i_child, d_child, and nc_child.
+    // ctlt_child, ctlf_child, cflt_child, and cflf_child.
 
     // So, each vocab looks something like:
-    // - a_parent
-    // - - a_child
-    // - - i_child
-    // - - d_child
-    // - - nc_child
-    // - i_parent
-    // - - a_child
-    // - - i_child
-    // - - d_child
-    // - - nc_child
-    // - d_parent
-    // - - a_child
-    // - - i_child
-    // - - d_child
-    // - - nc_child
-    // - nc_parent
-    // - - a_child
-    // - - i_child
-    // - - d_child
-    // - - nc_child
-
-    $term_rows = array();
-    $default_rows = array();
-    $this->setUpAssertions = array();
+    // - ctlt_parent
+    // - - ctlt_child
+    // - - ctlf_child
+    // - - cflt_child
+    // - - cflf_child
+    // - ctlf_parent
+    // - - ctlt_child
+    // - - ctlf_child
+    // - - cflt_child
+    // - - cfl_fchild
+    // - cflt_parent
+    // - - ctlt_child
+    // - - ctlf_child
+    // - - cflt_child
+    // - - cflf_child
+    // - cflf_parent
+    // - - ctlt_child
+    // - - ctlf_child
+    // - - cflt_child
+    // - - cflf_child
 
     // Configure terms, vocabularies, and grants.
-    foreach ($grant_types as $vocab_name => $default_grants) {
+    foreach ($grant_combos as $vocab_name => $default_grants) {
       // Create the vocabulary.
       $vocab_name = "v" . $vocab_name;
       $this->vocabs[$vocab_name] = array();
@@ -107,8 +105,9 @@ class TaxonomyAccessNodeGrantTest extends TaxonomyAccessTestCase {
         foreach ($this->roles as $name => $role) {
           $default_rows[] =  _taxonomy_access_format_grant_record($vocab->vid, $role, $default_grants, TRUE);
           $this->setUpAssertions[] = array(
-            'grant' => $default_grants['view'],
-            'query' => 'SELECT grant_view FROM {taxonomy_access_default} WHERE vid = :vid AND rid = :rid',
+            'create' => $default_grants['create'],
+            'list' => $default_grants['list'],
+            'query' => 'SELECT grant_create, grant_list FROM {taxonomy_access_default} WHERE vid = :vid AND rid = :rid',
             'args' => array(':vid' => $vocab->vid, ':rid' => $role),
             'message' => t('Configured default grants for vocab %vocab, role %role', array('%vocab' => $vocab->machine_name, '%role' => $name)),
           );
@@ -116,7 +115,7 @@ class TaxonomyAccessNodeGrantTest extends TaxonomyAccessTestCase {
       }
 
       // Create terms.
-      foreach ($grant_types as $parent_name => $parent_grants) {
+      foreach ($grant_combos as $parent_name => $parent_grants) {
 
         // Create parent term.
         $parent_name = $vocab_name . "__" . $parent_name . "_parent";
@@ -129,8 +128,9 @@ class TaxonomyAccessNodeGrantTest extends TaxonomyAccessTestCase {
           foreach ($this->roles as $name => $role) {
             $term_rows[] =  _taxonomy_access_format_grant_record($parent_id, $role, $parent_grants);
             $this->setUpAssertions[] = array(
-              'grant' => $parent_grants['view'],
-              'query' => 'SELECT grant_view FROM {taxonomy_access_term} WHERE tid = :tid AND rid = :rid',
+              'create' => $parent_grants['create'],
+              'list' => $parent_grants['list'],
+              'query' => 'SELECT grant_create, grant_list FROM {taxonomy_access_term} WHERE tid = :tid AND rid = :rid',
               'args' => array(':tid' => $parent_id, ':rid' => $role),
               'message' => t('Configured grants for term %term, role %role', array('%term' => $parent_name, '%role' => $name)),
             );
@@ -138,7 +138,7 @@ class TaxonomyAccessNodeGrantTest extends TaxonomyAccessTestCase {
         }
 
         // Create child terms.
-        foreach ($grant_types as $child_name => $child_grants) {
+        foreach ($grant_combos as $child_name => $child_grants) {
           $child_name = $parent_name . "__" . $child_name . "_child";
           $this->vocabs[$vocab_name]['terms'][$child_name] =
             parent::createTerm($child_name, $vocab, $parent_id);
@@ -149,8 +149,9 @@ class TaxonomyAccessNodeGrantTest extends TaxonomyAccessTestCase {
             foreach ($this->roles as $name => $role) {
               $term_rows[] =  _taxonomy_access_format_grant_record($child_id, $role, $child_grants);
               $this->setUpAssertions[] = array(
-                'grant' => $child_grants['view'],
-                'query' => 'SELECT grant_view FROM {taxonomy_access_term} WHERE tid = :tid AND rid = :rid',
+                'create' => $child_grants['create'],
+                'list' => $child_grants['list'],
+                'query' => 'SELECT grant_create, grant_list FROM {taxonomy_access_term} WHERE tid = :tid AND rid = :rid',
                 'args' => array(':tid' => $child_id, ':rid' => $role),
                 'message' => t('Configured grants for term %term, role %role', array('%term' => $child_name, '%role' => $name)),
               );
@@ -171,35 +172,13 @@ class TaxonomyAccessNodeGrantTest extends TaxonomyAccessTestCase {
   public function testSetUpCheck() {
     // Check that all records were properly stored.
     foreach ($this->setUpAssertions as $assertion) {
-      $r = db_query($assertion['query'], $assertion['args'])->fetchField();
+      $r = db_query($assertion['query'], $assertion['args'])->fetchAssoc();
       $this->assertTrue(
-        (is_numeric($r) && $r == $assertion['grant']),
+        (is_array($r)
+          && $r['grant_create'] == $assertion['create']
+          && $r['grant_list'] == $assertion['list']),
         $assertion['message']
       );
     }
   }
-
-  // Role config tests:
-  // Create a role
-  // Create a user with the role
-  // Configure role grants via form
-  // Add, with children, delete
-  // Confirm records stored
-  // Confirm node access properly updated
-  // Go back and edit, repeat.
-  // Disable role.
-  // Confirm form.
-  // Update node access if prompted.
-  // Confirm records deleted.
-  // Confirm node access updated.
-
-  // 1. delete a term
-  // 2. change a grant config
-  // 3. delete a grant config
-  // 4. change a vocab default
-  // 5. delete a voacb default
-  // 6. disable a role
-  // 7. delete a role
-  // 8. delete a field attachment
-  // 9. delete a vocabulary
 }

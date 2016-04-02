@@ -4,9 +4,9 @@ namespace Drupal\taxonomy_access\Tests;
 /**
  * Test callback cleanup during disabling of module works.
  *
- * @group taxonomy_access
+ * @group z_taxonomy_access
  */
-class TaxonomyAccessCallbackCleanupTest extends \Drupal\simpletest\WebTestBase {
+class TaxonomyAccessCallbackCleanupTest extends \Drupal\taxonomy_access\Tests\TaxonomyAccessTestCase {
 
   protected $profile = 'standard';
 

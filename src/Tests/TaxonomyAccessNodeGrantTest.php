@@ -1,4 +1,5 @@
 <?php
+
 namespace Drupal\taxonomy_access\Tests;
 
 /**
@@ -6,7 +7,7 @@ namespace Drupal\taxonomy_access\Tests;
  *
  * @group z_taxonomy_access
  */
-class TaxonomyAccessNodeGrantTest extends TaxonomyAccessTestCase {
+class TaxonomyAccessNodeGrantTest extends \Drupal\taxonomy_access\Tests\TaxonomyAccessTestCase {
 
   // There are three roles for node access testing:
   // global_allow   Receives "Allow" in the global default.
@@ -107,7 +108,7 @@ class TaxonomyAccessNodeGrantTest extends TaxonomyAccessTestCase {
       // Configure default grants for the vocabulary for each role.
       if (!empty($default_grants)) {
         foreach ($this->roles as $name => $role) {
-          $default_rows[] =  _taxonomy_access_format_grant_record($vocab->vid, $role, $default_grants, TRUE);
+          $default_rows[] =  $this->taxonomyAccessService->_taxonomy_access_format_grant_record($vocab->vid, $role, $default_grants, TRUE);
           $this->setUpAssertions[] = array(
             'grant' => $default_grants['view'],
             'query' => 'SELECT grant_view FROM {taxonomy_access_default} WHERE vid = :vid AND rid = :rid',
@@ -129,7 +130,7 @@ class TaxonomyAccessNodeGrantTest extends TaxonomyAccessTestCase {
         // Configure grants for the parent term for each role.
         if (!empty($parent_grants)) {
           foreach ($this->roles as $name => $role) {
-            $term_rows[] =  _taxonomy_access_format_grant_record($parent_id, $role, $parent_grants);
+            $term_rows[] =  $this->taxonomyAccessService->_taxonomy_access_format_grant_record($parent_id, $role, $parent_grants);
             $this->setUpAssertions[] = array(
               'grant' => $parent_grants['view'],
               'query' => 'SELECT grant_view FROM {taxonomy_access_term} WHERE tid = :tid AND rid = :rid',
@@ -149,7 +150,7 @@ class TaxonomyAccessNodeGrantTest extends TaxonomyAccessTestCase {
           // Configure grants for the child term for each role.
           if (!empty($child_grants)) {
             foreach ($this->roles as $name => $role) {
-              $term_rows[] =  _taxonomy_access_format_grant_record($child_id, $role, $child_grants);
+              $term_rows[] =  $this->taxonomyAccessService->_taxonomy_access_format_grant_record($child_id, $role, $child_grants);
               $this->setUpAssertions[] = array(
                 'grant' => $child_grants['view'],
                 'query' => 'SELECT grant_view FROM {taxonomy_access_term} WHERE tid = :tid AND rid = :rid',
@@ -163,8 +164,8 @@ class TaxonomyAccessNodeGrantTest extends TaxonomyAccessTestCase {
     }
 
     // Set the grants.
-    taxonomy_access_set_default_grants($default_rows);
-    taxonomy_access_set_term_grants($term_rows);
+    $this->taxonomyAccessService->taxonomy_access_set_default_grants($default_rows);
+    $this->taxonomyAccessService->taxonomy_access_set_term_grants($term_rows);
   }
 
   /**

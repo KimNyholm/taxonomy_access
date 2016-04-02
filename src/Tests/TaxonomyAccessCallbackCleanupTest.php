@@ -1,4 +1,5 @@
 <?php
+
 namespace Drupal\taxonomy_access\Tests;
 
 /**

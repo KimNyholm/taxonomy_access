@@ -19,7 +19,7 @@ class TaxonomyAccessWeightTest extends \Drupal\simpletest\WebTestBase {
   }
 
   public function setUp() {
-    parent::setUp('taxonomy_access');
+    parent::setUp();
   }
 
   /**

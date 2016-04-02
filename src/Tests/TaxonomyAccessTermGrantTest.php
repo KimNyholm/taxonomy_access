@@ -1,12 +1,12 @@
 <?php
-namespace Drupal\taxonomy_access;
+namespace Drupal\taxonomy_access\Tests;
 
 /**
  * Tests term grants for all possible grant combinations.
  *
  * @group z_taxonomy_access
  */
-class TaxonomyAccessTermGrantTest extends TaxonomyAccessTestCase {
+class TaxonomyAccessTermGrantTest extends \Drupal\taxonomy_access\Tests\TaxonomyAccessTestCase {
   // There are four roles for term access testing:
   // ctlt   Receives both "Create" and "List" in the global default.
   // ctlf   Receives "Create" but not "List" in the global default.
@@ -103,7 +103,7 @@ class TaxonomyAccessTermGrantTest extends TaxonomyAccessTestCase {
       // Configure default grants for the vocabulary for each role.
       if (!empty($default_grants)) {
         foreach ($this->roles as $name => $role) {
-          $default_rows[] =  _taxonomy_access_format_grant_record($vocab->vid, $role, $default_grants, TRUE);
+          $default_rows[] =  $this->taxonomyAccessService->_taxonomy_access_format_grant_record($vocab->vid, $role, $default_grants, TRUE);
           $this->setUpAssertions[] = array(
             'create' => $default_grants['create'],
             'list' => $default_grants['list'],
@@ -126,7 +126,7 @@ class TaxonomyAccessTermGrantTest extends TaxonomyAccessTestCase {
         // Configure grants for the parent term for each role.
         if (!empty($parent_grants)) {
           foreach ($this->roles as $name => $role) {
-            $term_rows[] =  _taxonomy_access_format_grant_record($parent_id, $role, $parent_grants);
+            $term_rows[] =  $this->taxonomyAccessService->_taxonomy_access_format_grant_record($parent_id, $role, $parent_grants);
             $this->setUpAssertions[] = array(
               'create' => $parent_grants['create'],
               'list' => $parent_grants['list'],
@@ -147,7 +147,7 @@ class TaxonomyAccessTermGrantTest extends TaxonomyAccessTestCase {
           // Configure grants for the child term for each role.
           if (!empty($child_grants)) {
             foreach ($this->roles as $name => $role) {
-              $term_rows[] =  _taxonomy_access_format_grant_record($child_id, $role, $child_grants);
+              $term_rows[] =  $this->taxonomyAccessService->_taxonomy_access_format_grant_record($child_id, $role, $child_grants);
               $this->setUpAssertions[] = array(
                 'create' => $child_grants['create'],
                 'list' => $child_grants['list'],
@@ -162,8 +162,8 @@ class TaxonomyAccessTermGrantTest extends TaxonomyAccessTestCase {
     }
 
     // Set the grants.
-    taxonomy_access_set_default_grants($default_rows);
-    taxonomy_access_set_term_grants($term_rows);
+    $this->taxonomyAccessService->taxonomy_access_set_default_grants($default_rows);
+    $this->taxonomyAccessService->taxonomy_access_set_term_grants($term_rows);
   }
 
   /**

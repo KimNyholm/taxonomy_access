@@ -1,10 +1,15 @@
 <?php
-namespace Drupal\taxonomy_access;
+
+namespace Drupal\taxonomy_access\Tests;
+
 
 /**
  * Provides a base test class and helper methods for automated tests.
  */
 class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
+
+
+  protected $taxonomyAccessService ;
 
   protected $profile = 'standard';
 
@@ -45,6 +50,8 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
     // Enable module and dependencies.
     parent::setUp('taxonomy_access');
 
+    $taxonomyAccessService = \Drupal::service('taxonomy_access.taxonomy_access_service');
+
     // Rebuild node access on installation.
     node_access_rebuild();
 
@@ -70,7 +77,7 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
       ];
       $rows[] = _taxonomy_access_format_grant_record(TAXONOMY_ACCESS_GLOBAL_DEFAULT, $rid, $ignore, TRUE);
     }
-    taxonomy_access_set_default_grants($rows);
+    $this->taxonomyAccessService->taxonomy_access_set_default_grants($rows);
 
     foreach ([\Drupal\user\RoleInterface::ANONYMOUS_ID, \Drupal\user\RoleInterface::AUTHENTICATED_ID] as $rid) {
       $r = db_query('SELECT grant_view FROM {taxonomy_access_default}

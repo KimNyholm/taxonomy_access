@@ -4,9 +4,9 @@ namespace Drupal\taxonomy_access\Tests;
 /**
  * Tests the module's configuration forms.
  *
- * @group a_taxonomy_access
+ * @group z_taxonomy_access
  */
-class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\TaxonomyAccessTestCase {
+class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAccessTestCase {
   protected $articles = array();
   protected $pages = array();
   protected $vocabs = array();

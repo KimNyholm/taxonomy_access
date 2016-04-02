@@ -37,18 +37,6 @@ class TaxonomyAccessRoleDisableForm extends ConfirmFormBase {
     );
   }
 
-/**
- * Form submission handler for taxonomy_access_disable_vocab_confirm().
- *
- * @param int $rid
- *   The role ID to disable.
- *
- * @todo
- *   Set a message on invalid $rid or $vid?
- */
-function taxonomy_access_disable_vocab_confirm_submit($rid, $vid) {
-}
-
   public function getFormId() {
     return 'taxonomy_access_role_disable';
   }
@@ -120,10 +108,7 @@ function taxonomy_access_disable_vocab_confirm_submit($rid, $vid) {
             '%role' => $roles[$rid]->label())
          ));
       $urlParameters=array('rid' => $rid);
-      $url=Url::fromRoute('taxonomy_access.admin_role_edit', $urlParameters);
-      $response = new \Symfony\Component\HttpFoundation\RedirectResponse($url->toString());
-// FIX ME kiny.
-// Redirect does not work.
+      $form_state->setRedirect('taxonomy_access.admin_role_edit', $urlParameters);
       return $response ;
     }
   }

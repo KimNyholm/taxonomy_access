@@ -108,7 +108,7 @@ class TaxonomyAccessRoleDisableForm extends ConfirmFormBase {
             '%role' => $roles[$rid]->label())
          ));
       $urlParameters=array('rid' => $rid);
-      $form_state->setRedirect('taxonomy_access.admin_role_edit', $urlParameters);
+      $form_state->setRedirect('taxonomy_access.settings', $urlParameters);
       return $response ;
     }
   }

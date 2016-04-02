@@ -22,10 +22,6 @@ use Drupal\Core\Form\ConfirmFormBase;
  */
 class TaxonomyAccessRoleDeleteForm extends ConfirmFormBase {
 
-  protected function taxonomy_access_delete_record($table, $roleId){
-    return true ;
-  }
-
   public function getFormId() {
     return 'taxonomy_access_role_delete';
   }
@@ -85,7 +81,7 @@ class TaxonomyAccessRoleDeleteForm extends ConfirmFormBase {
       \Drupal\user\RoleInterface::AUTHENTICATED_ID
       ])) {
       dpm($this->rid, 'being deleted');
-      $this->taxonomy_access_delete_record('taxonomy_access_default', $this->rid);
+      $form_state->setRedirect('taxonomy_access.settings');
     }
   }
 

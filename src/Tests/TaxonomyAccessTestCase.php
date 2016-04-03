@@ -114,13 +114,12 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
    *   The vocabulary object.
    */
   function createVocab($machine_name) {
-    $vocabulary = new \stdClass();
-    $vocabulary->name = $machine_name;
-    $vocabulary->description = $this->randomName();
-    $vocabulary->machine_name = $machine_name;
-    $vocabulary->help = '';
-    $vocabulary->weight = mt_rand(0, 10);
-    $this->taxonomy_vocabulary_save($vocabulary);
+    $vocabulary = \Drupal\taxonomy\Entity\Vocabulary::create(
+      array(
+        'vid' => $machine_name,
+        'machine_name' => $machine_name,
+        'name' => $machine_name,
+      ))->save();
     return $vocabulary;
   }
 
@@ -138,26 +137,8 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
    *   The taxonomy term object.
    */
   function createTerm($machine_name, $vocab, $parent = NULL) {
-    $term = new \stdClass();
-    $term->name = $machine_name;
-    $term->description = $machine_name;
-    // Use the first available text format.
-    $term->format = db_query_range('SELECT format FROM {filter_format}', 0, 1)->fetchField();
-    $term->vid = $vocab->vid;
-    $term->vocabulary_machine_name = $vocab->machine_name;
-    if (!is_null($parent)) {
-      $term->parent = $parent;
-    }
-    taxonomy_term_save($term);
+    $term = \Drupal\taxonomy\Entity\Term::create([ 'name' => $machine_name, 'vid' => $vocab->id(), 'parent' => $parent]);
     return $term;
-  }
-
-  public function field_create_field($field){
-// FIX ME, functionality missing.
-  }
-
-  public function field_create_instance($instance){
-// FIX ME, functionality missing.
   }
 
   public /**
@@ -173,7 +154,40 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
    * @return array
    *   Array of instance data.
    */
+
+//https://www.drupal.org/node/2456869
+//https://www.drupal.org/node/2528906
+// widget and display also to be defined.
   function createField($machine_name, $widget = 'options_select', $count = \Drupal\Core\Field\FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED) {
+
+    $field = [
+      'field_name' => $machine_name,
+      'type' => 'entity_reference',
+      'entity_type' => 'node',
+      'cardinality' => $count,
+      'settings' => [
+        'target_type' => 'taxonomy_term',
+      ],
+    ];
+    \Drupal\field\Entity\FieldStorageConfig::create($field)->save();
+
+    $instance = [
+      'field_name' => $machine_name,
+      'bundle' => 'page',
+      'entity_type' => 'node',
+      'settings' => [
+        'handler_settings' => [
+          'target_bundles' => [
+            $machine_name => $machine_name,
+          ],
+          'auto_create' => TRUE,
+        ],
+      ]
+    ];
+    $fieldConfigInstance = \Drupal\field\Entity\FieldConfig::create($instance)->save();
+  }
+
+  function d7_createField($machine_name, $widget = 'options_select', $count = \Drupal\Core\Field\FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED) {
     $field = [
       'field_name' => $machine_name,
       'type' => 'taxonomy_term_reference',

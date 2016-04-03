@@ -1,4 +1,5 @@
 <?php
+
 namespace Drupal\taxonomy_access\Tests;
 
 /**
@@ -22,14 +23,6 @@ class TaxonomyAccessTermGrantTest extends \Drupal\taxonomy_access\Tests\Taxonomy
   );
 
   protected $vocabs = array();
-
-  public static function getInfo() {
-    return array(
-      'name' => 'Term grants',
-      'description' => 'Test node access for View tag (create) and Add tag (list) grants.',
-      'group' => 'Taxonomy Access Control',
-    );
-  }
 
   public function setUp() {
     parent::setUp();
@@ -109,11 +102,10 @@ class TaxonomyAccessTermGrantTest extends \Drupal\taxonomy_access\Tests\Taxonomy
             'list' => $default_grants['list'],
             'query' => 'SELECT grant_create, grant_list FROM {taxonomy_access_default} WHERE vid = :vid AND rid = :rid',
             'args' => array(':vid' => $vocab->id(), ':rid' => $role),
-            'message' => t('Configured default grants for vocab %vocab, role %role', array('%vocab' => $vocab->machine_name, '%role' => $name)),
+            'message' => t('Configured default grants for vocab %vocab, role %role', array('%vocab' => $vocab->id(), '%role' => $name)),
           );
         }
       }
-
       // Create terms.
       foreach ($grant_combos as $parent_name => $parent_grants) {
 
@@ -121,7 +113,7 @@ class TaxonomyAccessTermGrantTest extends \Drupal\taxonomy_access\Tests\Taxonomy
         $parent_name = $vocab_name . "__" . $parent_name . "_parent";
         $this->vocabs[$vocab_name]['terms'][$parent_name] =
           $this->createTerm($parent_name, $vocab);
-        $parent_id = $this->vocabs[$vocab_name]['terms'][$parent_name]->tid;
+        $parent_id = $this->vocabs[$vocab_name]['terms'][$parent_name]->id();
 
         // Configure grants for the parent term for each role.
         if (!empty($parent_grants)) {
@@ -142,7 +134,7 @@ class TaxonomyAccessTermGrantTest extends \Drupal\taxonomy_access\Tests\Taxonomy
           $child_name = $parent_name . "__" . $child_name . "_child";
           $this->vocabs[$vocab_name]['terms'][$child_name] =
             $this->createTerm($child_name, $vocab, $parent_id);
-          $child_id = $this->vocabs[$vocab_name]['terms'][$child_name]->tid;
+          $child_id = $this->vocabs[$vocab_name]['terms'][$child_name]->id();
 
           // Configure grants for the child term for each role.
           if (!empty($child_grants)) {

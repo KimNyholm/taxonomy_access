@@ -24,7 +24,7 @@ class TaxonomyAccessCallbackCleanupTest extends \Drupal\taxonomy_access\Tests\Ta
     $content_type = $this->drupalCreateContentType();
 
     // Create a new field with type taxonomy_term_reference.
-    $field_name = drupal_strtolower($this->randomName() . '_field_name');
+    $field_name = \Drupal\Component\Utility\Unicode::strtolower();
     $field_type = [
       'field_name' => $field_name,
       'type' => 'taxonomy_term_reference',

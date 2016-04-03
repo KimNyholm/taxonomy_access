@@ -605,12 +605,10 @@ function taxonomy_access_delete_selected_submit($form, &$form_state) {
   }
   if ($rid) {
     if ($this->taxonomyAccessService->taxonomy_access_delete_term_grants($delete_tids, $rid)) {
-// FIX ME kiny
-//      drupal_set_message(format_plural(
-//          sizeof($delete_tids),
-//          '1 term access rule was deleted.',
-//          '@count term access rules were deleted.'));
-      drupal_set_message('Some count term access rules were deleted.');
+      drupal_set_message(Drupal\Core\StringTranslation::formatPlural(
+          sizeof($delete_tids),
+          '1 term access rule was deleted.',
+          '@count term access rules were deleted.'));
     }
     else {
       drupal_set_message(t('The records could not be deleted.'), 'warning');

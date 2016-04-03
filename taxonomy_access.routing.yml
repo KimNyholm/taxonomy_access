@@ -2,7 +2,7 @@ taxonomy_access.settings:
   path: /admin/config/people/taxonomy_access
   defaults:
     _title: Taxonomy access control
-    _controller: Drupal\taxonomy_access\Controller\DefaultController::taxonomy_access_admin
+    _controller: Drupal\taxonomy_access\Controller\TaxonomyAccessController::taxonomy_access_admin
   requirements:
     _permission: 'administer site configuration'
   options:

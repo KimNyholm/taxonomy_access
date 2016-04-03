@@ -11,7 +11,6 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
 use Drupal\user\RoleInterface;
-use Drupal\taxonomy_access\Controller\DefaultController;
 use Drupal\Core\Url;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -56,10 +55,7 @@ class TaxonomyAccessRoleDeleteForm extends ConfirmFormBase {
    * {@inheritdoc}
    */
   public function getQuestion() {
-    //$roleName = taxonomy_accessRoleName($this->id);
-    //$roleName = \Drupal\taxonomy_access\Form\TaxonomyAcccessAdminRole::taxonomy_accessRoleName($this->id);
-    //$role=\Drupal\User\Entity\Role::load($roleId);
-    $roleName = \Drupal\taxonomy_access\Controller\DefaultController::taxonomy_accessRoleName($this->rid);
+    $roleName = $this->rid;
     return t('Are you sure you want to delete all taxonomy access rules for the role %id?', array('%id' => $roleName));
   }
 

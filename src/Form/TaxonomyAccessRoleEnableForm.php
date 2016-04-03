@@ -12,7 +12,6 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
 use Drupal\user\RoleInterface;
 use Drupal\taxonomy_access\Controller;
-use Drupal\taxonomy_access\Controller\DefaultController;
 use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Url;
 use Symfony\Component\DependencyInjection\ContainerInterface;

@@ -1,6 +1,6 @@
 <?php /**
  * @file
- * Contains \Drupal\taxonomy_access\Controller\DefaultController.
+ * Contains \Drupal\taxonomy_access\Controller\TaxonomyAccessController.
  */
 
 namespace Drupal\taxonomy_access\Controller;
@@ -14,7 +14,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 /**
  * Default controller for the taxonomy_access module.
  */
-class DefaultController extends ControllerBase {
+class TaxonomyAccessController extends ControllerBase {
 
   protected $taxonomyAccessService ;
 
@@ -32,18 +32,6 @@ class DefaultController extends ControllerBase {
     return new static(
       $container->get('taxonomy_access.taxonomy_access_service')
     );
-  }
-
-  static public function taxonomy_access_role_enabled($rid) {
-    $config = \Drupal::config('taxonomy_access.settings');
-    $defaults=$config->get('taxonomy_access_default');
-    return isset($defaults[$rid]) ? true : false ;
-  }
-
-  protected function getEditableConfigNames() {
-    return [
-      'taxonomy_access.settings',
-    ];
   }
 
   static public function taxonomy_accessRoleName($roleId){

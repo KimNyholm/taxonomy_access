@@ -49,6 +49,7 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
   ];
 
   public function randomName(){
+    return $this->randomMachineName();
     $random = new \Drupal\Component\Utility\Random();
     return $random->name();
   }

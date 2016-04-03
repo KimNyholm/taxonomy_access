@@ -43,38 +43,10 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
 
     $this->pages['no_tags'] = $this->createPage();
     foreach ($this->terms as $t1) {
-      $this->pages[$t1->name] = $this->createPage(array($t1->name));
+      $this->pages[$t1->label()] = $this->createPage(array($t1->label()));
       foreach ($this->terms as $t2) {
-        $this->pages[$t1->name . '_' . $t2->name] =
-          $this->createPage(array($t1->name, $t2->name));
-      }
-    }
-  }
-
-  /**
-    // Add two taxonomy fields to pages.
-    foreach (array('v1', 'v2') as $vocab) {
-      $this->vocabs[$vocab] = $this->createVocab($vocab);
-      $this->createField($vocab);
-      $this->terms[$vocab . 't1'] =
-        $this->createTerm($vocab . 't1', $this->vocabs[$vocab]);
-      $this->terms[$vocab . 't2'] =
-        $this->createTerm($vocab . 't2', $this->vocabs[$vocab]);
-    }
-
-    // Set up a variety of nodes with different term combinations.
-    $this->articles['no_tags'] = $this->createArticle();
-    $this->articles['one_tag'] =
-      $this->createArticle(array($this->randomName()));
-    $this->articles['two_tags'] =
-      $this->createArticle(array($this->randomName(), $this->randomName()));
-
-    $this->pages['no_tags'] = $this->createPage();
-    foreach ($this->terms as $t1) {
-      $this->pages[$t1->name] = $this->createPage(array($t1->name));
-      foreach ($this->terms as $t2) {
-        $this->pages[$t1->name . '_' . $t2->name] =
-          $this->createPage(array($t1->name, $t2->name));
+        $this->pages[$t1->label() . '_' . $t2->label()] =
+          $this->createPage(array($t1->label(), $t2->label()));
       }
     }
   }
@@ -93,7 +65,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     $v2 = array();
 
     foreach ($tags as $name) {
-      switch ($this->terms[$name]->vid) {
+      switch ($this->terms[$name]->id()) {
         case ($this->vocabs['v1']->id()):
           $v1[] = array('tid' => $this->terms[$name]->id());
           break;
@@ -159,7 +131,6 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
 
     // Log in as the administrator.
     $this->drupalLogin($this->users['site_admin']);
-    foreach ([\Drupal\user\RoleInterface::ANONYMOUS_ID, \Drupal\user\RoleInterface::AUTHENTICATED_ID] as $rid) {
 
     // Confirm that only edit links are available for anon. and auth.
     $this->checkRoleConfig(array(
@@ -202,19 +173,19 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     // Add some specific configurations programmatically.
 
     // Set the v1 default to view allow.
-    $default_config = _taxonomy_access_format_grant_record(
-      $this->vocabs['v1']->vid, \Drupal\user\RoleInterface::ANONYMOUS_ID, array('view' => TAXONOMY_ACCESS_NODE_ALLOW), TRUE
+    $default_config = $this->taxonomyAccessService->_taxonomy_access_format_grant_record(
+      $this->vocabs['v1']->id(), \Drupal\user\RoleInterface::ANONYMOUS_ID, array('view' => TAXONOMY_ACCESS_NODE_ALLOW), TRUE
     );
-    taxonomy_access_set_default_grants(array($default_config));
+    $this->taxonomyAccessService->taxonomy_access_set_default_grants(array($default_config));
 
     // Set v1t1 and v2t1 to view allow.
     $term_configs = array();
     foreach (array('v1t1', 'v2t1') as $name) {
-      $term_configs[] = _taxonomy_access_format_grant_record(
-        $this->terms[$name]->vid, \Drupal\user\RoleInterface::ANONYMOUS_ID, array('view' => TAXONOMY_ACCESS_NODE_ALLOW)
+      $term_configs[] = $this->taxonomyAccessService->_taxonomy_access_format_grant_record(
+        $this->terms[$name]->id(), \Drupal\user\RoleInterface::ANONYMOUS_ID, array('view' => TAXONOMY_ACCESS_NODE_ALLOW)
       );
     }
-    taxonomy_access_set_term_grants($term_configs);
+    $this->taxonomyAccessService->taxonomy_access_set_term_grants($term_configs);
 
     // This leaves articles and the v2t2 page controlled by the global default.
 
@@ -272,11 +243,11 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     $this->drupalLogin($this->users['site_admin']);
 
     // Enable the vocabulary.
-    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' . \Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE . '/edit');
+    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' . \Drupal\user\RoleInterface::ANONYMOUS_ID . '/edit');
     // @todo
     //   - Ensure that all vocabularies are options in the "Add" fieldset.
     $edit = array();
-    $edit['enable_vocab'] = $this->vocabs['v1']->vid;
+    $edit['enable_vocab'] = $this->vocabs['v1']->id();
     $this->drupalPost(NULL, $edit, t('Add'));
 
     // @todo
@@ -286,7 +257,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
 
     // Give anonymous view allow for the v1 default.
     $edit = array();
-    $this->configureFormRow($edit, $this->vocabs['v1']->vid, TAXONOMY_ACCESS_VOCABULARY_DEFAULT, TAXONOMY_ACCESS_NODE_ALLOW);
+    $this->configureFormRow($edit, $this->vocabs['v1']->id(), TAXONOMY_ACCESS_VOCABULARY_DEFAULT, TAXONOMY_ACCESS_NODE_ALLOW);
     $this->drupalPost(NULL, $edit, 'Save all');
 
     // Log out.
@@ -307,22 +278,22 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     }
 
     // Programmatically enable v2 and add a specific configuration for v2t1.
-    taxonomy_access_enable_vocab($this->vocabs['v2']->vid, \Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE);
-    $term_config = _taxonomy_access_format_grant_record(
-      $this->terms['v2t1']->tid, \Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE, array('view' => TAXONOMY_ACCESS_NODE_IGNORE)
+    $this->taxonomyAccessService->taxonomy_access_enable_vocab($this->vocabs['v2']->id(), \Drupal\user\RoleInterface::ANONYMOUS_ID);
+    $term_config = $this->taxonomyAccessService->_taxonomy_access_format_grant_record(
+      $this->terms['v2t1']->id(), \Drupal\user\RoleInterface::ANONYMOUS_ID, array('view' => TAXONOMY_ACCESS_NODE_IGNORE)
     );
-    taxonomy_access_set_term_grants(array($term_config));
+    $this->taxonomyAccessService->taxonomy_access_set_term_grants(array($term_config));
 
     // Log in as the administrator.
     $this->drupalLogin($this->users['site_admin']);
 
     // Use the admin form to give anonymous view deny for the v2 default.
-    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' . \Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE . '/edit');
+    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' . \Drupal\user\RoleInterface::ANONYMOUS_ID . '/edit');
     $edit = array();
-    $this->configureFormRow($edit, $this->vocabs['v2']->vid, TAXONOMY_ACCESS_VOCABULARY_DEFAULT, TAXONOMY_ACCESS_NODE_DENY);
+    $this->configureFormRow($edit, $this->vocabs['v2']->id(), TAXONOMY_ACCESS_VOCABULARY_DEFAULT, TAXONOMY_ACCESS_NODE_DENY);
     $this->drupalPost(NULL, $edit, 'Save all');
 
-    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' . \Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE . '/edit');
+    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' . \Drupal\user\RoleInterface::ANONYMOUS_ID . '/edit');
 
     // Log out.
     $this->drupalLogout();
@@ -352,10 +323,10 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     $this->drupalLogin($this->users['site_admin']);
 
     // Use the form to change the configuration: Allow for v2; Deny for v1.
-    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' . \Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE . '/edit');
+    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' . \Drupal\user\RoleInterface::ANONYMOUS_ID . '/edit');
     $edit = array();
-    $this->configureFormRow($edit, $this->vocabs['v2']->vid, TAXONOMY_ACCESS_VOCABULARY_DEFAULT, TAXONOMY_ACCESS_NODE_ALLOW);
-    $this->configureFormRow($edit, $this->vocabs['v1']->vid, TAXONOMY_ACCESS_VOCABULARY_DEFAULT, TAXONOMY_ACCESS_NODE_DENY);
+    $this->configureFormRow($edit, $this->vocabs['v2']->id(), TAXONOMY_ACCESS_VOCABULARY_DEFAULT, TAXONOMY_ACCESS_NODE_ALLOW);
+    $this->configureFormRow($edit, $this->vocabs['v1']->id(), TAXONOMY_ACCESS_VOCABULARY_DEFAULT, TAXONOMY_ACCESS_NODE_DENY);
     $this->drupalPost(NULL, $edit, 'Save all');
 
     // Log out.
@@ -388,7 +359,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     $this->drupalLogin($this->users['site_admin']);
 
     // Use the admin form to disable v1.
-    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' . \Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE . '/edit');
+    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' . \Drupal\user\RoleInterface::ANONYMOUS_ID . '/edit');
     $this->clickLink(t('delete all v1 access rules'));
     $this->assertText("Are you sure you want to delete all Taxonomy access rules for v1", t('Disable form for vocabulary loaded.'));
     $this->drupalPost(NULL, array(), 'Delete all');
@@ -425,12 +396,12 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     $this->drupalLogin($this->users['site_admin']);
 
     // Use the admin form to enable v1 and give anonymous view allow for v1t1.
-    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' . \Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE . '/edit');
+    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' . \Drupal\user\RoleInterface::ANONYMOUS_ID . '/edit');
     $edit = array();
-    $edit['enable_vocab'] = $this->vocabs['v1']->vid;
+    $edit['enable_vocab'] = $this->vocabs['v1']->id();
     $this->drupalPost(NULL, $edit, t('Add'));
     $edit = array();
-    $this->addFormRow($edit, $this->vocabs['v1']->vid, $this->terms['v1t1']->tid, TAXONOMY_ACCESS_NODE_ALLOW);
+    $this->addFormRow($edit, $this->vocabs['v1']->id(), $this->terms['v1t1']->id(), TAXONOMY_ACCESS_NODE_ALLOW);
     $this->drupalPost(NULL, $edit, 'Add');
 
     // Log out.
@@ -451,15 +422,15 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     }
 
     // Enable v2 programmatically.
-    taxonomy_access_enable_vocab($this->vocabs['v2']->vid, \Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE);
+    $this->taxonomyAccessService->taxonomy_access_enable_vocab($this->vocabs['v2']->id(), \Drupal\user\RoleInterface::ANONYMOUS_ID);
 
     // Log in as the administrator.
     $this->drupalLogin($this->users['site_admin']);
 
     // Use the admin form to give anonymous view deny for v2t1.
-    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' . \Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE . '/edit');
+    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' . \Drupal\user\RoleInterface::ANONYMOUS_ID . '/edit');
     $edit = array();
-    $this->addFormRow($edit, $this->vocabs['v2']->vid, $this->terms['v2t1']->tid, TAXONOMY_ACCESS_NODE_DENY);
+    $this->addFormRow($edit, $this->vocabs['v2']->id(), $this->terms['v2t1']->id(), TAXONOMY_ACCESS_NODE_DENY);
     $this->drupalPost(NULL, $edit, 'Add');
 
     // Log out.
@@ -491,13 +462,14 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     $this->drupalLogin($this->users['site_admin']);
 
     // Use the form to change the configuration: Allow for v2t1; Deny for v1t1.
-    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' . \Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE . '/edit');
+    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' . \Drupal\user\RoleInterface::ANONYMOUS_ID . '/edit');
     $edit = array();
     $this->configureFormRow(
-      $edit, $this->vocabs['v2']->vid, $this->terms['v2t1']->tid, TAXONOMY_ACCESS_NODE_ALLOW
+      $edit, $this->vocabs['v2']->id(), $this->terms['v2t1']->id(), TAXONOMY_ACCESS_NODE_ALLOW
+
     );
     $this->configureFormRow(
-      $edit, $this->vocabs['v1']->vid, $this->terms['v1t1']->tid, TAXONOMY_ACCESS_NODE_DENY
+      $edit, $this->vocabs['v1']->id(), $this->terms['v1t1']->id(), TAXONOMY_ACCESS_NODE_DENY
     );
     $this->drupalPost(NULL, $edit, 'Save all');
 
@@ -530,9 +502,9 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     $this->drupalLogin($this->users['site_admin']);
 
     // Use the form to delete the v2t1 configuration.
-    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' . \Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE . '/edit');
+    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' . \Drupal\user\RoleInterface::ANONYMOUS_ID . '/edit');
     $edit = array();
-    $edit["grants[{$this->vocabs['v2']->vid}][{$this->terms['v2t1']->tid}][remove]"] = 1;
+    $edit["grants[{$this->vocabs['v2']->id()}][{$this->terms['v2t1']->id()}][remove]"] = 1;
     $this->drupalPost(NULL, $edit, 'Delete selected');
 
     // Log out.
@@ -566,22 +538,22 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     $this->terms['v1t1c1'] = $this->createTerm(
       'v1t1c1',
       $this->vocabs['v1'],
-      $this->terms['v1t1']->tid
+      $this->terms['v1t1']->id()
     );
     $this->terms['v1t1c2'] = $this->createTerm(
       'v1t1c2',
       $this->vocabs['v1'],
-      $this->terms['v1t1']->tid
+      $this->terms['v1t1']->id()
     );
     $this->terms['v1t1c1g1'] = $this->createTerm(
       'v1t1c1g1',
       $this->vocabs['v1'],
-      $this->terms['v1t1c1']->tid
+      $this->terms['v1t1c1']->id()
     );
     $this->terms['v1t1c1g2'] = $this->createTerm(
       'v1t1c1g2',
       $this->vocabs['v1'],
-      $this->terms['v1t1c1']->tid
+      $this->terms['v1t1c1']->id()
     );
 
     // Add pages tagged with each.
@@ -593,12 +565,12 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     $this->drupalLogin($this->users['site_admin']);
 
     // Enable v1 programmatically.
-    taxonomy_access_enable_vocab($this->vocabs['v1']->vid, \Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE);
+    $this->taxonomyAccessService->taxonomy_access_enable_vocab($this->vocabs['v1']->id(), \Drupal\user\RoleInterface::ANONYMOUS_ID);
     // Use the admin form to give anonymous view allow for v1t1 and children.
-    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' . \Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE . '/edit');
+    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' . \Drupal\user\RoleInterface::ANONYMOUS_ID . '/edit');
     $edit = array();
-    $edit["new[{$this->vocabs['v1']->vid}][recursive]"] = 1;
-    $this->addFormRow($edit, $this->vocabs['v1']->vid, $this->terms['v1t1']->tid, TAXONOMY_ACCESS_NODE_ALLOW);
+    $edit["new[{$this->vocabs['v1']->id()}][recursive]"] = 1;
+    $this->addFormRow($edit, $this->vocabs['v1']->id(), $this->terms['v1t1']->id(), TAXONOMY_ACCESS_NODE_ALLOW);
     $this->drupalPost(NULL, $edit, 'Add');
 
   }
@@ -613,8 +585,8 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
 
     // Check that the role is disabled by default.
     $this->checkRoleConfig(array(
-      \Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE => TRUE,
-      \Drupal\Core\Session\AccountInterface::AUTHENTICATED_RID => TRUE,
+      \Drupal\user\RoleInterface::ANONYMOUS_ID => TRUE,
+      \Drupal\user\RoleInterface::AUTHENTICATED_ID => TRUE,
       $rid => FALSE,
     ));
 
@@ -647,8 +619,8 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
 
     // Confirm that all three roles are enabled.
     $this->checkRoleConfig(array(
-      \Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE => TRUE,
-      \Drupal\Core\Session\AccountInterface::AUTHENTICATED_RID => TRUE,
+      \Drupal\user\RoleInterface::ANONYMOUS_ID => TRUE,
+      \Drupal\user\RoleInterface::AUTHENTICATED_ID => TRUE,
       $rid => TRUE,
     ));
 

@@ -98,12 +98,6 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
     }
   }
 
-  public function taxonomy_vocabulary_save($vocabulary){
-    // FIX ME, what about remaining fields.
-    \Drupal\taxonomy\Entity\Term::create([ 'name' => $vocabulary->name, 'vid' => $vocabulary->machine_name, ])
-      ->save();
-  }
-
   public /**
    * Creates a vocabulary with a certain name.
    *
@@ -123,7 +117,7 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
     return $vocabulary;
   }
 
-  public /**
+  /**
    * Creates a new term in the specified vocabulary.
    *
    * @param string $machine_name
@@ -136,8 +130,11 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
    * @return object
    *   The taxonomy term object.
    */
-  function createTerm($machine_name, $vocab, $parent = NULL) {
-    $term = \Drupal\taxonomy\Entity\Term::create([ 'name' => $machine_name, 'vid' => $vocab->id(), 'parent' => $parent]);
+  public function createTerm($machine_name, $vocab, $parent = NULL) {
+    $vid=$vocab->id();
+    $term = \Drupal\taxonomy\Entity\Term::create(
+        [ 'name' => $machine_name, 'vid' => $vid, 'parent'=>array(0=>$parent)])
+      ->save();
     return $term;
   }
 

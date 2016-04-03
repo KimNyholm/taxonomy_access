@@ -846,10 +846,10 @@ function _taxonomy_access_get_nodes_for_terms($term_ids) {
     return FALSE;
   }
 
-  // The query builder will use = or IN() automatically as appropriate.
+  $operator=is_array($term_ids) ? 'IN' : '=';
   $nids =
     db_select('taxonomy_index', 'ti')
-    ->condition('ti.tid', $term_ids)
+    ->condition('ti.tid', $term_ids, $operator)
     ->fields('ti', array('nid'))
     ->addTag('taxonomy_access_node')
     ->execute()
@@ -1072,11 +1072,10 @@ function taxonomy_access_delete_default_grants($vocab_ids, $rid = NULL, $update_
     unset($affected_nodes);
   }
 
-  // The query builder will use = or IN() automatically as appropriate.
-  dpm($vocab_ids, 'deleting for role ' . $rid);
+  $operator=is_array($vocab_ids) ? 'IN' : '=';
   $query =
     db_delete('taxonomy_access_default')
-    ->condition('vid', $vocab_ids);
+    ->condition('vid', $vocab_ids, $operator);
 
   if (!empty($rid)) {
     $query->condition('rid', $rid);
@@ -1119,12 +1118,10 @@ function taxonomy_access_delete_term_grants($term_ids, $rid = NULL, $update_node
     unset($affected_nodes);
   }
 
-  // Delete our database records for these terms.
-// FIX ME kiny
-// Fails when $term_ids contains more than one id.
+  $operator=is_array($term_ids) ? 'IN' : '=';
   $query =
     db_delete('taxonomy_access_term')
-    ->condition('tid', $term_ids);
+    ->condition('tid', $term_ids, $operator);
 
   if (!empty($rid)) {
     $query->condition('rid', $rid);

@@ -2,6 +2,8 @@
 
 namespace Drupal\taxonomy_access\Tests;
 
+use Drupal\taxonomy_access\TaxonomyAccessService;
+
 /**
  * Tests node access for all possible grant combinations.
  *
@@ -56,9 +58,9 @@ class TaxonomyAccessNodeGrantTest extends \Drupal\taxonomy_access\Tests\Taxonomy
 
     // View alone can be used to test V/U/D because the logic is identical.
     foreach ($node_grants as $grant) {
-      $grant_types['a'][$grant] = TAXONOMY_ACCESS_NODE_ALLOW;
-      $grant_types['i'][$grant] = TAXONOMY_ACCESS_NODE_IGNORE;
-      $grant_types['d'][$grant] = TAXONOMY_ACCESS_NODE_DENY;
+      $grant_types['a'][$grant] = TaxonomyAccessService::TAXONOMY_ACCESS_NODE_ALLOW;
+      $grant_types['i'][$grant] = TaxonomyAccessService::TAXONOMY_ACCESS_NODE_IGNORE;
+      $grant_types['d'][$grant] = TaxonomyAccessService::TAXONOMY_ACCESS_NODE_DENY;
     }
 
     // Each vocabulary will have four parent terms in the same fashion:
@@ -98,22 +100,21 @@ class TaxonomyAccessNodeGrantTest extends \Drupal\taxonomy_access\Tests\Taxonomy
       // Create the vocabulary.
       $vocab_name = "v" . $vocab_name;
       $this->vocabs[$vocab_name] = array();
-      $this->vocabs[$vocab_name]['vocab'] = parent::createVocab($vocab_name);
+      $this->vocabs[$vocab_name]['vocab'] = $this->createVocab($vocab_name);
       $this->vocabs[$vocab_name]['terms'] = array();
       $vocab = $this->vocabs[$vocab_name]['vocab'];
-
       // Add a field for the vocabulary to pages.
       $this->createField($vocab_name);
 
       // Configure default grants for the vocabulary for each role.
       if (!empty($default_grants)) {
         foreach ($this->roles as $name => $role) {
-          $default_rows[] =  $this->taxonomyAccessService->_taxonomy_access_format_grant_record($vocab->vid, $role, $default_grants, TRUE);
+          $default_rows[] =  $this->taxonomyAccessService->_taxonomy_access_format_grant_record($vocab->id(), $role, $default_grants, TRUE);
           $this->setUpAssertions[] = array(
             'grant' => $default_grants['view'],
             'query' => 'SELECT grant_view FROM {taxonomy_access_default} WHERE vid = :vid AND rid = :rid',
-            'args' => array(':vid' => $vocab->vid, ':rid' => $role),
-            'message' => t('Configured default grants for vocab %vocab, role %role', array('%vocab' => $vocab->machine_name, '%role' => $name)),
+            'args' => array(':vid' => $vocab->id(), ':rid' => $role),
+            'message' => t('Configured default grants for vocab %vocab, role %role', array('%vocab' => $vocab->id(), '%role' => $name)),
           );
         }
       }
@@ -124,8 +125,8 @@ class TaxonomyAccessNodeGrantTest extends \Drupal\taxonomy_access\Tests\Taxonomy
         // Create parent term.
         $parent_name = $vocab_name . "__" . $parent_name . "_parent";
         $this->vocabs[$vocab_name]['terms'][$parent_name] =
-          parent::createTerm($parent_name, $vocab);
-        $parent_id = $this->vocabs[$vocab_name]['terms'][$parent_name]->tid;
+          $this->createTerm($parent_name, $vocab);
+        $parent_id = $this->vocabs[$vocab_name]['terms'][$parent_name]->id();
 
         // Configure grants for the parent term for each role.
         if (!empty($parent_grants)) {
@@ -144,8 +145,8 @@ class TaxonomyAccessNodeGrantTest extends \Drupal\taxonomy_access\Tests\Taxonomy
         foreach ($grant_types as $child_name => $child_grants) {
           $child_name = $parent_name . "__" . $child_name . "_child";
           $this->vocabs[$vocab_name]['terms'][$child_name] =
-            parent::createTerm($child_name, $vocab, $parent_id);
-          $child_id = $this->vocabs[$vocab_name]['terms'][$child_name]->tid;
+            $this->createTerm($child_name, $vocab, $parent_id);
+          $child_id = $this->vocabs[$vocab_name]['terms'][$child_name]->id();
 
           // Configure grants for the child term for each role.
           if (!empty($child_grants)) {

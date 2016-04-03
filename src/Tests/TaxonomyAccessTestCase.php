@@ -114,6 +114,7 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
         'machine_name' => $machine_name,
         'name' => $machine_name,
       ))->save();
+    $vocabulary=\Drupal\taxonomy\Entity\Vocabulary::load($machine_name);
     return $vocabulary;
   }
 
@@ -130,11 +131,13 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
    * @return object
    *   The taxonomy term object.
    */
-  public function createTerm($machine_name, $vocab, $parent = NULL) {
+  function createTerm($machine_name, $vocab, $parent = NULL) {
     $vid=$vocab->id();
     $term = \Drupal\taxonomy\Entity\Term::create(
-        [ 'name' => $machine_name, 'vid' => $vid, 'parent'=>array(0=>$parent)])
-      ->save();
+        [ 'name' => $machine_name, 'vid' => $vid, 'parent'=>array(0=>$parent)]);
+    $term-> save();
+    $tid=$term->id();
+    $term = \Drupal\taxonomy\Entity\Term::load($tid);
     return $term;
   }
 

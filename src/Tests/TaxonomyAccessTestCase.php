@@ -2,6 +2,7 @@
 
 namespace Drupal\taxonomy_access\Tests;
 
+use Drupal\taxonomy_access\TaxonomyAccessService;
 
 /**
  * Provides a base test class and helper methods for automated tests.
@@ -280,11 +281,11 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
     // Log in as the administrator.
     $this->drupalLogout();
     $this->drupalLogin($this->users['site_admin']);
-    $this->drupalGet(TAXONOMY_ACCESS_CONFIG);
+    $this->drupalGet(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG);
 
     foreach ($statuses as $rid => $status) {
       // Assert that a "Configure" link is available for the role.
-      $this->assertLinkByHref(TAXONOMY_ACCESS_CONFIG . "/role/$rid/edit", 0, t('"Configure" link is available for role %rid.', [
+      $this->assertLinkByHref(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . "/role/$rid/edit", 0, t('"Configure" link is available for role %rid.', [
         '%rid' => $rid
         ]));
     }
@@ -294,29 +295,34 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
     $table = $this->xpath('//table/tbody');
     $table = reset($table);
     // SimpleXML has fake arrays so we have to do this to get the data out.
-    foreach ($table->tr as $row) {
-      $tds = [];
-      foreach ($row->td as $value) {
-        $tds[] = (string) $value;
+    if (isset($table->tr)){
+      foreach ($table->tr as $row) {
+        $tds = [];
+        foreach ($row->td as $value) {
+          $tds[] = (string) $value;
+        }
+        $shown[$tds[0]] = $tds[1];
       }
-      $shown[$tds[0]] = $tds[1];
     }
 
     foreach ($statuses as $rid => $status) {
+      if (!isset($shown[$roles[$rid]->label()])){
+        $shown[$roles[$rid]->label()] = '';
+      }
       // Assert that the form shows the passed status.
       if ($status) {
-        $this->assertTrue($shown[$roles[$rid]] == t('Enabled'), format_string('Role %role is enabled.', [
+        $this->assertTrue($shown[$roles[$rid]->label()] == t('Enabled'), format_string('Role %role is enabled.', [
           '%role' => $rid
           ]));
       }
       else {
-        $this->assertTrue($shown[$roles[$rid]] == t('Disabled'), format_string('Role %role is disabled.', [
+        $this->assertTrue($shown[$roles[$rid]->label()] == t('Disabled'), format_string('Role %role is disabled.', [
           '%role' => $rid
           ]));
       }
 
       // Assert that a "Configure" link is available for the role.
-      $this->assertLinkByHref(TAXONOMY_ACCESS_CONFIG . "/role/$rid/edit", 0, t('"Configure" link is available for role %rid.', [
+      $this->assertLinkByHref(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . "/role/$rid/edit", 0, t('"Configure" link is available for role %rid.', [
         '%rid' => $rid
         ]));
     }

@@ -18,6 +18,11 @@ class TaxonomyAccessService {
 const TAXONOMY_ACCESS_MAX_UPDATE = 500 ;
 
 /**
+ * Base path for module administration pages.
+ */
+const TAXONOMY_ACCESS_CONFIG = 'admin/config/people/taxonomy_access' ;
+
+/**
  * Global default.
  */
 const TAXONOMY_ACCESS_GLOBAL_DEFAULT = 0 ;

@@ -11,16 +11,8 @@ class TaxonomyAccessCallbackCleanupTest extends \Drupal\taxonomy_access\Tests\Ta
 
   protected $profile = 'standard';
 
-  public static function getInfo() {
-    return [
-      'name' => 'Callback Cleanup',
-      'description' => 'Test callback cleanup during disabling of module works.',
-      'group' => 'Taxonomy Access Control',
-    ];
-  }
-
   public function setUp() {
-    parent::setUp('taxonomy_access');
+    parent::setUp();
   }
 
   /**

@@ -25,14 +25,6 @@ class TaxonomyAccessNodeGrantTest extends \Drupal\taxonomy_access\Tests\Taxonomy
 
   protected $vocabs = array();
 
-  public static function getInfo() {
-    return array(
-      'name' => 'Node access',
-      'description' => 'Test node access for various grant configurations.',
-      'group' => 'Taxonomy Access Control',
-    );
-  }
-
   public function setUp() {
     parent::setUp();
 

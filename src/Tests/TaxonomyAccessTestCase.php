@@ -17,10 +17,7 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
   protected $profile = 'standard';
 
   // There are four types of users:
-
-
   // site admins, taxonomy admins, content editors, and regular users.
-
 
   protected $users = [];
 

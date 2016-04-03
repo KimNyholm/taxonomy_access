@@ -13,14 +13,6 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
   protected $vocabs = array();
   protected $terms = array();
 
-  public static function getInfo() {
-    return array(
-      'name' => 'Configuration forms',
-      'description' => 'Test module configuration forms.',
-      'group' => 'Taxonomy Access Control',
-    );
-  }
-
   public function setUp() {
     parent::setUp();
 

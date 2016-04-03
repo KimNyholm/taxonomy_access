@@ -10,14 +10,6 @@ class TaxonomyAccessWeightTest extends \Drupal\simpletest\WebTestBase {
 
   protected $profile = 'standard';
 
-  public static function getInfo() {
-    return [
-      'name' => 'Weight',
-      'description' => 'Test module weight.',
-      'group' => 'Taxonomy Access Control',
-    ];
-  }
-
   public function setUp() {
     parent::setUp();
   }

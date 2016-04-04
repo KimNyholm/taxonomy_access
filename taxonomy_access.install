@@ -39,6 +39,9 @@ define('TAXONOMY_ACCESS_TERM_ALLOW', 1);
  */
 define('TAXONOMY_ACCESS_TERM_DENY', 0);
 
+define('TAXONOMY_ACCESS_ANONYMOUS_ID', 1);
+define('TAXONOMY_ACCESS_AUTHENTICATED_ID', 2);
+
 
 /**
  * Implements hook_install().
@@ -55,7 +58,7 @@ function taxonomy_access_install() {
     (:vid, :rid, :node_allow, :ignore, :ignore, :term_allow, :term_allow)',
     array(
       ':vid' => TAXONOMY_ACCESS_GLOBAL_DEFAULT,
-      ':rid' => DRUPAL_ANONYMOUS_RID,
+      ':rid' => TAXONOMY_ACCESS_ANONYMOUS_ID,
       ':node_allow' => TAXONOMY_ACCESS_NODE_ALLOW,
       ':ignore' => TAXONOMY_ACCESS_NODE_IGNORE,
       ':term_allow' => TAXONOMY_ACCESS_TERM_ALLOW)
@@ -67,7 +70,7 @@ function taxonomy_access_install() {
     (:vid, :rid, :node_allow, :ignore, :ignore, :term_allow, :term_allow)',
     array(
       ':vid' => TAXONOMY_ACCESS_GLOBAL_DEFAULT,
-      ':rid' => DRUPAL_AUTHENTICATED_RID,
+      ':rid' => TAXONOMY_ACCESS_AUTHENTICATED_ID,
       ':node_allow' => TAXONOMY_ACCESS_NODE_ALLOW,
       ':ignore' => TAXONOMY_ACCESS_NODE_IGNORE,
       ':term_allow' => TAXONOMY_ACCESS_TERM_ALLOW)
@@ -92,9 +95,10 @@ function taxonomy_access_schema() {
       ),
       'rid' => array(
         'description' => "The role.rid a user must possess to gain this row's privileges on nodes for this term.",
-        'type' => 'varchar',
-        'length'  => 128,
+        'type' => 'int',
+        'unsigned' => TRUE,
         'not null' => TRUE,
+        'default' => 0,
       ),
       'grant_view' => array(
         'description' => 'Whether this role can view nodes with this term. 0=>Ignore, 1=>Allow, 2=>Deny.',
@@ -150,10 +154,11 @@ function taxonomy_access_schema() {
         'not null' => TRUE,
       ),
       'rid' => array(
-        'description' => "The role.rid a user must possess to gain this row's privileges on nodes for terms in this vocabulary.",
-        'type' => 'varchar',
-        'length'  => 64,
+        'description' => "The role.rid a user must possess to gain this row's privileges on nodes for this term.",
+        'type' => 'int',
+        'unsigned' => TRUE,
         'not null' => TRUE,
+        'default' => 0,
       ),
       'grant_view' => array(
         'description' => 'Whether this role can view nodes with terms in this vocabulary. 0=>Ignore, 1=>Allow, 2=>Deny.',

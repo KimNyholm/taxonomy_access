@@ -68,7 +68,7 @@ const TAXONOMY_ACCESS_TERM_DENY = 0 ;
     //$config = \Drupal::config('taxonomy_access.settings');
     $roleNumber=$config->get('roleNumber');
     if (!isset($roleNumber[$ridMachineName])){
-      $roleNumber[$ridMachineName]=count($roleNumber);
+      $roleNumber[$ridMachineName]=count($roleNumber)+1;
       $config->set('roleNumber', $roleNumber)
         ->save();
     }
@@ -105,17 +105,13 @@ const TAXONOMY_ACCESS_TERM_DENY = 0 ;
  *   Replace this function once http://drupal.org/node/6463 is backported.
  */
 function _taxonomy_access_user_roles($permission = NULL) {
-  $roles = &drupal_static(__FUNCTION__, array());
-  if (!isset($roles[$permission])) {
-    $roleListByName=user_roles(FALSE, $permission);
-    $roleListByNumber=array();
-    foreach($roleListByName as $role){
-      $roleNumber=$this->roleIdToNumber($role->id());
-      $roleListByNumber[$roleNumber]=$role;
-    }
-    $roles[$permission] = $roleListByNumber;
+  $roleListByName=user_roles(FALSE, $permission);
+  $roleListByNumber=array();
+  foreach($roleListByName as $role){
+    $roleNumber=$this->roleIdToNumber($role->id());
+    $roleListByNumber[$roleNumber]=$role;
   }
-  return $roles[$permission];
+  return $roleListByNumber;
 }
 
 /**

@@ -289,6 +289,22 @@ function taxonomy_access_taxonomy_term_delete($term) {
 }
 
 /**
+ * Implements hook_node_grants().
+ *
+ * Gives access to taxonomies based on the taxonomy_access table.
+ */
+function taxonomy_access_node_grants($user, $op) {
+  $roleGrants = -1 ;
+  $roles = $user->getRoles();
+  dpm($roles, 'roles');
+  foreach($roles as $role){
+    $roleGrants[]= $this->roleIdToNumber($role);
+  }
+  return array('taxonomy_access_role' => $roles);
+}
+
+/**
+/**
  * Implements hook_field_info_alter().
  *
  * @todo

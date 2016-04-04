@@ -6,8 +6,8 @@
  * Gives access to taxonomies based on the taxonomy_access table.
  */
 function taxonomy_access_node_grants($user, $op) {
-  $roles = is_array($user->roles) ? array_keys($user->roles) : -1;
-  return array('taxonomy_access_role' => $roles);
+  $taxonomyAccessService = \Drupal::Service('taxonomy_access.taxonomy_access_service');
+  return $taxonomyAccessService->taxonomy_access_node_grants($user);
 }
 
 /**

@@ -57,6 +57,24 @@ const TAXONOMY_ACCESS_TERM_ALLOW = 1 ;
  */
 const TAXONOMY_ACCESS_TERM_DENY = 0 ;
 
+  // Taxonomy access uses role ids as grant ids, which are numerical.
+  // Taxonomy access maintains its own translation list from known user role
+  // names to corresponding role numbers. The non numerical role id is only
+  // required during configuration. Therefore the taxonomy access tables stores
+  // the numerical role id.
+  // TBD: Add logic to cleanup unused role ids.
+  public function roleIdToNumber($ridMachineName){
+    $config = \Drupal::service('config.factory')->getEditable('taxonomy_access.settings');
+    //$config = \Drupal::config('taxonomy_access.settings');
+    $roleNumber=$config->get('roleNumber');
+    if (!isset($roleNumber[$ridMachineName])){
+      $roleNumber[$ridMachineName]=count($roleNumber);
+      $config->set('roleNumber', $roleNumber)
+        ->save();
+    }
+    return $roleNumber[$ridMachineName];
+  }
+
   protected function drupal_write_record($table, $row)
   {
     $key=array('rid' => $row->rid);
@@ -89,7 +107,13 @@ const TAXONOMY_ACCESS_TERM_DENY = 0 ;
 function _taxonomy_access_user_roles($permission = NULL) {
   $roles = &drupal_static(__FUNCTION__, array());
   if (!isset($roles[$permission])) {
-    $roles[$permission] = user_roles(FALSE, $permission);
+    $roleListByName=user_roles(FALSE, $permission);
+    $roleListByNumber=array();
+    foreach($roleListByName as $role){
+      $roleNumber=$this->roleIdToNumber($role->id());
+      $roleListByNumber[$roleNumber]=$role;
+    }
+    $roles[$permission] = $roleListByNumber;
   }
   return $roles[$permission];
 }
@@ -262,29 +286,6 @@ function taxonomy_access_taxonomy_vocabulary_delete($vocab) {
  */
 function taxonomy_access_taxonomy_term_delete($term) {
   taxonomy_access_delete_term_grants($term->tid);
-}
-
-/**
- * Implements hook_node_grants().
- *
- * Gives access to taxonomies based on the taxonomy_access table.
- */
-function taxonomy_access_node_grants($user, $op) {
-  $roles = is_array($user->roles) ? array_keys($user->roles) : -1;
-  return array('taxonomy_access_role' => $roles);
-}
-
-/**
- * Implements hook_node_access_records().
- *
- * @ingroup tac_node_access
- */
-function taxonomy_access_node_access_records($node) {
-  // Only write grants for published nodes.
-  if ($node->status) {
-    // Make sure to reset caches for accurate grant values.
-    return _taxonomy_access_node_access_records($node->nid, TRUE);
-  }
 }
 
 /**
@@ -599,7 +600,7 @@ function _taxonomy_access_node_access_update(array $nids) {
     $nids = array_unique($nids);
 
     // If the number of nodes is small enough, update node access for each.
-    if (sizeof($nids) < TAXONOMY_ACCESS_MAX_UPDATE) {
+    if (sizeof($nids) < TaxonomyAccessService::TAXONOMY_ACCESS_MAX_UPDATE) {
       foreach ($nids as $node) {
         $loaded_node = node_load($node, NULL, TRUE);
         if (!empty($loaded_node)) {
@@ -1001,15 +1002,15 @@ function taxonomy_access_delete_role_grants($rid, $update_nodes = TRUE) {
       switch ($auth_gd[$op]) {
         // If the authenticated user has a Deny grant, then either Allow or
         // Ignore for the role is more permissive.
-        case TAXONOMY_ACCESS_NODE_DENY:
-          if (($role_gd[$op] == TAXONOMY_ACCESS_NODE_IGNORE) || ($role_gd[$op] == TAXONOMY_ACCESS_NODE_ALLOW)){
+        case TaxonomyAccessService::TAXONOMY_ACCESS_NODE_DENY:
+          if (($role_gd[$op] == TaxonomyAccessService::TAXONOMY_ACCESS_NODE_IGNORE) || ($role_gd[$op] == TaxonomyAccessService::TAXONOMY_ACCESS_NODE_ALLOW)){
             $all_nodes = TRUE;
           }
           break 2;
 
         // If the authenticated user has Ignore, Allow is more permissive.
-        case TAXONOMY_ACCESS_NODE_IGNORE:
-          if ($role_gd[$op] == TAXONOMY_ACCESS_NODE_ALLOW) {
+        case TaxonomyAccessService::TAXONOMY_ACCESS_NODE_IGNORE:
+          if ($role_gd[$op] == TaxonomyAccessService::TAXONOMY_ACCESS_NODE_ALLOW) {
             $all_nodes = TRUE;
           }
           break 2;
@@ -1290,7 +1291,7 @@ function _taxonomy_access_grant_query(array $grants, $default = FALSE) {
   $query->join(
     'taxonomy_access_default', 'tadg',
     'tadg.vid = :vid',
-    array(':vid' => TAXONOMY_ACCESS_GLOBAL_DEFAULT)
+    array(':vid' => TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT)
   );
   $query->leftJoin(
     'taxonomy_access_default', 'tad',
@@ -1353,9 +1354,9 @@ function _taxonomy_access_grant_query(array $grants, $default = FALSE) {
  * @ingroup tac_node_access
  */
 function _taxonomy_access_node_access_records($node_nid, $reset = FALSE) {
-
+  dpm($node_nid, 'node nid line 1333');
   // Build the base node grant query.
-  $query = _taxonomy_access_grant_query(array('view', 'update', 'delete'));
+  $query = $this->_taxonomy_access_grant_query(array('view', 'update', 'delete'));
 
   // Select grants for this node only and group by role.
   $query->join(
@@ -1370,17 +1371,21 @@ function _taxonomy_access_node_access_records($node_nid, $reset = FALSE) {
     ->addTag('taxonomy_access_node')
     ;
 
+//  dpm($query, 'line 1350');
   // Fetch and format all grant records for the node.
   $grants = array();
   $records = $query->execute()->fetchAll();
   // The node grant query returns no rows if the node has no tags.
   // In that scenario, use the global default.
+  dpm('line 1356');
   if (sizeof($records) == 0) {
-    $records = taxonomy_access_global_defaults($reset);
+    $records = $this->taxonomy_access_global_defaults($reset);
   }
+  dpm($records, 'line 1360');
   foreach ($records as $record) {
-    $grants[] = _taxonomy_access_format_node_access_record($record);
+    $grants[] = $this->_taxonomy_access_format_node_access_record($record);
   }
+  dpm('line 1364');
 
   return $grants;
 }
@@ -1403,7 +1408,7 @@ function taxonomy_access_global_defaults($reset = FALSE) {
            grant_list
          FROM {taxonomy_access_default}
          WHERE vid = :vid',
-         array(':vid' => TAXONOMY_ACCESS_GLOBAL_DEFAULT))
+         array(':vid' => TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT))
       ->fetchAllAssoc('rid');
   }
   return $global_grants;
@@ -1421,7 +1426,7 @@ function taxonomy_access_global_defaults($reset = FALSE) {
  * @todo
  *   Make priority configurable?
  */
-function _taxonomy_access_format_node_access_record(stdClass $record) {
+function _taxonomy_access_format_node_access_record(\stdClass $record) {
 
    // TAXONOMY_ACCESS_NODE_IGNORE => 0, TAXONOMY_ACCESS_NODE_ALLOW => 1,
    // TAXONOMY_ACCESS_NODE_DENY => 2 ('10' in binary).

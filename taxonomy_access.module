@@ -1,6 +1,30 @@
 <?php
 
 /**
+ * Implements hook_node_grants().
+ *
+ * Gives access to taxonomies based on the taxonomy_access table.
+ */
+function taxonomy_access_node_grants($user, $op) {
+  $roles = is_array($user->roles) ? array_keys($user->roles) : -1;
+  return array('taxonomy_access_role' => $roles);
+}
+
+/**
+ * Implements hook_node_access_records().
+ *
+ * @ingroup tac_node_access
+ */
+function taxonomy_access_node_access_records($node) {
+  // Only write grants for published nodes.
+  if ($node->status) {
+    // Make sure to reset caches for accurate grant values.
+    $taxonomyAccessService = \Drupal::Service('taxonomy_access.taxonomy_access_service');
+    return $taxonomyAccessService->_taxonomy_access_node_access_records($node->id(), TRUE);
+  }
+}
+
+/**
  * Implements hook_help().
  */
 function taxonomy_access_help($path, $arg) {

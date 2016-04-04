@@ -7,6 +7,10 @@
 
 namespace Drupal\taxonomy_access\Form;
 
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
@@ -14,9 +18,8 @@ use Drupal\user\RoleInterface;
 use Drupal\taxonomy_access\Controller;
 use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Url;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
+use Drupal\taxonomy_access\TaxonomyAccessService;
 
 class TaxonomyAccessRoleEnableForm extends ConfigFormBase {
 
@@ -55,8 +58,8 @@ function taxonomy_access_enable_role_validate($rid) {
     }
   // Return a 404 for the anonymous or authenticated roles.
   if (in_array($roleId, [
-    \Drupal\Core\Session\AccountInterface::ANONYMOUS_ROLE,
-    \Drupal\Core\Session\AccountInterface::AUTHENTICATED_ROLE,
+    TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID,
+    TaxonomyAccessService::TAXONOMY_ACCESS_AUTHENTICATED_RID,
   ])) {
     throw new NotFoundHttpException();
   }

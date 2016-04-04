@@ -57,6 +57,10 @@ const TAXONOMY_ACCESS_TERM_ALLOW = 1 ;
  */
 const TAXONOMY_ACCESS_TERM_DENY = 0 ;
 
+const TAXONOMY_ACCESS_ANONYMOUS_RID = 1 ;
+
+const TAXONOMY_ACCESS_AUTHENTICATED_RID = 2;
+
   // Taxonomy access uses role ids as grant ids, which are numerical.
   // Taxonomy access maintains its own translation list from known user role
   // names to corresponding role numbers. The non numerical role id is only

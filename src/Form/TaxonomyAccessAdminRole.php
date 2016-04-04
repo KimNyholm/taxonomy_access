@@ -105,8 +105,8 @@ public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $for
 
   // For custom roles, allow the user to enable or disable grants for the role.
   if (!in_array($rid, array(
-      \Drupal\user\RoleInterface::ANONYMOUS_ID,
-      \Drupal\user\RoleInterface::AUTHENTICATED_ID))){
+      TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID,
+      TaxonomyAccessService::TAXONOMY_ACCESS_AUTHENTICATED_RID))){
     $roles = $this->taxonomyAccessService->_taxonomy_access_user_roles();
     $roleName=$roles[$rid]->label();
     // If the role is not enabled, return only a link to enable it.

@@ -39,8 +39,8 @@ define('TAXONOMY_ACCESS_TERM_ALLOW', 1);
  */
 define('TAXONOMY_ACCESS_TERM_DENY', 0);
 
-define('TAXONOMY_ACCESS_ANONYMOUS_ID', 1);
-define('TAXONOMY_ACCESS_AUTHENTICATED_ID', 2);
+define('TAXONOMY_ACCESS_ANONYMOUS_RID', 1);
+define('TAXONOMY_ACCESS_AUTHENTICATED_RID', 2);
 
 
 /**
@@ -58,7 +58,7 @@ function taxonomy_access_install() {
     (:vid, :rid, :node_allow, :ignore, :ignore, :term_allow, :term_allow)',
     array(
       ':vid' => TAXONOMY_ACCESS_GLOBAL_DEFAULT,
-      ':rid' => TAXONOMY_ACCESS_ANONYMOUS_ID,
+      ':rid' => TAXONOMY_ACCESS_ANONYMOUS_RID,
       ':node_allow' => TAXONOMY_ACCESS_NODE_ALLOW,
       ':ignore' => TAXONOMY_ACCESS_NODE_IGNORE,
       ':term_allow' => TAXONOMY_ACCESS_TERM_ALLOW)
@@ -70,7 +70,7 @@ function taxonomy_access_install() {
     (:vid, :rid, :node_allow, :ignore, :ignore, :term_allow, :term_allow)',
     array(
       ':vid' => TAXONOMY_ACCESS_GLOBAL_DEFAULT,
-      ':rid' => TAXONOMY_ACCESS_AUTHENTICATED_ID,
+      ':rid' => TAXONOMY_ACCESS_AUTHENTICATED_RID,
       ':node_allow' => TAXONOMY_ACCESS_NODE_ALLOW,
       ':ignore' => TAXONOMY_ACCESS_NODE_IGNORE,
       ':term_allow' => TAXONOMY_ACCESS_TERM_ALLOW)

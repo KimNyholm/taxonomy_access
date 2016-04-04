@@ -7,15 +7,16 @@
 
 namespace Drupal\taxonomy_access\Form;
 
+use Symfony\Component\DependencyInjection\ContainerInterface;
+
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
 use Drupal\user\RoleInterface;
 use Drupal\Core\Url;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-
-
 use Drupal\Core\Form\ConfirmFormBase;
+
+use Drupal\taxonomy_access\TaxonomyAccessService;
 
 /**
  * Defines a confirmation form for deleting mymodule data.
@@ -92,8 +93,8 @@ class TaxonomyAccessRoleDeleteForm extends ConfirmFormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $rid = $this->rid;
     if (!in_array($rid, [
-      \Drupal\user\RoleInterface::ANONYMOUS_ID,
-      \Drupal\user\RoleInterface::AUTHENTICATED_ID
+        TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID,
+        TaxonomyAccessService::TAXONOMY_ACCESS_AUTHENTICATED_RID,
       ])) {
       $roles = $this->taxonomyAccessService->_taxonomy_access_user_roles();
       $this->taxonomyAccessService->taxonomy_access_delete_role_grants($rid);

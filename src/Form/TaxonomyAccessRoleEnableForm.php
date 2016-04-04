@@ -75,12 +75,10 @@ function taxonomy_access_enable_role_validate($rid) {
       '%name' => $rid,
       ]));
   }
-  dpm($rid, 'now enabled');
   // redirect
   $urlParameters=array('rid' => $rid);
   $url=Url::fromRoute('taxonomy_access.admin_role_edit', $urlParameters);
   $response = new \Symfony\Component\HttpFoundation\RedirectResponse($url->toString());
-  dpm($rid, 'now redirected');
   // redirect
   return $response ;
 }

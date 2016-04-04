@@ -51,7 +51,6 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
 
   public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
     parent::submitForm($form, $form_state);
-    dpm('standard submit');
   }
 
   /**
@@ -562,8 +561,6 @@ function taxonomy_access_add_term_submit($form, \Drupal\Core\Form\FormStateInter
   $new = $newArray[$vid];
   $rid = $form_state->getValue('rid');
   list($type, $id) = explode(' ', $new['item']);
-  dpm($type, 'type');
-  dpm($id, 'id');
   $rows = array();
 
   $rows[$id] =

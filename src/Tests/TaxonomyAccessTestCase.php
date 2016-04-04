@@ -9,6 +9,7 @@ use Drupal\taxonomy_access\TaxonomyAccessService;
  */
 class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
 
+  protected $strictConfigSchema = FALSE ;
 
   public static $modules = array('taxonomy_access');
 
@@ -72,7 +73,7 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
 
     // Give the anonymous and authenticated roles ignore grants.
     $rows = [];
-    foreach ([\Drupal\user\RoleInterface::ANONYMOUS_ID, \Drupal\user\RoleInterface::AUTHENTICATED_ID] as $rid) {
+    foreach ([TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, TaxonomyAccessService::TAXONOMY_ACCESS_AUTHENTICATED_RID] as $rid) {
       $ignore = [
         'view' => TAXONOMY_ACCESS_NODE_IGNORE,
         'update' => TAXONOMY_ACCESS_NODE_IGNORE,
@@ -82,7 +83,7 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
     }
     $this->taxonomyAccessService->taxonomy_access_set_default_grants($rows);
 
-    foreach ([\Drupal\user\RoleInterface::ANONYMOUS_ID, \Drupal\user\RoleInterface::AUTHENTICATED_ID] as $rid) {
+    foreach ([TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, TaxonomyAccessService::TAXONOMY_ACCESS_AUTHENTICATED_RID] as $rid) {
       $r = db_query('SELECT grant_view FROM {taxonomy_access_default}
            WHERE vid = :vid AND rid = :rid', [
         ':vid' => TAXONOMY_ACCESS_GLOBAL_DEFAULT,

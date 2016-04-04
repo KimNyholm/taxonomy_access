@@ -29,7 +29,8 @@ class TaxonomyAccessTermGrantTest extends \Drupal\taxonomy_access\Tests\Taxonomy
 
     // Configure roles with no additional permissions.
     foreach ($this->role_config as $role_name => $permissions) {
-      $this->roles[$role_name] = $this->drupalCreateRole(array(), $role_name);
+      $roleNumber= $this->taxonomyAccessService->roleIdToNumber($this->drupalCreateRole(array(), $role_name));
+      $this->roles[$role_name] = $roleNumber;
     }
 
     // Set up our testing taxonomy.

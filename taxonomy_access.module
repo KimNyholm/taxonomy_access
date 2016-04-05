@@ -7,7 +7,7 @@
  */
 function taxonomy_access_node_grants($user, $op) {
   $taxonomyAccessService = \Drupal::Service('taxonomy_access.taxonomy_access_service');
-  return $taxonomyAccessService->taxonomy_access_node_grants($user);
+  return $taxonomyAccessService->taxonomy_access_node_grants($user, $op);
 }
 
 /**

@@ -75,9 +75,9 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
     $rows = [];
     foreach ([TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, TaxonomyAccessService::TAXONOMY_ACCESS_AUTHENTICATED_RID] as $rid) {
       $ignore = [
-        'view' => TAXONOMY_ACCESS_NODE_IGNORE,
-        'update' => TAXONOMY_ACCESS_NODE_IGNORE,
-        'delete' => TAXONOMY_ACCESS_NODE_IGNORE,
+        'view' =>TaxonomyAccessService::TAXONOMY_ACCESS_NODE_IGNORE,
+        'update' =>TaxonomyAccessService::TAXONOMY_ACCESS_NODE_IGNORE,
+        'delete' =>TaxonomyAccessService::TAXONOMY_ACCESS_NODE_IGNORE,
       ];
       $rows[] = $this->taxonomyAccessService->_taxonomy_access_format_grant_record(TAXONOMY_ACCESS_GLOBAL_DEFAULT, $rid, $ignore, TRUE);
     }
@@ -86,7 +86,7 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
     foreach ([TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, TaxonomyAccessService::TAXONOMY_ACCESS_AUTHENTICATED_RID] as $rid) {
       $r = db_query('SELECT grant_view FROM {taxonomy_access_default}
            WHERE vid = :vid AND rid = :rid', [
-        ':vid' => TAXONOMY_ACCESS_GLOBAL_DEFAULT,
+        ':vid' =>TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT,
         ':rid' => $rid,
       ])
         ->fetchField();
@@ -260,7 +260,7 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
    * Submits the node access rebuild form.
    */
   function rebuild() {
-    $this->drupalPost('admin/reports/status/rebuild', [], t('Rebuild permissions'));
+    $this->drupalPostForm('admin/reports/status/rebuild', [], t('Rebuild permissions'));
     $this->assertText(t('The content access permissions have been rebuilt.'));
   }
 
@@ -335,12 +335,12 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
    */
   function checkRoleEnableLink($rid, $found) {
     if ($found) {
-      $this->assertLinkByHref(TAXONOMY_ACCESS_CONFIG . "/role/$rid/enable", 0, t('Enable link is available for role %rid.', [
+      $this->assertLinkByHref(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . "/role/$rid/enable", 0, t('Enable link is available for role %rid.', [
         '%rid' => $rid
         ]));
     }
     else {
-      $this->assertNoLinkByHref(TAXONOMY_ACCESS_CONFIG . "/role/$rid/enable", t('Enable link is not available for role %rid.', [
+      $this->assertNoLinkByHref(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . "/role/$rid/enable", t('Enable link is not available for role %rid.', [
         '%rid' => $rid
         ]));
     }
@@ -356,12 +356,12 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
    */
   function checkRoleDisableLink($rid, $found) {
     if ($found) {
-      $this->assertLinkByHref(TAXONOMY_ACCESS_CONFIG . "/role/$rid/delete", 0, t('Disable link is available for role %rid.', [
+      $this->assertLinkByHref(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . "/role/$rid/delete", 0, t('Disable link is available for role %rid.', [
         '%rid' => $rid
         ]));
     }
     else {
-      $this->assertNoLinkByHref(TAXONOMY_ACCESS_CONFIG . "/role/$rid/delete", t('Disable link is not available for role %rid.', [
+      $this->assertNoLinkByHref(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . "/role/$rid/delete", t('Disable link is not available for role %rid.', [
         '%rid' => $rid
         ]));
     }
@@ -391,7 +391,7 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
    * @param int $list
    *   (optional) The list grant value. Defaults to TAXONOMY_ACCESS_TERM_DENY.
    */
-  function addFormRow(&$edit, $vid = TAXONOMY_ACCESS_GLOBAL_DEFAULT, $tid = TAXONOMY_ACCESS_VOCABULARY_DEFAULT, $view = TAXONOMY_ACCESS_NODE_IGNORE, $update = TAXONOMY_ACCESS_NODE_IGNORE, $delete = TAXONOMY_ACCESS_NODE_IGNORE, $create = TAXONOMY_ACCESS_TERM_DENY, $list = TAXONOMY_ACCESS_TERM_DENY) {
+  function addFormRow(&$edit, $vid =TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT, $tid =TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT, $view = TaxonomyAccessService::TAXONOMY_ACCESS_NODE_IGNORE, $update = TaxonomyAccessService::TAXONOMY_ACCESS_NODE_IGNORE, $delete = TaxonomyAccessService::TAXONOMY_ACCESS_NODE_IGNORE, $create = TaxonomyAccessService::TAXONOMY_ACCESS_TERM_DENY, $list = TaxonomyAccessService::TAXONOMY_ACCESS_TERM_DENY) {
     $new_value = $tid ? "term $tid" : "default $vid";
     $edit["new[$vid][item]"] = $new_value;
     $edit["new[$vid][grants][$vid][0][view]"] = $view;
@@ -425,7 +425,7 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
    * @param int $list
    *   (optional) The list grant value. Defaults to TAXONOMY_ACCESS_TERM_DENY.
    */
-  function configureFormRow(&$edit, $vid = TAXONOMY_ACCESS_GLOBAL_DEFAULT, $tid = TAXONOMY_ACCESS_VOCABULARY_DEFAULT, $view = TAXONOMY_ACCESS_NODE_IGNORE, $update = TAXONOMY_ACCESS_NODE_IGNORE, $delete = TAXONOMY_ACCESS_NODE_IGNORE, $create = TAXONOMY_ACCESS_TERM_DENY, $list = TAXONOMY_ACCESS_TERM_DENY) {
+  function configureFormRow(&$edit, $vid =TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT, $tid =TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT, $view = TaxonomyAccessService::TAXONOMY_ACCESS_NODE_IGNORE, $update = TaxonomyAccessService::TAXONOMY_ACCESS_NODE_IGNORE, $delete = TaxonomyAccessService::TAXONOMY_ACCESS_NODE_IGNORE, $create = TaxonomyAccessService::TAXONOMY_ACCESS_TERM_DENY, $list = TaxonomyAccessService::TAXONOMY_ACCESS_TERM_DENY) {
     $edit["grants[$vid][$tid][view]"] = $view;
     $edit["grants[$vid][$tid][update]"] = $update;
     $edit["grants[$vid][$tid][delete]"] = $delete;

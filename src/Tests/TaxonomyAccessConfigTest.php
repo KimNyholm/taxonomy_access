@@ -100,7 +100,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
    * - Access to all nodes is denied for anonymous users.
    * - The main admin page provides the correct configuration links.
    */
-  public function testSetUpCheck() {
+  public function aaa_testSetUpCheck() {
     // Visit all nodes as anonymous and verify that access is denied.
     foreach ($this->articles as $key => $article) {
       $this->drupalGet('node/' . $article->id());
@@ -142,34 +142,34 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
    * - Access is updated for the correct nodes when there are specific term
    *    and vocabulary configurations.
    */
-  public function xtestGlobalDefaultConfig() {
+  public function testGlobalDefaultConfig() {
     // Log in as the administrator.
     $this->drupalLogin($this->users['site_admin']);
 
     // Use the admin form to give anonymous view allow in the global default.
-    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' .  TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID . '/edit');
+    $this->drupalGet(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . '/role/' .  TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID . '/edit');
     $edit = array();
-    $this->configureFormRow($edit, TAXONOMY_ACCESS_GLOBAL_DEFAULT, TAXONOMY_ACCESS_VOCABULARY_DEFAULT, TAXONOMY_ACCESS_NODE_ALLOW);
-    $this->drupalPost(NULL, $edit, 'Save all');
+    $this->configureFormRow($edit, TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT, TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT, TaxonomyAccessService::TAXONOMY_ACCESS_NODE_ALLOW);
+    $this->drupalPostForm(NULL, $edit, 'Save all');
 
     // Log out.
     $this->drupalLogout();
 
     // Visit each node and verify that access is allowed.
     foreach ($this->articles as $key => $article) {
-      $this->drupalGet('node/' . $article->nid);
-      $this->assertResponse(200, t("Access to %name article (nid %nid) is allowed.", array('%name' => $key, '%nid' => $article->nid)));
+      $this->drupalGet('node/' . $article->id());
+      $this->assertResponse(200, t("Access to %name article (nid %nid) is allowed.", array('%name' => $key, '%nid' => $article->id())));
     }
     foreach ($this->pages as $key => $page) {
-      $this->drupalGet('node/' . $page->nid);
-      $this->assertResponse(200, t("Access to %name page (nid %nid) is allowed.", array('%name' => $key, '%nid' => $page->nid)));
+      $this->drupalGet('node/' . $page->id());
+      $this->assertResponse(200, t("Access to %name page (nid %nid) is allowed.", array('%name' => $key, '%nid' => $page->id())));
     }
 
     // Add some specific configurations programmatically.
 
     // Set the v1 default to view allow.
     $default_config = $this->taxonomyAccessService->_taxonomy_access_format_grant_record(
-      $this->vocabs['v1']->id(), TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, array('view' => TAXONOMY_ACCESS_NODE_ALLOW), TRUE
+      $this->vocabs['v1']->id(), TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, array('view' =>TaxonomyAccessService::TAXONOMY_ACCESS_NODE_ALLOW), TRUE
     );
     $this->taxonomyAccessService->taxonomy_access_set_default_grants(array($default_config));
 
@@ -177,7 +177,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     $term_configs = array();
     foreach (array('v1t1', 'v2t1') as $name) {
       $term_configs[] = $this->taxonomyAccessService->_taxonomy_access_format_grant_record(
-        $this->terms[$name]->id(), TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, array('view' => TAXONOMY_ACCESS_NODE_ALLOW)
+        $this->terms[$name]->id(), TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, array('view' =>TaxonomyAccessService::TAXONOMY_ACCESS_NODE_ALLOW)
       );
     }
     $this->taxonomyAccessService->taxonomy_access_set_term_grants($term_configs);
@@ -188,35 +188,35 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     $this->drupalLogin($this->users['site_admin']);
 
     // Use the admin form to give anonymous view deny in the global default.
-    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' . TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID . '/edit');
+    $this->drupalGet(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . '/role/' . TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID . '/edit');
     $edit = array();
-    $this->configureFormRow($edit, TAXONOMY_ACCESS_GLOBAL_DEFAULT, TAXONOMY_ACCESS_VOCABULARY_DEFAULT, TAXONOMY_ACCESS_NODE_DENY);
-    $this->drupalPost(NULL, $edit, 'Save all');
+    $this->configureFormRow($edit, TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT, TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT, TaxonomyAccessService::TAXONOMY_ACCESS_NODE_DENY);
+    $this->drupalPostForm(NULL, $edit, 'Save all');
 
     // Log out.
     $this->drupalLogout();
 
     // Visit each artile and verify that access is denied.
     foreach ($this->articles as $key => $article) {
-      $this->drupalGet('node/' . $article->nid);
-      $this->assertResponse(403, t("Access to %name article (nid %nid) is denied.", array('%name' => $key, '%nid' => $article->nid)));
+      $this->drupalGet('node/' . $article->id());
+      $this->assertResponse(403, t("Access to %name article (nid %nid) is denied.", array('%name' => $key, '%nid' => $article->id())));
     }
 
     // Visit each page.
     foreach ($this->pages as $key => $page) {
-      $this->drupalGet('node/' . $page->nid);
+      $this->drupalGet('node/' . $page->id());
 
       switch (TRUE) {
         // If the page has no tags, access should be denied.
         case ($key == 'no_tags'):
         // If the page is tagged with v2t2, access should be denied.
         case (strpos($key, 'v2t2') !== FALSE):
-          $this->assertResponse(403, t("Access to %name page (nid %nid) is denied.", array('%name' => $key, '%nid' => $page->nid)));
+          $this->assertResponse(403, t("Access to %name page (nid %nid) is denied.", array('%name' => $key, '%nid' => $page->id())));
           break;
 
         // Otherwise, access should be allowed.
         default:
-          $this->assertResponse(200, t("Access to %name page (nid %nid) is allowed.", array('%name' => $key, '%nid' => $page->nid)));
+          $this->assertResponse(200, t("Access to %name page (nid %nid) is allowed.", array('%name' => $key, '%nid' => $page->id())));
           break;
       }
     }
@@ -233,17 +233,17 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
    * - Access is updated correctly when multiple defaults are changed.
    * - Access is updated correctly when the vocabulary default is deleted.
    */
-  public function xtestVocabularyDefaultConfig() {
+  public function xxxtestVocabularyDefaultConfig() {
     // Log in as the administrator.
     $this->drupalLogin($this->users['site_admin']);
 
     // Enable the vocabulary.
-    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' . TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID . '/edit');
+    $this->drupalGet(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . '/role/' . TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID . '/edit');
     // @todo
     //   - Ensure that all vocabularies are options in the "Add" fieldset.
     $edit = array();
     $edit['enable_vocab'] = $this->vocabs['v1']->id();
-    $this->drupalPost(NULL, $edit, t('Add'));
+    $this->drupalPostForm(NULL, $edit, t('Add'));
 
     // @todo
     //   - Ensure that the vocabulary is removed from the "Add" fieldset.
@@ -251,31 +251,31 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     //   - Ensure that no other fieldsets or rows appear.
 
     // Give anonymous view allow for the v1 default.
-    $edit = array();
-    $this->configureFormRow($edit, $this->vocabs['v1']->id(), TAXONOMY_ACCESS_VOCABULARY_DEFAULT, TAXONOMY_ACCESS_NODE_ALLOW);
-    $this->drupalPost(NULL, $edit, 'Save all');
+    $edit = array();rticle-
+    $this->configureFormRow($edit, $this->vocabs['v1']->id(), TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT,TaxonomyAccessService::TAXONOMY_ACCESS_NODE_ALLOW);
+    $this->drupalPostForm(NULL, $edit, 'Save all');
 
     // Log out.
     $this->drupalLogout();
 
     // Visit each page and verify whether access is allowed or denied.
     foreach ($this->pages as $key => $page) {
-      $this->drupalGet('node/' . $page->nid);
+      $this->drupalGet('node/' . $page->id());
 
       // If the page is tagged with a v1 term, access should be allowed.
       if (strpos($key, 'v1') !== FALSE) {
-        $this->assertResponse(200, t("Access to %name page (nid %nid) is allowed.", array('%name' => $key, '%nid' => $page->nid)));
+        $this->assertResponse(200, t("Access to %name page (nid %nid) is allowed.", array('%name' => $key, '%nid' => $page->id)));
       }
       // Otherwise, access should be denied.
       else {
-        $this->assertResponse(403, t("Access to %name page (nid %nid) is denied.", array('%name' => $key, '%nid' => $page->nid)));
+        $this->assertResponse(403, t("Access to %name page (nid %nid) is denied.", array('%name' => $key, '%nid' => $page->id())));
       }
     }
 
     // Programmatically enable v2 and add a specific configuration for v2t1.
     $this->taxonomyAccessService->taxonomy_access_enable_vocab($this->vocabs['v2']->id(), TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID);
     $term_config = $this->taxonomyAccessService->_taxonomy_access_format_grant_record(
-      $this->terms['v2t1']->id(), TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, array('view' => TAXONOMY_ACCESS_NODE_IGNORE)
+      $this->terms['v2t1']->id(), TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, array('view' =>TaxonomyAccessService::TAXONOMY_ACCESS_NODE_IGNORE)
     );
     $this->taxonomyAccessService->taxonomy_access_set_term_grants(array($term_config));
 
@@ -283,33 +283,33 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     $this->drupalLogin($this->users['site_admin']);
 
     // Use the admin form to give anonymous view deny for the v2 default.
-    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' . TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID . '/edit');
+    $this->drupalGet(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . '/role/' . TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID . '/edit');
     $edit = array();
-    $this->configureFormRow($edit, $this->vocabs['v2']->id(), TAXONOMY_ACCESS_VOCABULARY_DEFAULT, TAXONOMY_ACCESS_NODE_DENY);
-    $this->drupalPost(NULL, $edit, 'Save all');
+    $this->configureFormRow($edit, $this->vocabs['v2']->id(), TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT,TaxonomyAccessService::TAXONOMY_ACCESS_NODE_DENY);
+    $this->drupalPostForm(NULL, $edit, 'Save all');
 
-    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' . TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID . '/edit');
+    $this->drupalGet(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . '/role/' . TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID . '/edit');
 
     // Log out.
     $this->drupalLogout();
     // Visit each page and verify whether access is allowed or denied.
     foreach ($this->pages as $key => $page) {
-      $this->drupalGet('node/' . $page->nid);
+      $this->drupalGet('node/' . $page->id());
 
       switch (TRUE) {
         // If the page is tagged with v2t2, the v2 default is inherited: Deny.
         case (strpos($key, 'v2t2') !== FALSE):
-          $this->assertResponse(403, t("Access to %name page (nid %nid) is denied.", array('%name' => $key, '%nid' => $page->nid)));
+          $this->assertResponse(403, t("Access to %name page (nid %nid) is denied.", array('%name' => $key, '%nid' => $page->id())));
           break;
 
         // Otherwise, if the page is tagged with v1, it's allowed.
         case (strpos($key, 'v1') !== FALSE):
-          $this->assertResponse(200, t("Access to %name page (nid %nid) is allowed.", array('%name' => $key, '%nid' => $page->nid)));
+          $this->assertResponse(200, t("Access to %name page (nid %nid) is allowed.", array('%name' => $key, '%nid' => $page->id())));
           break;
 
         // Access should be denied by default.
         default:
-          $this->assertResponse(403, t("Access to %name page (nid %nid) is denied.", array('%name' => $key, '%nid' => $page->nid)));
+          $this->assertResponse(403, t("Access to %name page (nid %nid) is denied.", array('%name' => $key, '%nid' => $page->id())));
           break;
       }
     }
@@ -318,34 +318,34 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     $this->drupalLogin($this->users['site_admin']);
 
     // Use the form to change the configuration: Allow for v2; Deny for v1.
-    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' .TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID . '/edit');
+    $this->drupalGet(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . '/role/' .TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID . '/edit');
     $edit = array();
-    $this->configureFormRow($edit, $this->vocabs['v2']->id(), TAXONOMY_ACCESS_VOCABULARY_DEFAULT, TAXONOMY_ACCESS_NODE_ALLOW);
-    $this->configureFormRow($edit, $this->vocabs['v1']->id(), TAXONOMY_ACCESS_VOCABULARY_DEFAULT, TAXONOMY_ACCESS_NODE_DENY);
-    $this->drupalPost(NULL, $edit, 'Save all');
+    $this->configureFormRow($edit, $this->vocabs['v2']->id(), TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT,TaxonomyAccessService::TAXONOMY_ACCESS_NODE_ALLOW);
+    $this->configureFormRow($edit, $this->vocabs['v1']->id(),TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT,TaxonomyAccessService::TAXONOMY_ACCESS_NODE_DENY);
+    $this->drupalPostForm(NULL, $edit, 'Save all');
 
     // Log out.
     $this->drupalLogout();
 
     // Visit each page and verify whether access is allowed or denied.
     foreach ($this->pages as $key => $page) {
-      $this->drupalGet('node/' . $page->nid);
+      $this->drupalGet('node/' . $page->id());
 
       switch (TRUE) {
         // If the page is tagged with a v1 term, access should be denied.
         case (strpos($key, 'v1') !== FALSE):
-          $this->assertResponse(403, t("Access to %name page (nid %nid) is denied.", array('%name' => $key, '%nid' => $page->nid)));
+          $this->assertResponse(403, t("Access to %name page (nid %nid) is denied.", array('%name' => $key, '%nid' => $page->id())));
           break;
 
         // Otherwise, if the page is tagged with v2t2, the default is
         // inherited and access should be allowed.
         case (strpos($key, 'v2t2') !== FALSE):
-          $this->assertResponse(200, t("Access to %name page (nid %nid) is allowed.", array('%name' => $key, '%nid' => $page->nid)));
+          $this->assertResponse(200, t("Access to %name page (nid %nid) is allowed.", array('%name' => $key, '%nid' => $page->id())));
           break;
 
         // Access should be denied by default.
         default:
-          $this->assertResponse(403, t("Access to %name page (nid %nid) is denied.", array('%name' => $key, '%nid' => $page->nid)));
+          $this->assertResponse(403, t("Access to %name page (nid %nid) is denied.", array('%name' => $key, '%nid' => $page->id())));
           break;
       }
     }
@@ -354,25 +354,25 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     $this->drupalLogin($this->users['site_admin']);
 
     // Use the admin form to disable v1.
-    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' . TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID . '/edit');
+    $this->drupalGet(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . '/role/' . TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID . '/edit');
     $this->clickLink(t('delete all v1 access rules'));
     $this->assertText("Are you sure you want to delete all Taxonomy access rules for v1", t('Disable form for vocabulary loaded.'));
-    $this->drupalPost(NULL, array(), 'Delete all');
+    $this->drupalPostForm(NULL, array(), 'Delete all');
 
     // Log out.
     $this->drupalLogout();
 
     // Visit each page and verify whether access is allowed or denied.
     foreach ($this->pages as $key => $page) {
-      $this->drupalGet('node/' . $page->nid);
+      $this->drupalGet('node/' . $page->id());
 
       // If the page is tagged with v2t2, access should be allowed.
       if (strpos($key, 'v2t2') !== FALSE) {
-        $this->assertResponse(200, t("Access to %name page (nid %nid) is allowed.", array('%name' => $key, '%nid' => $page->nid)));
+        $this->assertResponse(200, t("Access to %name page (nid %nid) is allowed.", array('%name' => $key, '%nid' => $page->id())));
       }
       // Otherwise, access should be denied.
       else {
-        $this->assertResponse(403, t("Access to %name page (nid %nid) is denied.", array('%name' => $key, '%nid' => $page->nid)));
+        $this->assertResponse(403, t("Access to %name page (nid %nid) is denied.", array('%name' => $key, '%nid' => $page->id())));
       }
     }
   }
@@ -391,28 +391,28 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     $this->drupalLogin($this->users['site_admin']);
 
     // Use the admin form to enable v1 and give anonymous view allow for v1t1.
-    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' . TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID . '/edit');
+    $this->drupalGet(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . '/role/' . TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID . '/edit');
     $edit = array();
     $edit['enable_vocab'] = $this->vocabs['v1']->id();
-    $this->drupalPost(NULL, $edit, t('Add'));
+    $this->drupalPostForm(NULL, $edit, t('Add'));
     $edit = array();
-    $this->addFormRow($edit, $this->vocabs['v1']->id(), $this->terms['v1t1']->id(), TAXONOMY_ACCESS_NODE_ALLOW);
-    $this->drupalPost(NULL, $edit, 'Add');
+    $this->addFormRow($edit, $this->vocabs['v1']->id(), $this->terms['v1t1']->id(), TaxonomyAccessService::TAXONOMY_ACCESS_NODE_ALLOW);
+    $this->drupalPostForm(NULL, $edit, 'Add');
 
     // Log out.
     $this->drupalLogout();
 
     // Visit each page and verify whether access is allowed or denied.
     foreach ($this->pages as $key => $page) {
-      $this->drupalGet('node/' . $page->nid);
+      $this->drupalGet('node/' . $page->id());
 
       // If the page is tagged with v1t1, access should be allowed.
       if (strpos($key, 'v1t1') !== FALSE) {
-        $this->assertResponse(200, t("Access to %name page (nid %nid) is allowed.", array('%name' => $key, '%nid' => $page->nid)));
+        $this->assertResponse(200, t("Access to %name page (nid %nid) is allowed.", array('%name' => $key, '%nid' => $page->id())));
       }
       // Otherwise, access should be denied.
       else {
-        $this->assertResponse(403, t("Access to %name page (nid %nid) is denied.", array('%name' => $key, '%nid' => $page->nid)));
+        $this->assertResponse(403, t("Access to %name page (nid %nid) is denied.", array('%name' => $key, '%nid' => $page->id())));
       }
     }
 
@@ -423,32 +423,32 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     $this->drupalLogin($this->users['site_admin']);
 
     // Use the admin form to give anonymous view deny for v2t1.
-    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' . TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID . '/edit');
+    $this->drupalGet(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . '/role/' . TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID . '/edit');
     $edit = array();
-    $this->addFormRow($edit, $this->vocabs['v2']->id(), $this->terms['v2t1']->id(), TAXONOMY_ACCESS_NODE_DENY);
-    $this->drupalPost(NULL, $edit, 'Add');
+    $this->addFormRow($edit, $this->vocabs['v2']->id(), $this->terms['v2t1']->id(), TaxonomyAccessService::TAXONOMY_ACCESS_NODE_DENY);
+    $this->drupalPostForm(NULL, $edit, 'Add');
 
     // Log out.
     $this->drupalLogout();
 
     // Visit each page and verify whether access is allowed or denied.
     foreach ($this->pages as $key => $page) {
-      $this->drupalGet('node/' . $page->nid);
+      $this->drupalGet('node/' . $page->id());
 
       switch (TRUE) {
         // If the page is tagged with v2t1, access should be denied.
         case (strpos($key, 'v2t1') !== FALSE):
-          $this->assertResponse(403, t("Access to %name page (nid %nid) is denied.", array('%name' => $key, '%nid' => $page->nid)));
+          $this->assertResponse(403, t("Access to %name page (nid %nid) is denied.", array('%name' => $key, '%nid' => $page->id())));
           break;
 
         // Otherwise, if the page is tagged with v1t1, it's allowed.
         case (strpos($key, 'v1t1') !== FALSE):
-          $this->assertResponse(200, t("Access to %name page (nid %nid) is allowed.", array('%name' => $key, '%nid' => $page->nid)));
+          $this->assertResponse(200, t("Access to %name page (nid %nid) is allowed.", array('%name' => $key, '%nid' => $page->id())));
           break;
 
         // Access should be denied by default.
         default:
-          $this->assertResponse(403, t("Access to %name page (nid %nid) is denied.", array('%name' => $key, '%nid' => $page->nid)));
+          $this->assertResponse(403, t("Access to %name page (nid %nid) is denied.", array('%name' => $key, '%nid' => $page->id())));
           break;
       }
     }
@@ -457,38 +457,38 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     $this->drupalLogin($this->users['site_admin']);
 
     // Use the form to change the configuration: Allow for v2t1; Deny for v1t1.
-    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' . TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID . '/edit');
+    $this->drupalGet(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . '/role/' . TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID . '/edit');
     $edit = array();
     $this->configureFormRow(
-      $edit, $this->vocabs['v2']->id(), $this->terms['v2t1']->id(), TAXONOMY_ACCESS_NODE_ALLOW
+      $edit, $this->vocabs['v2']->id(), $this->terms['v2t1']->id(), TaxonomyAccessService::TAXONOMY_ACCESS_NODE_ALLOW
 
     );
     $this->configureFormRow(
-      $edit, $this->vocabs['v1']->id(), $this->terms['v1t1']->id(), TAXONOMY_ACCESS_NODE_DENY
+      $edit, $this->vocabs['v1']->id(), $this->terms['v1t1']->id(), TaxonomyAccessService::TAXONOMY_ACCESS_NODE_DENY
     );
-    $this->drupalPost(NULL, $edit, 'Save all');
+    $this->drupalPostForm(NULL, $edit, 'Save all');
 
     // Log out.
     $this->drupalLogout();
 
     // Visit each page and verify whether access is allowed or denied.
     foreach ($this->pages as $key => $page) {
-      $this->drupalGet('node/' . $page->nid);
+      $this->drupalGet('node/' . $page->id());
 
       switch (TRUE) {
         // If the page is tagged with v1t1, access should be denied.
         case (strpos($key, 'v1t1') !== FALSE):
-          $this->assertResponse(403, t("Access to %name page (nid %nid) is denied.", array('%name' => $key, '%nid' => $page->nid)));
+          $this->assertResponse(403, t("Access to %name page (nid %nid) is denied.", array('%name' => $key, '%nid' => $page->id())));
           break;
 
         // Otherwise, if the page is tagged with v2t1, it's allowed.
         case (strpos($key, 'v2t1') !== FALSE):
-          $this->assertResponse(200, t("Access to %name page (nid %nid) is allowed.", array('%name' => $key, '%nid' => $page->nid)));
+          $this->assertResponse(200, t("Access to %name page (nid %nid) is allowed.", array('%name' => $key, '%nid' => $page->id())));
           break;
 
         // Access should be denied by default.
         default:
-          $this->assertResponse(403, t("Access to %name page (nid %nid) is denied.", array('%name' => $key, '%nid' => $page->nid)));
+          $this->assertResponse(403, t("Access to %name page (nid %nid) is denied.", array('%name' => $key, '%nid' => $page->id())));
           break;
       }
     }
@@ -497,20 +497,20 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     $this->drupalLogin($this->users['site_admin']);
 
     // Use the form to delete the v2t1 configuration.
-    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' .TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID . '/edit');
+    $this->drupalGet(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . '/role/' .TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID . '/edit');
     $edit = array();
     $edit["grants[{$this->vocabs['v2']->id()}][{$this->terms['v2t1']->id()}][remove]"] = 1;
-    $this->drupalPost(NULL, $edit, 'Delete selected');
+    $this->drupalPostForm(NULL, $edit, 'Delete selected');
 
     // Log out.
     $this->drupalLogout();
 
     // Visit each page and verify whether access is allowed or denied.
     foreach ($this->pages as $key => $page) {
-      $this->drupalGet('node/' . $page->nid);
+      $this->drupalGet('node/' . $page->id());
 
       // Access to all pages should be denied.
-      $this->assertResponse(403, t("Access to %name page (nid %nid) is denied.", array('%name' => $key, '%nid' => $page->nid)));
+      $this->assertResponse(403, t("Access to %name page (nid %nid) is denied.", array('%name' => $key, '%nid' => $page->id())));
     }
   }
 
@@ -562,11 +562,11 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     // Enable v1 programmatically.
     $this->taxonomyAccessService->taxonomy_access_enable_vocab($this->vocabs['v1']->id(), TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID);
     // Use the admin form to give anonymous view allow for v1t1 and children.
-    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . '/role/' . TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID . '/edit');
+    $this->drupalGet(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . '/role/' . TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID . '/edit');
     $edit = array();
     $edit["new[{$this->vocabs['v1']->id()}][recursive]"] = 1;
-    $this->addFormRow($edit, $this->vocabs['v1']->id(), $this->terms['v1t1']->id(), TAXONOMY_ACCESS_NODE_ALLOW);
-    $this->drupalPost(NULL, $edit, 'Add');
+    $this->addFormRow($edit, $this->vocabs['v1']->id(), $this->terms['v1t1']->id(), TaxonomyAccessService::TAXONOMY_ACCESS_NODE_ALLOW);
+    $this->drupalPostForm(NULL, $edit, 'Add');
 
   }
 
@@ -586,7 +586,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     ));
 
     // Test enabling the role.
-    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . "/role/$rid/edit");
+    $this->drupalGet(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . "/role/$rid/edit");
 
     // Check that there is:
     // - An enable link
@@ -609,8 +609,8 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
 
     // Update the global default to allow view.
     $edit = array();
-    $this->configureFormRow($edit, TAXONOMY_ACCESS_GLOBAL_DEFAULT, TAXONOMY_ACCESS_VOCABULARY_DEFAULT, TAXONOMY_ACCESS_NODE_ALLOW);
-    $this->drupalPost(NULL, $edit, 'Save all');
+    $this->configureFormRow($edit, TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT,TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT,TaxonomyAccessService::TAXONOMY_ACCESS_NODE_ALLOW);
+    $this->drupalPostForm(NULL, $edit, 'Save all');
 
     // Confirm that all three roles are enabled.
     $this->checkRoleConfig(array(
@@ -624,10 +624,10 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
       db_query(
         'SELECT grant_view FROM {taxonomy_access_default}
          WHERE vid = :vid AND rid = :rid',
-        array(':vid' => TAXONOMY_ACCESS_GLOBAL_DEFAULT, ':rid' => $rid)
+        array(':vid' => TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT, ':rid' => $rid)
       )
       ->fetchField();
-    $this->assertTrue($r == TAXONOMY_ACCESS_NODE_ALLOW, t('Used form to grant the role %role view in the global default.', array('%role' => $name)));
+    $this->assertTrue($r == TaxonomyAccessService::TAXONOMY_ACCESS_NODE_ALLOW, t('Used form to grant the role %role view in the global default.', array('%role' => $name)));
 
     // Log in as the regular_user.
     $this->drupalLogout();
@@ -635,12 +635,12 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
 
     // Visit each node and verify that access is allowed.
     foreach ($this->articles as $key => $article) {
-      $this->drupalGet('node/' . $article->nid);
-      $this->assertResponse(200, t("Access to %name article (nid %nid) is allowed.", array('%name' => $key, '%nid' => $article->nid)));
+      $this->drupalGet('node/' . $article->id());
+      $this->assertResponse(200, t("Access to %name article (nid %nid) is allowed.", array('%name' => $key, '%nid' => $article->id())));
     }
     foreach ($this->pages as $key => $page) {
-      $this->drupalGet('node/' . $page->nid);
-      $this->assertResponse(200, t("Access to %name page (nid %nid) is allowed.", array('%name' => $key, '%nid' => $page->nid)));
+      $this->drupalGet('node/' . $page->id());
+      $this->assertResponse(200, t("Access to %name page (nid %nid) is allowed.", array('%name' => $key, '%nid' => $page->id())));
     }
 
     // Log in as the administrator.
@@ -648,10 +648,10 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     $this->drupalLogin($this->users['site_admin']);
 
     // Test disabling the role.
-    $this->drupalGet(TAXONOMY_ACCESS_CONFIG . "/role/$rid/edit");
+    $this->drupalGet(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . "/role/$rid/edit");
     $this->clickLink(t('Disable @name', array('@name' => $name)));
     $this->assertText("Are you sure you want to delete all taxonomy access rules for the role $name", t('Disable form for role loaded.'));
-    $this->drupalPost(NULL, array(), 'Delete all');
+    $this->drupalPostForm(NULL, array(), 'Delete all');
 
     // Confirm that a confirmation message appears.
     $this->assertText("All taxonomy access rules deleted for role $name", t('Confirmation message found.'));
@@ -690,12 +690,12 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
 
     // Visit all nodes and verify that access is again denied.
     foreach ($this->articles as $key => $article) {
-      $this->drupalGet('node/' . $article->nid);
-      $this->assertResponse(403, t("Access to %name article (nid %nid) is denied.", array('%name' => $key, '%nid' => $article->nid)));
+      $this->drupalGet('node/' . $article->id());
+      $this->assertResponse(403, t("Access to %name article (nid %nid) is denied.", array('%name' => $key, '%nid' => $article->id())));
     }
     foreach ($this->pages as $key => $page) {
-      $this->drupalGet('node/' . $page->nid);
-      $this->assertResponse(403, t("Access to %name page (nid %nid) is denied.", array('%name' => $key, '%nid' => $page->nid)));
+      $this->drupalGet('node/' . $page->id());
+      $this->assertResponse(403, t("Access to %name page (nid %nid) is denied.", array('%name' => $key, '%nid' => $page->id())));
     }
   }
 }

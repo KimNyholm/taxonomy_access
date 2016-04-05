@@ -293,14 +293,12 @@ function taxonomy_access_taxonomy_term_delete($term) {
  *
  * Gives access to taxonomies based on the taxonomy_access table.
  */
-function taxonomy_access_node_grants($user, $op) {
-  $roleGrants = -1 ;
+function taxonomy_access_node_grants(\Drupal\Core\Session\AccountInterface $user, $op) {
   $roles = $user->getRoles();
-  dpm($roles, 'roles');
   foreach($roles as $role){
     $roleGrants[]= $this->roleIdToNumber($role);
   }
-  return array('taxonomy_access_role' => $roles);
+  return array('taxonomy_access_role' => $roleGrants);
 }
 
 /**

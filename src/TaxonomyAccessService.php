@@ -605,6 +605,10 @@ function _taxonomy_access_flag_rebuild() {
   node_access_needs_rebuild(TRUE);
 }
 
+function taxonomy_access_rebuild(){
+  $nids=$this->taxonomy_access_affected_nodes();
+  return $this->_taxonomy_access_node_access_update($nids);
+}
 
 /**
  * Updates node access grants for a set of nodes.
@@ -618,13 +622,11 @@ function _taxonomy_access_flag_rebuild() {
 function _taxonomy_access_node_access_update(array $nids) {
   dpm($nids,'_taxonomy_access_node_access_update');
   // Proceed only if node_access_needs_rebuild() is not already flagged.
-  $rebuildNeeded=node_access_needs_rebuild();
-  dpm($rebuildNeeded, 'rebuildNeeded');
-  if (TRUE || !rebuildNeeded) {
-    dpm('node access needs rebuild');
+  if (!node_access_needs_rebuild()) {
     // Set node_access_needs_rebuild() until we succeed below.
     $this->_taxonomy_access_flag_rebuild();
 
+/*  How to do below in Drupal 8. node_access_acquire_grants not defined.
 
     // Remove any duplicate nids from the array.
     $nids = array_unique($nids);
@@ -637,10 +639,10 @@ function _taxonomy_access_node_access_update(array $nids) {
           node_access_acquire_grants($loaded_node);
         }
       }
-
       // If we make it here our update was successful; unflag rebuild.
       node_access_needs_rebuild(FALSE);
     }
+*/
   }
   return TRUE;
 }
@@ -666,7 +668,7 @@ function taxonomy_access_affected_nodes(array $affected_nodes = NULL, $reset = F
     if (node_access_needs_rebuild() || $reset) {
       dpm('rebuild  already initiated');
       $nodes = array();
-      return;
+      return $nodes;
     }
   }
   dpm('xxx');
@@ -677,16 +679,10 @@ function taxonomy_access_affected_nodes(array $affected_nodes = NULL, $reset = F
     // Stop caching if there are more nodes than the limit.
     if (sizeof($nodes) >= TaxonomyAccessService::TAXONOMY_ACCESS_MAX_UPDATE) {
       $this->_taxonomy_access_flag_rebuild();
-      unset($nodes);
+      $nodes=array();
     }
   }
-
-  // Otherwise, return the cached data.
-  else {
-    dpm('zzz');
-    return $nodes;
-  }
-  dpm('yyy');
+  return $nodes;
 }
 
 /**

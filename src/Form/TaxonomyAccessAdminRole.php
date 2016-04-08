@@ -531,6 +531,7 @@ function taxonomy_access_enable_vocab_submit(array &$form, \Drupal\Core\Form\For
   $roles = $this->taxonomyAccessService->_taxonomy_access_user_roles();
   $vocab = taxonomy_vocabulary_load($vid);
   if ($this->taxonomyAccessService->taxonomy_access_enable_vocab($vid, $rid)) {
+    $this->taxonomyAccessService->taxonomy_access_rebuild();
     drupal_set_message(t(
       'Vocabulary %vocab enabled successfully for the %role role.',
       array(
@@ -570,6 +571,7 @@ function taxonomy_access_add_term_submit($form, \Drupal\Core\Form\FormStateInter
 
   // Set the grants for the row or rows.
   $this->taxonomyAccessService->taxonomy_access_set_term_grants($rows);
+  $this->taxonomyAccessService->taxonomy_access_rebuild();
 }
 
 
@@ -595,6 +597,7 @@ function taxonomy_access_delete_selected_submit($form, &$form_state) {
   }
   if ($rid) {
     if ($this->taxonomyAccessService->taxonomy_access_delete_term_grants($delete_tids, $rid)) {
+      $this->taxonomyAccessService->taxonomy_access_rebuild();
       drupal_set_message(Drupal\Core\StringTranslation::formatPlural(
           sizeof($delete_tids),
           '1 term access rule was deleted.',
@@ -621,7 +624,6 @@ public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $f
   $skip_defaults = array();
 
   $grants=$form_state->getValue('grants');
-  dpm($grants, 'submitted grants');
   foreach ($grants as $vid => $rows) {
     if ($vid == TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT) {
       $element = $form['global_default'];
@@ -694,6 +696,7 @@ public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $f
   if (!empty($skip_defaults)) {
     $this->taxonomyAccessService->taxonomy_access_set_default_grants($skip_defaults, FALSE);
   }
+  $this->taxonomyAccessService->taxonomy_access_rebuild();
 }
 
 

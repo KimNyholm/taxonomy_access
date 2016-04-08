@@ -23,13 +23,15 @@ const TAXONOMY_ACCESS_MAX_UPDATE = 500 ;
 const TAXONOMY_ACCESS_CONFIG = 'admin/config/people/taxonomy_access' ;
 
 /**
- * Global default.
+ * Global default ('synthetic vocabulary')
  */
-const TAXONOMY_ACCESS_GLOBAL_DEFAULT = 0 ;
+const TAXONOMY_ACCESS_GLOBAL_DEFAULT = 'tac_gd___' ;
 
 /**
- * Vocabulary default.
+ * Vocabulary default (synthetic term id').
  */
+//const TAXONOMY_ACCESS_VOCABULARY_DEFAULT = 'tac_gd___' ;
+
 const TAXONOMY_ACCESS_VOCABULARY_DEFAULT = 0 ;
 
 /**
@@ -69,7 +71,6 @@ const TAXONOMY_ACCESS_AUTHENTICATED_RID = 2;
   // TBD: Add logic to cleanup unused role ids.
   public function roleIdToNumber($ridMachineName){
     $config = \Drupal::service('config.factory')->getEditable('taxonomy_access.settings');
-    //$config = \Drupal::config('taxonomy_access.settings');
     $roleNumber=$config->get('roleNumber');
     if (!isset($roleNumber[$ridMachineName])){
       $roleNumber[$ridMachineName]=count($roleNumber)+1;
@@ -77,6 +78,16 @@ const TAXONOMY_ACCESS_AUTHENTICATED_RID = 2;
         ->save();
     }
     return $roleNumber[$ridMachineName];
+  }
+
+  public function roleNumberToName($rid){
+    $config = \Drupal::service('config.factory')->getEditable('taxonomy_access.settings');
+    $roleNumber=$config->get('roleNumber');
+    $ridMachineName=array_search($rid, $roleNumber);
+    if (empty($ridMachineName)){
+      $ridMachineName="unknown_$rid";
+    }
+    return $ridMachineName;
   }
 
   protected function drupal_write_record($table, $row)
@@ -295,6 +306,7 @@ function taxonomy_access_taxonomy_term_delete($term) {
  */
 function taxonomy_access_node_grants(\Drupal\Core\Session\AccountInterface $user, $op) {
   $roles = $user->getRoles();
+  $roleGrants=array();
   foreach($roles as $role){
     $roleGrants[]= $this->roleIdToNumber($role);
   }
@@ -604,11 +616,15 @@ function _taxonomy_access_flag_rebuild() {
  *   Unset rebuild message when we set the flag to false?
  */
 function _taxonomy_access_node_access_update(array $nids) {
+  dpm($nids,'_taxonomy_access_node_access_update');
   // Proceed only if node_access_needs_rebuild() is not already flagged.
-  if (!node_access_needs_rebuild()) {
-
+  $rebuildNeeded=node_access_needs_rebuild();
+  dpm($rebuildNeeded, 'rebuildNeeded');
+  if (TRUE || !rebuildNeeded) {
+    dpm('node access needs rebuild');
     // Set node_access_needs_rebuild() until we succeed below.
-    _taxonomy_access_flag_rebuild();
+    $this->_taxonomy_access_flag_rebuild();
+
 
     // Remove any duplicate nids from the array.
     $nids = array_unique($nids);
@@ -642,16 +658,18 @@ function _taxonomy_access_node_access_update(array $nids) {
  *   The cached list of nodes.
  */
 function taxonomy_access_affected_nodes(array $affected_nodes = NULL, $reset = FALSE) {
+  dpm($affected_nodes, 'taxonomy_access_affected_nodes, reset='.$reset);
   static $nodes = array();
 
   // If node_access_needs_rebuild or $reset are set, reset list and return.
   if (!empty($nodes)) {
     if (node_access_needs_rebuild() || $reset) {
+      dpm('rebuild  already initiated');
       $nodes = array();
       return;
     }
   }
-
+  dpm('xxx');
   // If we were passed a list of nodes, cache.
   if (isset($affected_nodes)) {
     $nodes = array_unique(array_merge($nodes, $affected_nodes));
@@ -665,8 +683,10 @@ function taxonomy_access_affected_nodes(array $affected_nodes = NULL, $reset = F
 
   // Otherwise, return the cached data.
   else {
+    dpm('zzz');
     return $nodes;
   }
+  dpm('yyy');
 }
 
 /**
@@ -715,7 +735,7 @@ function _taxonomy_access_get_nodes_for_global_default($rid) {
 
   // Get a list of all terms controlled for the role, either directly or
   // by a vocabulary default.
-  $tids = _taxonomy_access_global_controlled_terms($rid);
+  $tids = $this->_taxonomy_access_global_controlled_terms($rid);
 
   $query =
     db_select('node', 'n')
@@ -752,10 +772,9 @@ function _taxonomy_access_get_nodes_for_global_default($rid) {
  *    An array of node IDs associated with the given vocabulary.
  */
 function _taxonomy_access_get_nodes_for_defaults($vocab_ids, $rid = NULL) {
-  dpm('taxonomy_access_get_nodes_for_defaults');
-  return array();
+  dpm($vocab_ids, 'taxonomy_access_get_nodes_for_defaults rid='.$rid);
   // Accept either a single vocabulary ID or an array thereof.
-  if (is_numeric($vocab_ids)) {
+  if (!is_array($vocab_ids)) {
     $vocab_ids = array($vocab_ids);
   }
   if (empty($vocab_ids)) {
@@ -827,10 +846,10 @@ function _taxonomy_access_global_controlled_terms($rid) {
  *   A list of term IDs.
  */
 function _taxonomy_access_vocab_controlled_terms($vids, $rid) {
-  dpm('_taxonomy_access_vocab_controlled_terms');
+  dpm($vids, '_taxonomy_access_vocab_controlled_terms, rid='.$rid);
   // Accept either a single vocabulary ID or an array thereof.
-  if (is_numeric($vids)) {
-    $vids = array($vids);
+  if (!is_array($vids)) {
+    $vids = array((string)$vids);
   }
 
   $tids =
@@ -839,10 +858,11 @@ function _taxonomy_access_vocab_controlled_terms($vids, $rid) {
        FROM {taxonomy_term_data} td
        INNER JOIN {taxonomy_access_term} ta ON td.tid = ta.tid
        WHERE ta.rid = :rid
-       AND td.vid IN (:vids)",
-      array(':rid' => $rid, ':vids' => $vids)
+       AND td.vid IN (:vids[])",
+      array(':rid' => $rid, ':vids[]' => $vids)
     )
     ->fetchCol();
+  dpm($tids, 'tids');
 
   return $tids;
 }
@@ -1081,8 +1101,7 @@ function taxonomy_access_delete_default_grants($vocab_ids, $rid = NULL, $update_
 
   if ($update_nodes) {
     // Cache the list of nodes that will be affected by this change.
-    $affected_nodes =
-      $this->_taxonomy_access_get_nodes_for_defaults($vocab_ids, $rid);
+    $affected_nodes = $this->_taxonomy_access_get_nodes_for_defaults($vocab_ids, $rid);
     $this->taxonomy_access_affected_nodes($affected_nodes);
     unset($affected_nodes);
   }
@@ -1116,9 +1135,9 @@ function taxonomy_access_delete_default_grants($vocab_ids, $rid = NULL, $update_
  *   TRUE on success, or FALSE on failure.
  */
 function taxonomy_access_delete_term_grants($term_ids, $rid = NULL, $update_nodes = TRUE) {
-  dpm($term_ids, 'taxonomy_access_delete_term_grants role='.$rid);
+  dpm($term_ids, 'taxonomy_access_delete_term_grants role='.$rid.' update='.$update_nodes);
   // Accept either a single term ID or an array thereof.
-  if (is_numeric($term_ids)) {
+  if (!is_array($term_ids)) {
     $term_ids = array($term_ids);
   }
 
@@ -1133,10 +1152,9 @@ function taxonomy_access_delete_term_grants($term_ids, $rid = NULL, $update_node
     unset($affected_nodes);
   }
 
-  $operator=is_array($term_ids) ? 'IN' : '=';
   $query =
     db_delete('taxonomy_access_term')
-    ->condition('tid', $term_ids, $operator);
+    ->condition('tid', $term_ids, 'IN');
 
   if (!empty($rid)) {
     $query->condition('rid', $rid);
@@ -1145,6 +1163,7 @@ function taxonomy_access_delete_term_grants($term_ids, $rid = NULL, $update_node
   $query->execute();
   unset($term_ids);
   unset($query);
+  dpm('exit dtg');
   return TRUE;
 }
 
@@ -1204,7 +1223,7 @@ function _taxonomy_access_format_grant_record($id, $rid, array $grants, $default
  * @see _taxonomy_access_format_grant_record()
  */
 function taxonomy_access_set_term_grants(array $grant_rows, $update_nodes = TRUE) {
-  dpm('taxonomy_access_set_term_grants');
+  dpm($grant_rows, 'taxonomy_access_set_term_grants');
   // Collect lists of term and role IDs in the list.
   $terms_for_roles = array();
   foreach ($grant_rows as $grant_row) {
@@ -1243,7 +1262,7 @@ function taxonomy_access_set_term_grants(array $grant_rows, $update_nodes = TRUE
  * @see _taxonomy_access_format_grant_record()
  */
 function taxonomy_access_set_default_grants(array $grant_rows, $update_nodes = TRUE) {
-  dpm('taxonomy_access_set_default_grants');
+  dpm($grant_rows, 'taxonomy_access_set_default_grants, update='.$update_nodes);
   // Collect lists of term and role IDs in the list.
   $vocabs_for_roles = array();
   foreach ($grant_rows as $grant_row) {

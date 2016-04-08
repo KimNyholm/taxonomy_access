@@ -34,12 +34,6 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
     );
   }
 
-  static public function taxonomy_accessRoleName($roleId){
-    $role=\Drupal\User\Entity\Role::load($roleId);
-    $roleName=empty($role) ? "Unkownn role id '$roleId'" : $role->label();
-    return $roleName;
-  }
-
   protected function getEditableConfigNames() {
     return [
       'taxonomy_access.settings',
@@ -47,13 +41,10 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
   }
 
   public function getTitle($rid){
-    $roleName=TaxonomyAccessAdminRole::taxonomy_accessRoleName($rid);
+    $roleName=$this->taxonomyAccessService->roleNumberToName($rid);
     return "Access rules for $roleName";
   }
 
-  public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
-    parent::submitForm($form, $form_state);
-  }
 
   /**
    * {@inheritdoc}
@@ -179,7 +170,7 @@ $defaults =
     '#collapsed' => (sizeof($defaults) > 1),
   );
   // Print term grant table.
-  $form['global_default']['grants'] = $this->taxonomy_access_grant_add_table($defaults[TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT], TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT);
+  $form['global_default']['grants'] = $this->taxonomy_access_grant_add_table($defaults[TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT], TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT);
 
   // Fetch all vocabularies and determine which are enabled for the role.
   $vocabs = array();
@@ -292,7 +283,7 @@ $defaults =
   $form['actions']['submit'] = array(
     '#type' => 'submit',
     '#value' => (string)t('Save all'),
-    '#submit' => array('::taxonomy_access_save_all_submit'),
+    // uses default handler submitForm()
   );
   if (!empty($term_grants)) {
     $form['actions']['delete'] = array(
@@ -615,11 +606,11 @@ function taxonomy_access_delete_selected_submit($form, &$form_state) {
   }
 }
 /**
- * Form submission handler for taxonomy_access_admin_form().
+* Form submission handler for taxonomy_access_admin_form().
  *
  * Processes submissions for the 'Save all' button.
  */
-function taxonomy_access_save_all_submit($form, &$form_state) {
+public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
   $rid = $form_state->getValue('rid');
   $vocabs = \Drupal\taxonomy\Entity\Vocabulary::loadMultiple();
 
@@ -629,8 +620,10 @@ function taxonomy_access_save_all_submit($form, &$form_state) {
   $update_defaults = array();
   $skip_defaults = array();
 
-  foreach ($form_state->getValue('grants') as $vid => $rows) {
-    if ($vid == (string)TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT) {
+  $grants=$form_state->getValue('grants');
+  dpm($grants, 'submitted grants');
+  foreach ($grants as $vid => $rows) {
+    if ($vid == TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT) {
       $element = $form['global_default'];
     }
     else {

@@ -7,7 +7,7 @@
 /**
  * Global default.
  */
-define('TAXONOMY_ACCESS_GLOBAL_DEFAULT', 0);
+define('TAXONOMY_ACCESS_GLOBAL_DEFAULT', 'tac_gd___' );
 
 /**
  * Vocabulary default.

@@ -1,3 +1,10 @@
+taxonomy_access.sandbox:
+  path: /sandbox
+  defaults:
+    _title: Sandbox
+    _controller: Drupal\taxonomy_access\Controller\SandboxController::contents
+  requirements:
+    _permission: 'administer site configuration'
 taxonomy_access.settings:
   path: /admin/config/people/taxonomy_access
   defaults:

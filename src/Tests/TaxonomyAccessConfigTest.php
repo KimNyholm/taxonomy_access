@@ -46,6 +46,35 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     }
   }
 
+  function createArticle($autocreate = [], $existing = []) {
+    $values = [];
+    foreach ($autocreate as $name) {
+      $values[] = [
+        'tid' => 'autocreate',
+        'vid' => 1,
+        'name' => $name,
+        'vocabulary_machine_name' => 'tags',
+      ];
+    }
+    foreach ($existing as $tid) {
+      $values[] = [
+        'tid' => $tid,
+        'vid' => 1,
+        'vocabulary_machine_name' => 'tags',
+      ];
+    }
+
+    // Bloody $langcodes.
+    $values = [\Drupal\Core\Language\Language::LANGCODE_NOT_SPECIFIED => $values];
+
+    $settings = [
+      'type' => 'article',
+      'field_tags' => $values,
+    ];
+
+    return $this->drupalCreateNode($settings);
+  }
+
   /**
    * Creates a page with the specified terms.
    *

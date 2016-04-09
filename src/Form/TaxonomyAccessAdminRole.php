@@ -602,7 +602,8 @@ function taxonomy_access_delete_selected_submit($form, &$form_state) {
   if ($rid) {
     if ($this->taxonomyAccessService->taxonomy_access_delete_term_grants($delete_tids, $rid)) {
       $this->taxonomyAccessService->taxonomy_access_rebuild();
-      drupal_set_message(Drupal\Core\StringTranslation::formatPlural(
+      drupal_set_message(
+        \Drupal::translation()->formatPlural(
           sizeof($delete_tids),
           '1 term access rule was deleted.',
           '@count term access rules were deleted.'));

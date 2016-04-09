@@ -904,10 +904,10 @@ function _taxonomy_access_get_descendants($tid) {
 
   if (!isset($descendants[$tid])) {
     // Preserve the original state of the list flag.
-    $flag_state = taxonomy_access_list_enabled();
+    $flag_state = $this->taxonomy_access_list_enabled();
 
     // Enforce that list grants do not filter the results.
-    taxonomy_access_disable_list();
+    $this->taxonomy_access_disable_list();
 
     $descendants[$tid] = array();
     $term = taxonomy_term_load($tid);
@@ -919,7 +919,7 @@ function _taxonomy_access_get_descendants($tid) {
 
     // Restore list flag to previous state.
     if ($flag_state) {
-      taxonomy_access_enable_list();
+      $this->taxonomy_access_enable_list();
     }
 
     unset($term);
@@ -1520,7 +1520,7 @@ function taxonomy_access_disable_list() {
  * @see _taxonomy_access_list_state()
  */
 function taxonomy_access_list_enabled() {
-  return _taxonomy_access_list_state();
+  return $this->_taxonomy_access_list_state();
 }
 
 /**

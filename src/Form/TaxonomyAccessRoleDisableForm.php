@@ -108,7 +108,6 @@ class TaxonomyAccessRoleDisableForm extends ConfirmFormBase {
          ));
       $urlParameters=array('rid' => $rid);
       $form_state->setRedirect('taxonomy_access.settings', $urlParameters);
-      return $response ;
     }
   }
 

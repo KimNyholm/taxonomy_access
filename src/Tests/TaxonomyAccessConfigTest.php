@@ -171,7 +171,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
    * - Access is updated for the correct nodes when there are specific term
    *    and vocabulary configurations.
    */
-  public function testGlobalDefaultConfig() {
+  public function aaa_testGlobalDefaultConfig() {
     // Log in as the administrator.
     $this->drupalLogin($this->users['site_admin']);
 
@@ -264,7 +264,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
    * - Access is updated correctly when multiple defaults are changed.
    * - Access is updated correctly when the vocabulary default is deleted.
    */
-  public function xxxtestVocabularyDefaultConfig() {
+  public function ccc_testVocabularyDefaultConfig() {
     // Log in as the administrator.
     $this->drupalLogin($this->users['site_admin']);
 
@@ -282,7 +282,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     //   - Ensure that no other fieldsets or rows appear.
 
     // Give anonymous view allow for the v1 default.
-    $edit = array();rticle-
+    $edit = array();
     $this->configureFormRow($edit, $this->vocabs['v1']->id(), TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT,TaxonomyAccessService::TAXONOMY_ACCESS_NODE_ALLOW);
     $this->drupalPostForm(NULL, $edit, 'Save all');
 
@@ -417,7 +417,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
    * - Access is updated correctly when multiple configurations are changed.
    * - Access is updated correctly when the term configuration is deleted.
    */
-  public function xtestTermConfig() {
+  public function ddd_testTermConfig() {
     // Log in as the administrator.
     $this->drupalLogin($this->users['site_admin']);
 
@@ -551,7 +551,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
    * @todo
    *   Check that node access is updated for these as well.
    */
-  public function xtestTermWithChildren() {
+  public function eee_testTermWithChildren() {
     // Create some additional taxonomy terms in a hierarchy:
     // v1
     // - v1t1
@@ -604,15 +604,15 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
   /**
    * Tests enabling and disabling TAC for a custom role.
    */
-  public function xtestRoleEnableDisable() {
-    // Save some typing.
-    $rid = $this->user_roles['regular_user']->rid;
-    $name = $this->user_roles['regular_user']->name;
+  public function testRoleEnableDisable() {
+    $rid = $this->user_roles['regular_user']->id();
+    $rid = $this->taxonomyAccessService->roleIdToNumber($rid);
+    $name = $this->user_roles['regular_user']->label();
 
     // Check that the role is disabled by default.
     $this->checkRoleConfig(array(
       TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID => TRUE,
-      TaxonomyAccessService::AUTHENTICATED_RID => TRUE,
+      TaxonomyAccessService::TAXONOMY_ACCESS_AUTHENTICATED_RID => TRUE,
       $rid => FALSE,
     ));
 
@@ -646,7 +646,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     // Confirm that all three roles are enabled.
     $this->checkRoleConfig(array(
       TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID => TRUE,
-      TaxonomyAccessService::AUTHENTICATED_RID => TRUE,
+      TaxonomyAccessService::TAXONOMY_ACCESS_AUTHENTICATED_RID => TRUE,
       $rid => TRUE,
     ));
 

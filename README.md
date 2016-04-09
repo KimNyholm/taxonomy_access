@@ -5,7 +5,7 @@ Porting of Drupal 7 Taxonomy Access Control to Drupal 8
 
 Todo:
 - What happended to node_access_acquire_grants()
-- Why does the rebuild permissions message not stay in admin mode.
+- How to get read of required cache flush after node_access_rebuild().
 - Finalize taxonomy_access_help().
 - Fix Admin styling.
 - Port required hooks etc in src/TaxonomyAccessService.php.

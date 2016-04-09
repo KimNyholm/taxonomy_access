@@ -1,3 +1,17 @@
+taxonomy_access.demo:
+  path: /demo/{parameter}
+  defaults:
+    _title: Demo page with one parameter
+    _controller: Drupal\taxonomy_access\Controller\SandboxController::demo
+  requirements:
+    _permission: 'access content'
+taxonomy_access.rebuild:
+  path: /rebuild
+  defaults:
+    _title: Rebuild permissions
+    _controller: Drupal\taxonomy_access\Controller\SandboxController::rebuildPermissions
+  requirements:
+    _permission: 'access content'
 taxonomy_access.sandbox:
   path: /sandbox
   defaults:

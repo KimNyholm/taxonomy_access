@@ -60,13 +60,15 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
     node_access_rebuild();
 
     // Configure users with base permission patterns.
+    $allRoles=$this->taxonomyAccessService->_taxonomy_access_user_roles();
     foreach ($this->user_config as $user => $permissions) {
       $this->users[$user] = $this->drupalCreateUser($permissions);
 
       // Save the role ID separately so it's easy to retrieve.
-      foreach ($this->users[$user]->roles as $rid => $role) {
-        if ($rid != \Drupal\user\RoleInterface::AUTHENTICATED_ID) {
-          $this->user_roles[$user] = user_role_load($rid);
+      foreach ($allRoles as $rid => $role) {
+        //if ($this->users[$user]->hasRole($rid) && ($rid != \Drupal\user\RoleInterface::AUTHENTICATED_ID)) {
+        if ($this->users[$user]->hasRole($role->id())){
+          $this->user_roles[$user] = $role;
         }
       }
     }
@@ -266,7 +268,8 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
     }
 
     foreach ($statuses as $rid => $status) {
-      if (!isset($shown[$roles[$rid]->label()])){
+      $rid = $this->taxonomyAccessService->roleIdToNumber($roles[$rid]->id());
+      if (!isset($shown[$rid])){
         $shown[$roles[$rid]->label()] = '';
       }
       // Assert that the form shows the passed status.

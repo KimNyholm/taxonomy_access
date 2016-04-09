@@ -4,9 +4,9 @@ Drupal Taxonomy Access Control
 Porting of Drupal 7 Taxonomy Access Control to Drupal 8
 
 Todo:
+- What happended to node_access_acquire_grants()
+- Why does the rebuild permissions message not stay in admin mode.
 - Finalize taxonomy_access_help().
-- Check use of Role name rather than Role id.
-- Check use of Vocabulary name rather than Vocabulary id.
 - Fix Admin styling.
 - Port required hooks etc in src/TaxonomyAccessService.php.
 - Simpletest class ConfigTest cases.

@@ -171,15 +171,17 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     $default_config = $this->taxonomyAccessService->_taxonomy_access_format_grant_record(
       $this->vocabs['v1']->id(), TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, array('view' =>TaxonomyAccessService::TAXONOMY_ACCESS_NODE_ALLOW), TRUE
     );
+    $this->pass(var_export($default_config, TRUE));
     $this->taxonomyAccessService->taxonomy_access_set_default_grants(array($default_config));
 
     // Set v1t1 and v2t1 to view allow.
     $term_configs = array();
     foreach (array('v1t1', 'v2t1') as $name) {
       $term_configs[] = $this->taxonomyAccessService->_taxonomy_access_format_grant_record(
-        $this->terms[$name]->id(), TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, array('view' =>TaxonomyAccessService::TAXONOMY_ACCESS_NODE_ALLOW)
+        intval($this->terms[$name]->id()), TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, array('view' =>TaxonomyAccessService::TAXONOMY_ACCESS_NODE_ALLOW)
       );
     }
+    $this->pass(var_export($term_configs, TRUE));
     $this->taxonomyAccessService->taxonomy_access_set_term_grants($term_configs);
 
     // This leaves articles and the v2t2 page controlled by the global default.

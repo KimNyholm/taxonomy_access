@@ -213,6 +213,7 @@ $defaults =
       $add_options = array();
       if ($tree = \Drupal::entityManager()->getStorage("taxonomy_term")->loadTree($vid)) {
         foreach ($tree as $term) {
+//dpm($term, 'term');
           if (empty($term_grants[$vid][$term->tid])) {
             $add_options["term $term->tid"] = str_repeat('-', $term->depth) . ' ' . \Drupal\Component\Utility\Html::escape($term->name);
           }
@@ -223,6 +224,7 @@ $defaults =
         }
         $term_grants[$vid] = $sort;
       }
+      //$term_grants[$vid] = $sort;
 
       $grants = array(TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT => $vocab_default);
       $grants[TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT]['name'] = (string)t('Default');
@@ -325,6 +327,7 @@ $defaults =
  * @see taxonomy_access_grant_table()
  */
 function taxonomy_access_grant_table(array $rows, $parent_vid, $first_col, $delete = TRUE) {
+  //dpm($rows, 'grant_table(), parent_vid='. $parent_vid . ' col=' . $first_col);
   $header = $this->taxonomy_access_grant_table_header();
   if ($first_col) {
     array_unshift(
@@ -453,12 +456,13 @@ function theme_taxonomy_access_grant_table($element_data) {
  *   to NULL.
  */
 function taxonomy_access_admin_build_row(array $grants, $label_key = NULL, $delete = FALSE) {
+  //dpm($grants, 'grants key='.$label_key . ' delete='.$delete);
   $form['#tree'] = TRUE;
   if ($delete) {
     $form['remove'] = array(
       '#type' => 'checkbox',
       '#title' => (string)t('Delete access rule for @name', array('@name' => $grants[$label_key])),
-      '#title_display' => 'invisible',
+//      '#title_display' => 'invisible',
     );
   }
   if ($label_key) {
@@ -472,7 +476,7 @@ function taxonomy_access_admin_build_row(array $grants, $label_key = NULL, $dele
     $form[$grant] = array(
       '#type' => 'select',
       '#title' => $this->_taxonomy_access_grant_field_label($grant, $for),
-      '#title_display' => 'invisible',
+ //     '#title_display' => 'invisible',
       '#default_value' => is_string($grants['grant_' . $grant]) ? $grants['grant_' . $grant] : TaxonomyAccessService::TAXONOMY_ACCESS_NODE_IGNORE,
       '#required' => TRUE,
     );

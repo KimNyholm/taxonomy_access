@@ -29,7 +29,7 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
       'access content',
       'access site reports',
       'access administration pages',
-      'administer permissions',
+      'administer site configuration',
       'create article content',
       'edit any article content',
       'create page content',

@@ -57,7 +57,7 @@ function taxonomy_access_enable_role_validate($rid) {
 //      throw new AccessDeniedHttpException();
     }
   // Return a 404 for the anonymous or authenticated roles.
-  if (in_array($roleId, [
+  if (in_array($rid, [
     TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID,
     TaxonomyAccessService::TAXONOMY_ACCESS_AUTHENTICATED_RID,
   ])) {

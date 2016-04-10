@@ -43,9 +43,9 @@ function taxonomy_access_help($path, $arg) {
         . '<li><a href="#good-to-know">' . t("Good to know") . '</a></li>'
         . "</ol><hr /><br />"
         . '<h3 id="grant">' . t("Grant types") . '</h3>'
-        . '<p>' . t('On the category permissions page for each role, administrators can configure five types of permission for each term: <em>View, Update, Delete, Add Tag</em> (formerly <em>Create</em>), and <em>View Tag</em>: (formerly <em>List</em>') . '</p>'
+        . '<p>' . t('On the category permissions page for each role, administrators can configure five types of permission for each term: <em>View, Update, Delete, Add Tag</em> (formerly <em>Create</em>), and <em>View Tag</em>: (formerly <em>List</em>')
+        . t('<em>View</em>, <em>Update</em>, and <em>Delete</em> control the node access system.  <em>View Tag</em> and <em>Add Tag</em> control the terms themselves.  (Note: In previous versions of Taxonomy Access Control, there was no <em>View Tag</em> permission its functionality was controlled by the <em>View</em> permission.)') . '</p><hr /><br />'
         . _taxonomy_access_grant_help_table()
-        . '<p>' . t('<em>View</em>, <em>Update</em>, and <em>Delete</em> control the node access system.  <em>View Tag</em> and <em>Add Tag</em> control the terms themselves.  (Note: In previous versions of Taxonomy Access Control, there was no <em>View Tag</em> permission its functionality was controlled by the <em>View</em> permission.)') . '</p><hr /><br />'
         . '<h3 id="perm">' . t("Permission options") . "</h3>"
         . '<p>' . t('<strong><em>View</em>, <em>Update</em>, and <em>Delete</em> have three options for each term:</strong> <em>Allow</em> (<acronym title="Allow">A</acronym>), <em>Ignore</em> (<acronym title="Ignore">I</acronym>), and <em>Deny</em> (<acronym title="Deny">D</acronym>).  Indicate which rights each role should have for each term.  If a node is tagged with multiple terms:') . '</p>'
         . "<ul>\n"
@@ -65,11 +65,10 @@ function taxonomy_access_help($path, $arg) {
         . "<li>"
         . t('Custom roles <strong>will</strong> inherit permissions from the <em>authenticated user</em> role.  Be sure to <a href="@url">configure
 the authenticated user</a> properly.',
-          array("@url" => url(
-              TAXONOMY_ACCESS_CONFIG
-              . '/role/'
-              . DRUPAL_AUTHENTICATED_RID
-              . 'edit')))
+          array("@url" => urlTaxonomyAccessEdit(
+              'taxonomy_access.admin_role_edit',
+              \Drupal\taxonomy_access\TaxonomyAccessService::TAXONOMY_ACCESS_AUTHENTICATED_RID))
+            )
         . "</li>\n"
         . '<li>'
         . "<p>" . t('The <em>Deny</em> directives are processed after the <em>Allow</em> directives. (<strong><em>Deny</em> overrides <em>Allow</em></strong>.)</em>  So, if a multicategory node is in Categories "A" and "B" and a user has <em>Allow</em> permissions for <em>View</em> in Category "A" and <em>Deny</em> permissions for <em>View</em> in Category "B", then the user will NOT be permitted to <em>View</em> the node.') . '</p>'
@@ -97,8 +96,15 @@ the authenticated user</a> properly.',
   }
 }
 
-function url($path, $option=NULL){
-  return $path;
+function url($path, $fragment){
+  $url=\Drupal\Core\Url::fromRoute('user.admin_permissions');
+  return $url->toString().'#'.$fragment['fragment'];
+}
+
+function urlTaxonomyAccessEdit($route, $rid){
+  $urlParameters=array('rid' => $rid);
+  $url=\Drupal\Core\Url::fromRoute('taxonomy_access.admin_role_edit', $urlParameters);
+  return $url->toString();
 }
 
 /**
@@ -111,23 +117,23 @@ function url($path, $option=NULL){
  *   We moved this here for drush.  Find a smarter way to include it on demand?
  */
 function _taxonomy_access_grant_help_table() {
-  return '<h3>Taxonomy access grant help table should come here.</h3>';
-
   $header = array();
 
   $rows = array();
   $rows[] = array(
     array('header' => TRUE, 'data' => t("View")),
+    array('data' => array( '#markup' =>
     "<p>"
     . t('Grants this role the ability to view nodes with the term.  (Users must also have this permission to see <em class="perm">nodes</em> with the term listed in Views.)')
     . "</p>"
     . "<p>"
     . t('The role must <strong>have</strong> <em class="perm">access content</em> permission on the <a href="@path">permissions administration form</a>.',
       array('@path' => url('admin/people/permissions', array('fragment' => 'module-node')))),
-  );
+  )));
 
   $rows[] = array(
     array('header' => TRUE, 'data' => t("Update") . ", " . t("Delete")),
+    array('data' => array( '#markup' =>
     "<p>"
     . t("Grants this role the ability to edit or delete nodes with the term, respectively.")
     . "</p>"
@@ -135,10 +141,11 @@ function _taxonomy_access_grant_help_table() {
     . t('The role must <strong>not</strong> have <em class="perm">edit any [type] content</em> or <em class="perm">delete any [type] content</em> permission on the <a href="@path">permissions administration form</a> if you wish to control them here.',
       array('@path' => url('admin/people/permissions', array('fragment' => 'module-node'))))
     . "</p>",
-  );
+  )));
 
   $rows[] = array(
     array('header' => TRUE, 'data' => t("Add Tag")),
+    array('data' => array( '#markup' =>
     "<p>"
     . t("Grants this role the ability to add the term to a node when creating or updating it.")
     . "</p>"
@@ -146,10 +153,11 @@ function _taxonomy_access_grant_help_table() {
     . t('(Formerly <em>Create</em>).  This does <strong>not</strong> give the role the ability to create nodes by itself; the role must <strong>have</strong> <em class="perm">create [type] content</em> permission on the <a href="@path">permissions administration form</a> in order to create new nodes.',
       array('@path' => url('admin/people/permissions', array('fragment' => 'module-node'))))
     . "</p>",
-  );
+  )));
 
   $rows[] = array(
     array('header' => TRUE, 'data' => t("View Tag")),
+    array('data' => array( '#markup' =>
     "<p>"
     . t("(Formerly <em>List</em>.)  Whether this role can see the term listed on node pages and in lists, and whether the user can view the %taxonomy-term-page page for the term.",
       array(
@@ -157,9 +165,13 @@ function _taxonomy_access_grant_help_table() {
       ))
     . "</p>"
     . "<p>" . t("This does <strong>not</strong> control whether the role can see the <em>nodes</em> listed in Views, only the <em>term</em>.") . "</p>",
-  );
+  )));
 
-  return theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('class' => array('grant_help'))));
+  $grant_table = array(
+    '#type'       => 'table',
+    '#header'     => $header,
+    '#rows'       => $rows,
+    '#attributes' => array('class' => array('grant_help')));
+
+  return drupal_render($grant_table);
 }
-
-  

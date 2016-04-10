@@ -80,11 +80,21 @@ const TAXONOMY_ACCESS_AUTHENTICATED_RID = 2;
     return $roleNumber[$ridMachineName];
   }
 
-  public function roleNumberToName($rid){
+  public function roleNumberToRid($roleNumber){
     $roles=$this->_taxonomy_access_user_roles();
     $name='';
-    if (isset($roles[$rid])){
-      $role=$roles[$rid];
+    if (isset($roles[$roleNumber])){
+      $role=$roles[$roleNumber];
+      $rid=$role->id();
+    }
+    return $rid;
+  }
+
+  public function roleNumberToName($roleNumber){
+    $roles=$this->_taxonomy_access_user_roles();
+    $name='';
+    if (isset($roles[$roleNumber])){
+      $role=$roles[$roleNumber];
       $name=$role->label();
     }
     return $name;
@@ -912,8 +922,7 @@ function _taxonomy_access_get_descendants($tid) {
 
     $descendants[$tid] = array();
     $term = taxonomy_term_load($tid);
-    $tree = taxonomy_get_tree($term->vid, $tid);
-
+    $tree = \Drupal::entityManager()->getStorage("taxonomy_term")->loadTree($term->getVocabularyId(), $tid);
     foreach ($tree as $term) {
       $descendants[$tid][] = $term->tid;
     }
@@ -1503,7 +1512,7 @@ function _taxonomy_access_list_state($set_flag = NULL) {
  * @see _taxonomy_access_list_state()
  */
 function taxonomy_access_enable_list() {
-  _taxonomy_access_list_state(TRUE);
+  $this->_taxonomy_access_list_state(TRUE);
 }
 
 /**

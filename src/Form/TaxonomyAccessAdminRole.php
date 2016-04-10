@@ -9,8 +9,6 @@ namespace Drupal\taxonomy_access\Form;
 
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-use Drupal\Core\Url;
-
 use Drupal\taxonomy_access\TaxonomyAccessService;
 
 
@@ -75,7 +73,7 @@ static function taxonomy_access_enable_role_url($rid) {
   //  $query = drupal_get_destination();
   //  $query['token'] = drupal_get_token($rid);
   $urlParameters=array('rid' => $rid);
-  $url=Url::fromRoute('taxonomy_access.admin_role_enable', $urlParameters);
+  $url=\Drupal\Core\Url::fromRoute('taxonomy_access.admin_role_enable', $urlParameters);
   return $url->toString();
 }
 
@@ -213,7 +211,6 @@ $defaults =
       $add_options = array();
       if ($tree = \Drupal::entityManager()->getStorage("taxonomy_term")->loadTree($vid)) {
         foreach ($tree as $term) {
-//dpm($term, 'term');
           if (empty($term_grants[$vid][$term->tid])) {
             $add_options["term $term->tid"] = str_repeat('-', $term->depth) . ' ' . \Drupal\Component\Utility\Html::escape($term->name);
           }
@@ -704,60 +701,4 @@ public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $f
   $this->taxonomyAccessService->taxonomy_access_rebuild();
 }
 
-
-/**
- * Generates HTML markup with form instructions for the admin form.
- *
- * @return
- *   Instructions HTML string.
- */
-function _taxonomy_access_admin_instructions_html() {
-  $instructions = '';
-  $instructions .= ''
-    . "<br /><br />"
-    . "<div class=\"instructions\">"
-    . "<h2>" . t("Explanation of fields") . "</h2>"
-    . _taxonomy_access_grant_help_table()
-    . "<p>"
-    . t('Options for View, Update, and Delete are <em>Allow</em> (<acronym title="Allow">A</acronym>), <em>Ignore</em> (<acronym title="Ignore">I</acronym>), and <em>Deny</em> (<acronym title="Deny">D</acronym>).')
-    . "</p>\n\n"
-    . "<ul>\n"
-    . "<li>"
-    . t('<em>Deny</em> (<acronym title="Deny">D</acronym>) overrides <em>Allow</em> (<acronym title="Allow">A</acronym>) within this role.')
-    . "</li>"
-    . "<li>"
-    . t('Both <em>Allow</em> (<acronym title="Allow">A</acronym>) and <em>Deny</em> (<acronym title="Deny">D</acronym>) override <em>Ignore</em> (<acronym title="Ignore">I</acronym>) within this role.')
-    . "</li>"
-    . "<li>"
-    . t('If a user has <strong>multiple roles</strong>, an <em>Allow</em> (<acronym title="Allow">A</acronym>) from another role <strong>will</strong> override a <em>Deny</em> (<acronym title="Deny">D</acronym>) here.')
-    . "</li>"
-    . "</ul>\n\n"
-    ;
-  if (arg(4) != DRUPAL_ANONYMOUS_RID && arg(4) != DRUPAL_AUTHENTICATED_RID) {
-    // Role other than Anonymous or Authenticated
-    $instructions .= ''
-      . "<p>"
-      . t('<strong>Remember:</strong> This role <strong>will</strong> inherit permissions from the <em>authenticated user</em> role.  Be sure to <a href="@url">configure the authenticated user</a> properly.',
-        array("@url" => url(
-            TAXONOMY_ACCESS_CONFIG
-            . "/role/"
-            .  DRUPAL_AUTHENTICATED_RID
-            . '/edit')))
-      . "</p>\n\n"
-      ;
-  }
-  $instructions .= ''
-    . "<p>"
-    . t('For more information and for troubleshooting guidelines, see the <a href="@help">help page</a> and the !readme.',
-      array(
-        '@help' => url('admin/help/taxonomy_access'),
-        '!readme' => "<code>README.txt</code>"
-      ))
-    . "</p>\n\n"
-    . "</div>\n\n"
-    ;
-
-  return $instructions;
-
-}
 }

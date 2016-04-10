@@ -61,14 +61,18 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
 
     // Configure users with base permission patterns.
     $allRoles=$this->taxonomyAccessService->_taxonomy_access_user_roles();
-    foreach ($this->user_config as $user => $permissions) {
-      $this->users[$user] = $this->drupalCreateUser($permissions);
+    foreach ($this->user_config as $userType => $permissions) {
+      $user=$this->drupalCreateUser($permissions);
+      $this->users[$userType]=$user;
 
       // Save the role ID separately so it's easy to retrieve.
-      foreach ($allRoles as $rid => $role) {
-        //if ($this->users[$user]->hasRole($rid) && ($rid != \Drupal\user\RoleInterface::AUTHENTICATED_ID)) {
-        if ($this->users[$user]->hasRole($role->id())){
-          $this->user_roles[$user] = $role;
+      $userName=$user->label();
+      foreach ($allRoles as $roleNumber => $role) {
+        $rid=$this->taxonomyAccessService->roleNumberToRid($roleNumber);
+        $this->pass('Checking ' . $rid . ' for user ' . $userName . ' of type ' . $userType);
+        if ($user->hasRole($rid) && ($rid != \Drupal\user\RoleInterface::AUTHENTICATED_ID)) {
+        //if ($this->users[$user]->hasRole($role->id())){
+          $this->user_roles[$userType] = $role;
         }
       }
     }

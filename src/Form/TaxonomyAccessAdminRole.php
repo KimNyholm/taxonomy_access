@@ -115,7 +115,7 @@ public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $for
     else {
       $query = drupal_get_destination();
       $urlParameters=array('rid' => $rid, 'query' => $query);
-      $url=Url::fromRoute('taxonomy_access.admin_role_delete', $urlParameters);
+      $url=\Drupal\Core\Url::fromRoute('taxonomy_access.admin_role_delete', $urlParameters);
       $disable_url = $url->toString();
       $form['status'] = array(
         '#markup' => '<p>' . t(
@@ -269,7 +269,7 @@ $defaults =
       }
       $query = drupal_get_destination();
       $urlParameters=array('rid' => $rid, 'vid' => $vid, 'query' => $query);
-      $url=Url::fromRoute('taxonomy_access.admin_role_disable', $urlParameters);
+      $url=\Drupal\Core\Url::fromRoute('taxonomy_access.admin_role_disable', $urlParameters);
       $disable_url = $url->toString();
       $form[$name]['disable'] = array(
           '#markup' => '<p>' . (string)t(
@@ -324,7 +324,6 @@ $defaults =
  * @see taxonomy_access_grant_table()
  */
 function taxonomy_access_grant_table(array $rows, $parent_vid, $first_col, $delete = TRUE) {
-  //dpm($rows, 'grant_table(), parent_vid='. $parent_vid . ' col=' . $first_col);
   $header = $this->taxonomy_access_grant_table_header();
   if ($first_col) {
     array_unshift(
@@ -337,12 +336,12 @@ function taxonomy_access_grant_table(array $rows, $parent_vid, $first_col, $dele
     array_unshift($header, array('class' => array('select-all')));
   }
   $table = array(
-    '#type' => 'taxonomy_access_grant_table',
+    '#type' => 'table',
     '#tree' => TRUE,
     '#header' => $header,
   );
   foreach ($rows as $id => $row) {
-    $table[$parent_vid][$id] = $this->taxonomy_access_admin_build_row($row, 'name', $delete);
+    $table['#rows'][$id] = $this->taxonomy_access_admin_build_row($row, 'name', $delete);
   }
   // Disable the delete checkbox for the default.
   if ($delete && isset($table[$parent_vid][TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT])) {
@@ -372,11 +371,11 @@ function taxonomy_access_grant_table(array $rows, $parent_vid, $first_col, $dele
 function taxonomy_access_grant_add_table($row, $id) {
   $header = $this->taxonomy_access_grant_table_header();
   $table = array(
-    '#type' => 'taxonomy_access_grant_table',
+    '#type' => 'table',
     '#tree' => TRUE,
     '#header' => $header,
   );
-  $table[$id][TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT] = $this->taxonomy_access_admin_build_row($row);
+  $table['#rows'][TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT] = $this->taxonomy_access_admin_build_row($row);
 
   return $table;
 }
@@ -402,48 +401,6 @@ function taxonomy_access_grant_table_header() {
 }
 
 /**
- * Theme our grant table.
- *
- * @todo
- *   Use a separate theme function for taxonomy_access_grant_add_table() to get
- *   out of nesting hell?
- * @todo
- *   I clearly have no idea what I'm doing here.
- */
-function theme_taxonomy_access_grant_table($element_data) {
-  $table = array();
-  $table['header'] = $element_data['elements']['#header'];
-  $table['attributes']['class'] = array('taxonomy-access-grant-table');
-  $rows = array();
-  foreach (element_children($element_data['elements']) as $element_key) {
-    $child = $element_data['elements'][$element_key];
-    foreach (element_children($child) as $child_key) {
-      $record = $child[$child_key];
-      $row = array();
-      foreach (element_children($record) as $record_key) {
-        $data = array('data' => $record[$record_key]);
-        // If it's the default, add styling.
-        if ($record_key == 'name') {
-          $data['class'] = array('taxonomy-access-label');
-          if ($child_key == TAXONOMY_ACCESS_VOCABULARY_DEFAULT) {
-            $data['class'][] = 'taxonomy-access-default';
-          }
-        }
-        // Add grant classes to grant cells.
-        elseif (in_array($record_key, array('view', 'update', 'delete', 'create', 'list'))) {
-          $grant_class = $record_key . '-' . $data['data']['#default_value'];
-          $data['class'] = array('taxonomy-access-grant', $grant_class);
-        }
-        $row[] = $data;
-      }
-      $rows[] = $row;
-    }
-  }
-  $table['rows'] = $rows;
-  return theme('table', $table);
-}
-
-/**
  * Assembles a row of grant options for a term or default on the admin form.
  *
  * @param array $grants
@@ -453,40 +410,39 @@ function theme_taxonomy_access_grant_table($element_data) {
  *   to NULL.
  */
 function taxonomy_access_admin_build_row(array $grants, $label_key = NULL, $delete = FALSE) {
-  //dpm($grants, 'grants key='.$label_key . ' delete='.$delete);
-  $form['#tree'] = TRUE;
   if ($delete) {
     $form['remove'] = array(
       '#type' => 'checkbox',
       '#title' => (string)t('Delete access rule for @name', array('@name' => $grants[$label_key])),
-//      '#title_display' => 'invisible',
+      '#title_display' => 'invisible',
     );
   }
   if ($label_key) {
-    $form[$label_key] = array(
+    $form[$label_key]['data'] = array(
       '#type' => 'markup',
       '#markup' => \Drupal\Component\Utility\Html::escape($grants[$label_key]),
     );
   }
   foreach (array('view', 'update', 'delete', 'create', 'list') as $grant) {
     $for = $label_key ? $grants[$label_key] : NULL;
-    $form[$grant] = array(
+    $selectBoxes=
+    $form[$grant]['data'] = array(
       '#type' => 'select',
       '#title' => $this->_taxonomy_access_grant_field_label($grant, $for),
- //     '#title_display' => 'invisible',
+      '#title_display' => 'invisible',
       '#default_value' => is_string($grants['grant_' . $grant]) ? $grants['grant_' . $grant] : TaxonomyAccessService::TAXONOMY_ACCESS_NODE_IGNORE,
       '#required' => TRUE,
     );
   }
   foreach (array('view', 'update', 'delete') as $grant) {
-    $form[$grant]['#options'] = array(
+    $form[$grant]['data']['#options'] = array(
       TaxonomyAccessService::TAXONOMY_ACCESS_NODE_ALLOW => (string)t('Allow'),
       TaxonomyAccessService::TAXONOMY_ACCESS_NODE_IGNORE => (string)t('Ignore'),
       TaxonomyAccessService::TAXONOMY_ACCESS_NODE_DENY => (string)t('Deny'),
     );
   }
   foreach (array('create', 'list') as $grant) {
-    $form[$grant]['#options'] = array(
+    $form[$grant]['data']['#options'] = array(
       TaxonomyAccessService::TAXONOMY_ACCESS_TERM_ALLOW => (string)t('Allow'),
       TaxonomyAccessService::TAXONOMY_ACCESS_TERM_DENY => (string)t('Deny'),
     );

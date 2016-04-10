@@ -171,7 +171,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
    * - Access is updated for the correct nodes when there are specific term
    *    and vocabulary configurations.
    */
-  public function aaa_testGlobalDefaultConfig() {
+  public function testGlobalDefaultConfig() {
     // Log in as the administrator.
     $this->drupalLogin($this->users['site_admin']);
 
@@ -264,7 +264,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
    * - Access is updated correctly when multiple defaults are changed.
    * - Access is updated correctly when the vocabulary default is deleted.
    */
-  public function ccc_testVocabularyDefaultConfig() {
+  public function testVocabularyDefaultConfig() {
     // Log in as the administrator.
     $this->drupalLogin($this->users['site_admin']);
 
@@ -417,7 +417,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
    * - Access is updated correctly when multiple configurations are changed.
    * - Access is updated correctly when the term configuration is deleted.
    */
-  public function ddd_testTermConfig() {
+  public function testTermConfig() {
     // Log in as the administrator.
     $this->drupalLogin($this->users['site_admin']);
 
@@ -551,7 +551,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
    * @todo
    *   Check that node access is updated for these as well.
    */
-  public function eee_testTermWithChildren() {
+  public function testTermWithChildren() {
     // Create some additional taxonomy terms in a hierarchy:
     // v1
     // - v1t1
@@ -604,7 +604,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
   /**
    * Tests enabling and disabling TAC for a custom role.
    */
-  public function fff_testRoleEnableDisable() {
+  public function testRoleEnableDisable() {
     $rid = $this->user_roles['regular_user']->id();
     $rid = $this->taxonomyAccessService->roleIdToNumber($rid);
     $name = $this->user_roles['regular_user']->label();

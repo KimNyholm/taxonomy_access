@@ -81,13 +81,13 @@ const TAXONOMY_ACCESS_AUTHENTICATED_RID = 2;
   }
 
   public function roleNumberToName($rid){
-    $config = \Drupal::service('config.factory')->getEditable('taxonomy_access.settings');
-    $roleNumber=$config->get('roleNumber');
-    $ridMachineName=array_search($rid, $roleNumber);
-    if (empty($ridMachineName)){
-      $ridMachineName="unknown_$rid";
+    $roles=$this->_taxonomy_access_user_roles();
+    $name='';
+    if (isset($roles[$rid])){
+      $role=$roles[$rid];
+      $name=$role->label();
     }
-    return $ridMachineName;
+    return $name;
   }
 
   protected function drupal_write_record($table, $row)

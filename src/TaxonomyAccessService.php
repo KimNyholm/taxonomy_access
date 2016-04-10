@@ -606,6 +606,7 @@ function _taxonomy_access_flag_rebuild() {
 
 function taxonomy_access_rebuild(){
   node_access_rebuild();
+  drupal_flush_all_caches();
   //$nids=$this->taxonomy_access_affected_nodes();
   //return $this->_taxonomy_access_node_access_update($nids);
 }

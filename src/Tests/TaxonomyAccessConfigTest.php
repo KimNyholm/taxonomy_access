@@ -129,7 +129,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
    * - Access to all nodes is denied for anonymous users.
    * - The main admin page provides the correct configuration links.
    */
-  public function aaa_testSetUpCheck() {
+  public function testSetUpCheck() {
     // Visit all nodes as anonymous and verify that access is denied.
     foreach ($this->articles as $key => $article) {
       $this->drupalGet('node/' . $article->id());
@@ -604,7 +604,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
   /**
    * Tests enabling and disabling TAC for a custom role.
    */
-  public function testRoleEnableDisable() {
+  public function fff_testRoleEnableDisable() {
     $rid = $this->user_roles['regular_user']->id();
     $rid = $this->taxonomyAccessService->roleIdToNumber($rid);
     $name = $this->user_roles['regular_user']->label();

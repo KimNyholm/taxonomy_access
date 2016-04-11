@@ -159,14 +159,14 @@ $defaults =
   }
 
   $form['global_defaults']=$this->addVocabularyDefaults(
-    'global_defaults',
+    TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT,
     t('Global default'),
     t('The global default controls access to untagged nodes. It is also used as the default for disabled vocabularies.'),
     // Collapse if there are vocabularies configured.
     (sizeof($defaults) <= 1),
-    $this->taxonomy_access_grant_add_table($defaults[TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT], TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT)
+    $this->taxonomy_access_grant_add_table($defaults[TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT], TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT)
   );
-  $form['#vocabularyNames']=array('global_defaults');
+  $form['#vocabularyNames']=array('global_defaults' => TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT);
   // Fetch all vocabularies and determine which are enabled for the role.
   $vocabs = array();
   $disabled = array();
@@ -225,13 +225,13 @@ $defaults =
       }
       dpm('adding ', $name);
       $form[$name]=$this->addVocabularyDefaults(
-        $name,
+        $vid,
         $vocab->label(),
         (string)t('The default settings apply to all terms in %vocab that do not have their own below.', array('%vocab' => $vocab->label())),
         TRUE,
         $this->taxonomy_access_grant_table($grants, $vocab->id(), (string)t('Term'), !empty($term_grants[$vid]))
       );
-      $form['#vocabularyNames'][]=$name;
+      $form['#vocabularyNames'][$name]=$vocab->id();
       // Fieldset to add a new term if there are any.
       if (!empty($add_options)) {
         $form[$name]['new'] = array(
@@ -291,13 +291,12 @@ function addVocabularyDefaults($vid, $title, $description, $open, $grants){
   // Add a fieldset for the global default.
   $fieldset = array(
     '#type' => 'details',
-    '#title' => $title,
-    '#description' => $description,
-    // Collapse if there are vocabularies configured.
+    '#title' => (string)$title,
+    '#description' => (string)$description,
     '#open' => $open,
   );
   // Print term grant table.
-  $fieldset['grants'][$vid] = $grants;
+  $fieldset[$vid] = $grants;
   return $fieldset ;
 }
 
@@ -580,7 +579,6 @@ function taxonomy_access_delete_selected_submit($form, &$form_state) {
  */
 public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
   $rid = $form_state->getValue('rid');
-  $vocabs = \Drupal\taxonomy\Entity\Vocabulary::loadMultiple();
 
   // Create four lists of records to update.
   $update_terms = array();
@@ -589,29 +587,20 @@ public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $f
   $skip_defaults = array();
 
   $vocabularyNames=$form['#vocabularyNames'];
+  $values=$form_state->getValue();
   dpm($vocabularyNames, 'vocabularyNames');
-  return ;
-  foreach ($newGrants as $vid => $rows) {
-    if ($vid == TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT) {
-      $rows=array($rows);
-      dpm($rows, 'rows expaned vid='.$vid);
-      $element = $form['global_default'];
-      $tx=$element['grants'][$vid]['tid'];
-      dpm($tx, 'tx');
-    }
-    else {
-      $vocab = $vocabs[$vid];
-      $element = $form[$vocab->id()];
-    }
-    dpm($rows, 'vid='.$vid);
+  foreach ($vocabularyNames as $vocabularyName => $vid) {
+    $rows = $values[$vid];
+    $element = $form[$vocabularyName];
+    dpm($rows, 'form data vname=' . $vocabularyName . ' vid='.$vid);
     foreach ($rows as $tid => $row) {
       // Check the default values for this row.
+      $termDefault=$element[$vid][$tid];
       $defaults = array();
       $grants = array();
       foreach (array('view', 'update', 'delete', 'create', 'list') as $grant_name) {
         $grants[$grant_name] = $row[$grant_name];
-        $defaults[$grant_name] =
-          $element['grants'][$vid][$tid][$grant_name]['#default_value'];
+        $defaults[$grant_name] = $termDefault[$grant_name]['#default_value'];
       }
 
       // Proceed if the user changed the row (values differ from defaults).
@@ -625,7 +614,7 @@ public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $f
           }
         }
 
-    dpm($update_defaults, 'updd1 vid='.$vid);
+        dpm($update_defaults, 'updd1 vid='.$vid);
         // Add the row to one of the four arrays.
         switch (TRUE) {
           // Term record with node grant changes.
@@ -654,8 +643,10 @@ public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $f
         }
       }
     }
-    dpm($update_defaults, 'updd2 vid='.$vid);
   }
+  dpm($update_defaults, 'updd2 vid='.$vid);
+  // FIX ME
+  return ;
   // Process each set.
   if (!empty($update_terms)) {
     $this->taxonomyAccessService->taxonomy_access_set_term_grants($update_terms);

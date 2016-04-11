@@ -1266,7 +1266,7 @@ function taxonomy_access_set_term_grants(array $grant_rows, $update_nodes = TRUE
  * @see _taxonomy_access_format_grant_record()
  */
 function taxonomy_access_set_default_grants(array $grant_rows, $update_nodes = TRUE) {
-  //dpm($grant_rows, 'taxonomy_access_set_default_grants, update='.$update_nodes);
+  dpm($grant_rows, 'taxonomy_access_set_default_grants, update='.$update_nodes);
   // Collect lists of term and role IDs in the list.
   $vocabs_for_roles = array();
   foreach ($grant_rows as $grant_row) {

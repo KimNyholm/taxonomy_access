@@ -51,12 +51,21 @@ function getDefault(){
             'grant_create' => 0,
             'grant_list' => 0,
         ),
+      'tags' => Array
+        (
+            'vid' => 'tags',
+            'grant_view' => 0,
+            'grant_update' => 0,
+            'grant_delete' => 0,
+            'grant_create' => 0,
+            'grant_list' => 0,
+        ),
     );
 }
 public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state) {
 
   $defaults = $this->getDefault();
-
+/*
   // Add a fieldset for the global default.
   $form['global_default'] = array(
     '#type' => 'details',
@@ -65,26 +74,68 @@ public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $for
     '#open' =>TRUE, 
   );
   $form['global_default']['grants']['global_defaults'] = $this->taxonomy_access_grant_add_table($defaults[TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT], TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT);
+*/
 
-  foreach (['_voc1', 'voc2'] as $vid){
-    $form[$vid] = array(
+  foreach (['tags' ] as $vid){
+    $form['tac_'.$vid] = array(
       '#type' => 'details',
-      '#title' =>$vid, 
-      '#description' => t('xxxxx It is also used as the default for disabled vocabularies.'),
+ //     '#title' =>$vid, 
+ //     '#description' => t('xxxxx It is also used as the default for disabled vocabularies.'),
       '#open' =>TRUE, 
     );
-    $form[$vid]['grants'][$vid] = $this->taxonomy_access_grant_add_table($defaults[TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT], TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT);
-    $form['vocabularies']['#values']=array('a', 'b', 'c');
+    $form['tac_'.$vid]['grants'][$vid] = $this->taxonomy_access_grant_add_table($defaults[$vid], $vid);
+    $form['tac_'.$vid]['new'][$vid]=$this->addTermFieldSet('voc'.$vid);
   }
 
+
+/*
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
     '#type' => 'submit',
     '#value' => (string)t('Save all'),
   );
+*/
+dpm($form, 'form');
   return $form;
 }
 
+function addTermFieldSet($vid){
+        // Fieldset to add a new term if there are any.
+  $vocab_default = $this->getDefault()['tac_gd___'];
+  $form=array();
+  $form = array(
+    '#type' => 'details',
+    '#open' => TRUE,
+//    '#title' => (string)t('Add term'),
+////            '#tree' => TRUE,
+//    '#attributes' => array('class' => array('container-inline', 'taxonomy-access-add')),
+  );
+/*  $form['recursive'] = array(
+    '#type' => 'checkbox',
+    '#title' => (string)t('with descendants'),
+  );
+*/
+//  $form['grants'] =
+//    $this->taxonomy_access_grant_add_table($vocab_default, $vid);
+
+  $form['add'] = array(
+    '#type' => 'submit',
+    '#name' => $vid,
+    '#submit' => array('::taxonomy_access_add_term_submit'),
+    '#value' => (string)t('Add'),
+  );
+  return $form;
+}
+
+  function taxonomy_access_add_term_submit($form, \Drupal\Core\Form\FormStateInterface &$form_state) {
+    $submitButton = $form_state->getTriggeringElement();
+    dpm($submitButton,'submitButton');
+    $vid = $submitButton['#name'];
+    $allArray = $form_state->getValue();
+    dpm($allArray,'allArray');
+    $newArray = $form_state->getValue('new');
+    dpm($newArray,'newArray');
+}
 
 function taxonomy_access_grant_add_table($row, $id) {
   $header = $this->taxonomy_access_grant_table_header();
@@ -117,7 +168,7 @@ function taxonomy_access_grant_table_header() {
  */
 function taxonomy_access_admin_build_row(array $grants, $label_key = NULL, $delete = FALSE) {
   $row=array();
-  foreach (array('view', 'update', 'delete') as $grant) {
+  foreach (array('view', ) as $grant) {
     $row[$grant]= array(
       '#type' => 'select',
       '#default_value' => is_string($grants['grant_' . $grant]) ? $grants['grant_' . $grant] : TaxonomyAccessService::TAXONOMY_ACCESS_NODE_IGNORE,

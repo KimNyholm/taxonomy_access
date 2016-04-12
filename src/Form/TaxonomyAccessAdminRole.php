@@ -85,82 +85,39 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
    */
   public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state, $rid = NULL) {
     // Always include the role ID in the form.
-    $form['rid'] = array('#type' => 'value', '#value' => $rid);
-
-    // For custom roles, allow the user to enable or disable grants for the role.
-    if (!in_array($rid, array(
-        TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID,
-        TaxonomyAccessService::TAXONOMY_ACCESS_AUTHENTICATED_RID))){
-      $roles = $this->taxonomyAccessService->_taxonomy_access_user_roles();
-      $roleName=$roles[$rid]->label();
-      // If the role is not enabled, return only a link to enable it.
-      if (!$this->taxonomyAccessService->taxonomy_access_role_enabled($rid)) {
-        $form['status'] = array(
-          '#markup' => '<p>' . t(
-            'Access control for the %name role is disabled. <a href="@url">Enable @name</a>.',
-            array(
-              '%name' => $roleName,
-              '@name' => $roleName,
-              '@url' => $this->taxonomy_access_enable_role_url($rid))) . '</p>'
-        );
-        return $form;
-      }
-      // Otherwise, add a link to disable and build the rest of the form.
-      else {
-        $query = drupal_get_destination();
-        $urlParameters=array('rid' => $rid, 'query' => $query);
-        $url=\Drupal\Core\Url::fromRoute('taxonomy_access.admin_role_delete', $urlParameters);
-        $disable_url = $url->toString();
-        $form['status'] = array(
-          '#markup' => '<p>' . t(
-            'Access control for the %name role is enabled. <a href="@url">Disable @name</a>.',
-            array(
-              '%name' => $roleName,
-              '@name' => $roleName,
-              '@url' => $disable_url)) . '</p>'
-        );
-      }
+ //   $form['rid'] = array('#type' => 'value', '#value' => $rid);
+/*
+    $status=$this->makeEnableDisableStatus($rid);
+    if (!empty($status['field'])){
+      $form['status']=$status['field'];
     }
-
+    if ($status['return']){
+      return $form;
+    }
+*/
     // Retrieve role grants and display an administration form.
     // Disable list filtering while preparing this form.
     $this->taxonomyAccessService->taxonomy_access_disable_list();
 
-  // Fetch all grants for the role.
-  $defaults =
-    db_query(
-      'SELECT vid, grant_view, grant_update, grant_delete, grant_create,
-              grant_list
-       FROM {taxonomy_access_default}
-         WHERE rid = :rid',
-        array(':rid' => $rid))
-      ->fetchAllAssoc('vid');
-    $defaults=$this->make_array($defaults);
-    $records =
-      db_query(
-        'SELECT ta.tid, td.vid, ta.grant_view, ta.grant_update, ta.grant_delete,
-                ta.grant_create, ta.grant_list
-         FROM {taxonomy_access_term} ta
-         INNER JOIN {taxonomy_term_data} td ON ta.tid = td.tid
-         WHERE rid = :rid',
-        array(':rid' => $rid))
-      ->fetchAllAssoc('tid');
-    $records=$this->make_array($records);
+    // Fetch all grants for the role.
+    $defaults = $this->getUserDefaults($rid);
+    $records = $this->getUserRecords($rid);
 
     $term_grants = array();
     foreach ($records as $record) {
       $term_grants[$record['vid']][$record['tid']] = $record;
     }
-
-    $form['global_defaults']=$this->addVocabularyDefaults(
+/*
+    $form['global_defaults']=$this->addVocabularyTermRules(
       TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT,
       t('Global default'),
       t('The global default controls access to untagged nodes. It is also used as the default for disabled vocabularies.'),
       // Collapse if there are vocabularies configured.
       (sizeof($defaults) <= 1),
-      $this->taxonomy_access_grant_add_table($defaults[TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT], TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT)
+      $this->taxonomy_access_grant_one_row_table($defaults[TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT], TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT)
     );
     $form['#vocabularyNames']=array('global_defaults' => TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT);
+*/
     // Fetch all vocabularies and determine which are enabled for the role.
     $vocabs = array();
     $disabled = array();
@@ -170,31 +127,16 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
         $disabled[$vocab->id()] = $vocab->label();
       }
     }
-
     // Add a fieldset to enable vocabularies.
     if (!empty($disabled)) {
-      $form['enable_vocabs'] = array(
-        '#type' => 'details',
-        '#open' => FALSE,
-        '#title' => t('Add vocabulary'),
-      );
-      $form['enable_vocabs']['enable_vocab'] = array(
-        '#type' => 'select',
-        '#title' => t('Vocabulary'),
-        '#options' => $disabled,
-      );
-      $form['enable_vocabs']['add'] = array(
-        '#type' => 'submit',
-        '#submit' => array('::taxonomy_access_enable_vocab_submit'),
-        '#value' => t('Add'),
-      );
+ //     $form['enable_vocabs'] = $this->fieldsetEnableVocabularies($disabled);
     }
 
     // Add a fieldset for each enabled vocabulary.
     foreach ($defaults as $vid => $vocab_default) {
       if (!empty($vocabs[$vid])) {
         $vocab = $vocabs[$vid];
-        $name = '_'.$vocab->id();
+        $name = 'tac_'.$vocab->id();
 
         // Fetch unconfigured terms and reorder term records by hierarchy.
         $sort = array();
@@ -213,45 +155,29 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
         }
 
         $grants = array(TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT => $vocab_default);
+//        dpm($grants, 'grants 1');
         $grants[TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT]['name'] = (string)t('Default');
+//        dpm($grants, 'grants 2');
         if (!empty($term_grants[$vid])) {
           $grants += $term_grants[$vid];
         }
-        $form[$name]=$this->addVocabularyDefaults(
+
+//        dpm($vid, 'filling out ' . $vocab->id());
+        $form[$name]=$this->addVocabularyTermRules(
           $vid,
           $vocab->label(),
           (string)t('The default settings apply to all terms in %vocab that do not have their own below.', array('%vocab' => $vocab->label())),
           TRUE,
           $this->taxonomy_access_grant_table($grants, $vocab->id(), (string)t('Term'), !empty($term_grants[$vid]))
         );
-        $form['#vocabularyNames'][$name]=$vocab->id();
+//        $form['#vocabularyNames'][$name]=$vocab->id();
+
         // Fieldset to add a new term if there are any.
         if (!empty($add_options)) {
-          $form[$name]['new'] = array(
-            '#type' => 'details',
-            '#open' => TRUE,
-            '#title' => (string)t('Add term'),
-            '#tree' => TRUE,
-            '#attributes' => array('class' => array('container-inline', 'taxonomy-access-add')),
-          );
-          $form[$name]['new'][$vid]['item'] = array(
-            '#type' => 'select',
-            '#title' => (string)t('Term'),
-            '#options' => $add_options,
-          );
-          $form[$name]['new'][$vid]['recursive'] = array(
-            '#type' => 'checkbox',
-            '#title' => t('with descendants'),
-          );
-          $form[$name]['new'][$vid]['grants'] =
-            $this->taxonomy_access_grant_add_table($vocab_default, $vid);
-          $form[$name]['new'][$vid]['add'] = array(
-            '#type' => 'submit',
-            '#name' => $vid,
-            '#submit' => array('::taxonomy_access_add_term_submit'),
-            '#value' => (string)t('Add'),
-          );
+          $form[$name]['new'][$vid] = $this->addTermFieldset($vid, $add_options);
         }
+  //      dpm($form[$name], 'form af ' .$name);
+/*
         $query = drupal_get_destination();
         $urlParameters=array('rid' => $rid, 'vid' => $vid, 'query' => $query);
         $url=\Drupal\Core\Url::fromRoute('taxonomy_access.admin_role_disable', $urlParameters);
@@ -261,8 +187,10 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
               'To disable the %vocab vocabulary, <a href="@url">delete all @vocab access rules</a>.',
               array('%vocab' => $vocab->label(), '@vocab' => $vocab->label(), '@url' => $disable_url)) . '</p>'
         );
+*/
       }
     }
+/*
     $form['actions'] = array('#type' => 'actions');
     $form['actions']['submit'] = array(
       '#type' => 'submit',
@@ -276,18 +204,139 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
         '#submit' => array('::taxonomy_access_delete_selected_submit'),
       );
     }
-
+*/
+    dpm($form, 'form');
     return $form;
   }
 
-  function addVocabularyDefaults($vid, $title, $description, $open, $grants){
+  function addTermFieldSet($vid, $add_options){
     $fieldset = array(
       '#type' => 'details',
-      '#title' => (string)$title,
-      '#description' => (string)$description,
+      '#open' => TRUE,
+//      '#title' => (string)t('Add term'),
+//            '#tree' => TRUE,
+//      '#attributes' => array('class' => array('container-inline', 'taxonomy-access-add')),
+    );
+/*
+    $fieldset = array(
+      '#type' => 'select',
+      '#title' => (string)t('Term'),
+      '#options' => $add_options,
+    );
+    $fieldset['recursive'] = array(
+      '#type' => 'checkbox',
+      '#title' => (string)t('with descendants'),
+    );
+         $fieldset['grants'] =
+           $this->taxonomy_access_grant_one_row_table($vocab_default, $vid);
+*/
+    $fieldset['add'] = array(
+      '#type' => 'submit',
+      '#name' => $vid,
+      '#submit' => array('::taxonomy_access_add_term_submit'),
+      '#value' => (string)t('Add'),
+    );
+//      dpm($form[$name], 'form af ' .$name);
+    // Fieldset to add a new term if there are any.
+    return $fieldset;
+  }
+
+  function fieldsetEnableVocabularies($disabled){
+    $fieldset = array(
+      '#type' => 'details',
+      '#open' => FALSE,
+      '#title' => t('Add vocabulary'),
+    );
+    $fieldset['enable_vocab'] = array(
+      '#type' => 'select',
+      '#title' => t('Vocabulary'),
+      '#options' => $disabled,
+    );
+    $fieldset['add'] = array(
+      '#type' => 'submit',
+      '#submit' => array('::taxonomy_access_enable_vocab_submit'),
+      '#value' => t('Add'),
+    );
+    return $fieldset;
+  }
+
+  function getUserDefaults($rid){
+    $defaults =
+      db_query(
+      'SELECT vid, grant_view, grant_update, grant_delete, grant_create,
+              grant_list
+       FROM {taxonomy_access_default}
+         WHERE rid = :rid',
+        array(':rid' => $rid))
+      ->fetchAllAssoc('vid');
+    $defaults=$this->make_array($defaults);
+    return $defaults ;
+  }
+
+  function getUserRecords($rid){
+    $records =
+      db_query(
+        'SELECT ta.tid, td.vid, ta.grant_view, ta.grant_update, ta.grant_delete,
+                ta.grant_create, ta.grant_list
+         FROM {taxonomy_access_term} ta
+         INNER JOIN {taxonomy_term_data} td ON ta.tid = td.tid
+         WHERE rid = :rid',
+        array(':rid' => $rid))
+      ->fetchAllAssoc('tid');
+    $records=$this->make_array($records);
+    return $records ;
+  }
+
+  function makeEnableDisableStatus($rid){
+    $field=NULL;
+    $return=FALSE;
+    // For custom roles, allow the user to enable or disable grants for the role.
+    if (!in_array($rid, array(
+        TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID,
+        TaxonomyAccessService::TAXONOMY_ACCESS_AUTHENTICATED_RID))){
+      $roles = $this->taxonomyAccessService->_taxonomy_access_user_roles();
+      $roleName=$roles[$rid]->label();
+      // If the role is not enabled, return only a link to enable it.
+      if (!$this->taxonomyAccessService->taxonomy_access_role_enabled($rid)) {
+        $field = array(
+          '#markup' => '<p>' . t(
+            'Access control for the %name role is disabled. <a href="@url">Enable @name</a>.',
+            array(
+              '%name' => $roleName,
+              '@name' => $roleName,
+              '@url' => $this->taxonomy_access_enable_role_url($rid))) . '</p>'
+        );
+        $return=TRUE;
+      }
+      // Otherwise, add a link to disable and build the rest of the form.
+      else {
+        $query = drupal_get_destination();
+        $urlParameters=array('rid' => $rid, 'query' => $query);
+        $url=\Drupal\Core\Url::fromRoute('taxonomy_access.admin_role_delete', $urlParameters);
+        $disable_url = $url->toString();
+        $field = array(
+          '#markup' => '<p>' . t(
+            'Access control for the %name role is enabled. <a href="@url">Disable @name</a>.',
+            array(
+              '%name' => $roleName,
+              '@name' => $roleName,
+              '@url' => $disable_url)) . '</p>'
+        );
+      }
+    }
+    return array('return' => $return, 'field' => $field);
+  }
+
+  function addVocabularyTermRules($vid, $title, $description, $open, $grants){
+  //return array();
+    $fieldset = array(
+      '#type' => 'details',
+  //    '#title' => (string)$title,
+  //    '#description' => (string)$description,
       '#open' => $open,
     );
-    $fieldset[$vid] = $grants;
+    $fieldset['grants'][$vid] = $grants;
+//dpm($grants);
     return $fieldset ;
   }
 
@@ -321,6 +370,7 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
    */
   function taxonomy_access_grant_table(array $rows, $parent_vid, $first_col, $delete = TRUE) {
     $header = $this->taxonomy_access_grant_table_header();
+/*
     if ($first_col) {
       array_unshift(
         $header,
@@ -331,17 +381,21 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
   //    drupal_add_js('misc/tableselect.js');
       array_unshift($header, array('class' => array('select-all')));
     }
+*/
     $table = array(
       '#type' => 'table',
       '#header' => $header,
     );
+    dpm($parent_vid, 'parent_id'. 'delete='.$delete);
     foreach ($rows as $id => $row) {
-      $table[$id] = $this->taxonomy_access_admin_build_row($row, 'name', $delete);
+      $table[$parent_vid] = $this->taxonomy_access_admin_build_row($row, 'name', $delete);
+  //    $table[$id] = $this->taxonomy_access_admin_build_row($row, 'name', $delete);
     }
     // Disable the delete checkbox for the default.
-    if ($delete && isset($table[$parent_vid][TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT])) {
-      $table[$parent_vid][TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT]['remove']['#disabled'] = TRUE;
+    if ($delete && isset($table[TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT])) {
+      $table[TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT]['remove']['#disabled'] = TRUE;
     }
+//    dpm($table, 'table '.$parent_vid);
     return $table;
   }
 
@@ -363,7 +417,7 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
    *
    * @see taxonomy_access_grant_table()
    */
-  function taxonomy_access_grant_add_table($row, $id) {
+  function taxonomy_access_grant_one_row_table($row, $id) {
     $header = $this->taxonomy_access_grant_table_header();
     $table = array(
       '#type' => 'table',
@@ -382,13 +436,15 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
   function taxonomy_access_grant_table_header() {
     $header = array(
       array('data' => (string)t('View')),
-      array('data' => (string)t('Update')),
+  /*    array('data' => (string)t('Update')),
       array('data' => (string)t('Delete')),
       array('data' => (string)t('Add Tag')),
       array('data' => (string)t('View Tag')),
+
+*/
     );
     foreach ($header as &$cell) {
-      $cell['class'] = array('taxonomy-access-grant');
+ //     $cell['class'] = array('taxonomy-access-grant');
     }
     return $header;
   }
@@ -403,6 +459,7 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
    *   to NULL.
    */
   function taxonomy_access_admin_build_row(array $grants, $label_key = NULL, $delete = FALSE) {
+/*
     if ($delete) {
       $form['remove'] = array(
         '#type' => 'checkbox',
@@ -416,16 +473,23 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
         '#markup' => \Drupal\Component\Utility\Html::escape($grants[$label_key]),
       );
     }
-    foreach (array('view', 'update', 'delete', 'create', 'list') as $grant) {
-      $for = $label_key ? $grants[$label_key] : NULL;
+*/
+
+    foreach (array('view') as $grant) {
+  //  foreach (array('view', 'update', 'delete', 'create', 'list') as $grant) {
+//      $for = $label_key ? $grants[$label_key] : NULL;
       $form[$grant] = array(
+//          '#markup' => '<p>hi kim</p>',
         '#type' => 'select',
-        '#title' => $this->_taxonomy_access_grant_field_label($grant, $for),
-        '#title_display' => 'invisible',
-        '#default_value' => is_string($grants['grant_' . $grant]) ? $grants['grant_' . $grant] : TaxonomyAccessService::TAXONOMY_ACCESS_NODE_IGNORE,
+ //       '#title' => $this->_taxonomy_access_grant_field_label($grant, $for),
+ //       '#title_display' => 'invisible',
+//        '#default_value' => is_string($grants['grant_' . $grant]) ? $grants['grant_' . $grant] : TaxonomyAccessService::TAXONOMY_ACCESS_NODE_IGNORE,
         '#required' => TRUE,
+        '#options' => array( 
+        TaxonomyAccessService::TAXONOMY_ACCESS_NODE_ALLOW => (string)t('Allow')),
       );
     }
+/*
     foreach (array('view', 'update', 'delete') as $grant) {
       $form[$grant]['#options'] = array(
         TaxonomyAccessService::TAXONOMY_ACCESS_NODE_ALLOW => (string)t('Allow'),
@@ -439,8 +503,8 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
         TaxonomyAccessService::TAXONOMY_ACCESS_TERM_DENY => (string)t('Deny'),
       );
     }
-    $form['tid'] = 'xxxxxxxxxxxxx' ;
-    return $form;
+ */
+ return $form;
   }
 
   /**
@@ -500,6 +564,7 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
    */
   function taxonomy_access_add_term_submit($form, \Drupal\Core\Form\FormStateInterface &$form_state) {
     $submitButton = $form_state->getTriggeringElement();
+    dpm($submitButton,'submitButton');
     $vid = $submitButton['#name'];
     $newArray = $form_state->getValue('new');
     dpm($newArray,'newArray');
@@ -538,7 +603,8 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
    *   taxonomy_access_grant_table() and taxonomy_access_build_row().
    */
   function taxonomy_access_delete_selected_submit($form, &$form_state) {
-    $rid = $form_state->getValue('rid');
+   dpm('deleting');
+   $rid = $form_state->getValue('rid');
     $delete_tids = array();
     foreach ($form_state->getValue('grants') as $vid => $tids) {
       foreach ($tids as $tid => $record) {
@@ -576,13 +642,14 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
     $skip_defaults = array();
 
     $vocabularyNames=$form['#vocabularyNames'];
-    $values=$form_state->getValue();
     foreach ($vocabularyNames as $vocabularyName => $vid) {
-      $rows = $values[$vid];
+      $rows=$form_state->getValue($vid);
       $element = $form[$vocabularyName];
+dpm($element, 'element ' . $vocabularyName);
       foreach ($rows as $tid => $row) {
         // Check the default values for this row.
         $termDefault=$element[$vid][$tid];
+        dpm($termDefault, 'term default ' . $vid . ' tid='.$tid);
         $defaults = array();
         $grants = array();
         foreach (array('view', 'update', 'delete', 'create', 'list') as $grant_name) {

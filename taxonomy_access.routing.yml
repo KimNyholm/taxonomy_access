@@ -1,7 +1,7 @@
 taxonomy_access.form:
   path: /form
   defaults:
-    _form: Drupal\taxonomy_access\Form\SandboxForm
+    _form: Drupal\taxonomy_access\Form\TaxonomyAccessAdminRole
   requirements:
     _permission: 'administer site configuration'
   options:
@@ -59,8 +59,7 @@ taxonomy_access.admin_role_enable:
 taxonomy_access.admin_role_edit:
   path: /admin/config/people/taxonomy_access/role/{rid}/edit
   defaults:
-    _title_callback: Drupal\taxonomy_access\Form\TaxonomyAccessAdminRole:getTitle
-    _form: Drupal\taxonomy_access\Form\TaxonomyAccessAdminRole
+    _form: Drupal\taxonomy_access\Form\SandboxForm
   requirements:
     _permission: 'administer site configuration'
   options:

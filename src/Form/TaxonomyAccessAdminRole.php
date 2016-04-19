@@ -151,16 +151,19 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
     foreach ($records as $record) {
       $term_grants[$record['vid']][$record['tid']] = $record;
     }
-
-    $form['global_defaults']=$this->addVocabularyDefaults(
-      TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT,
-      t('Global default'),
-      t('The global default controls access to untagged nodes. It is also used as the default for disabled vocabularies.'),
-      // Collapse if there are vocabularies configured.
-      (sizeof($defaults) <= 1),
-      $this->taxonomy_access_grant_add_table($defaults[TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT], TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT)
+    $fieldset = array(
+      '#type' => 'details',
+      '#title' => (string) t('Global default'),
+      '#description' => (string)
+        t('The global default controls access to untagged nodes. It is also used as the default for disabled vocabularies.'),
+            '#attributes' => array('class' => array('container-inline', 'taxonomy-access-add')),
+      '#open' => (count($defaults) <= 1),
     );
+    $fieldset[TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT] =
+      $this->taxonomy_access_grant_add_term_grants($defaults[TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT], TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT);
+    $form['global_defaults']=$fieldset;
     $form['#vocabularyNames']=array('global_defaults' => TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT);
+//dpm($fieldset, 'fieldset');
     // Fetch all vocabularies and determine which are enabled for the role.
     $vocabs = array();
     $disabled = array();
@@ -176,17 +179,17 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
       $form['enable_vocabs'] = array(
         '#type' => 'details',
         '#open' => FALSE,
-        '#title' => t('Add vocabulary'),
+        '#title' => (string)t('Add vocabulary'),
       );
       $form['enable_vocabs']['enable_vocab'] = array(
         '#type' => 'select',
-        '#title' => t('Vocabulary'),
+        '#title' => (string)t('Vocabulary'),
         '#options' => $disabled,
       );
       $form['enable_vocabs']['add'] = array(
         '#type' => 'submit',
         '#submit' => array('::taxonomy_access_enable_vocab_submit'),
-        '#value' => t('Add'),
+        '#value' => (string)t('Add'),
       );
     }
 
@@ -217,13 +220,21 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
         if (!empty($term_grants[$vid])) {
           $grants += $term_grants[$vid];
         }
-        $form[$name]=$this->addVocabularyDefaults(
-          $vid,
-          $vocab->label(),
+    $fieldset = array(
+      '#type' => 'details',
+      '#title' => $vocab->label(),
+      '#description' => (string)$description,
           (string)t('The default settings apply to all terms in %vocab that do not have their own below.', array('%vocab' => $vocab->label())),
-          TRUE,
-          $this->taxonomy_access_grant_table($grants, $vocab->id(), (string)t('Term'), !empty($term_grants[$vid]))
-        );
+      '#open' => TRUE,
+    );
+$gt=
+          $this->taxonomy_access_grant_table($grants, $vocab->id(), (string)t('Term'), !empty($term_grants[$vid]));
+//dpm($gt, 'gt');
+    $fieldset[$vid] =$gt;
+//dpm($fieldset, 'vocab fieldset for ' . $vid);
+        $form[$name]=$fieldset;
+ //       dpm($form[$name][$vid], 'formname');
+ //       dpm($form[$name][$vid][0], 'formnameo');
         $form['#vocabularyNames'][$name]=$vocab->id();
         // Fieldset to add a new term if there are any.
         if (!empty($add_options)) {
@@ -234,24 +245,25 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
             '#tree' => TRUE,
             '#attributes' => array('class' => array('container-inline', 'taxonomy-access-add')),
           );
-          $form[$name]['new'][$vid]['item'] = array(
+          $form[$name]['new']['item'] = array(
             '#type' => 'select',
             '#title' => (string)t('Term'),
             '#options' => $add_options,
           );
-          $form[$name]['new'][$vid]['recursive'] = array(
+          $form[$name]['new']['recursive'] = array(
             '#type' => 'checkbox',
-            '#title' => t('with descendants'),
+            '#title' => (string)t('with descendants'),
           );
-          $form[$name]['new'][$vid]['grants'] =
-            $this->taxonomy_access_grant_add_table($vocab_default, $vid);
-          $form[$name]['new'][$vid]['add'] = array(
+          $form[$name]['new']['grants'] =
+            $this->taxonomy_access_grant_add_term_grants($vocab_default, $vid);
+          $form[$name]['new']['add'] = array(
             '#type' => 'submit',
             '#vocabulary' => $vid,
             '#submit' => array('::taxonomy_access_add_term_submit'),
             '#value' => (string)t('Add'),
           );
         }
+//dpm($form[$name]['new']['grants'], 'new grants');
         $query = drupal_get_destination();
         $urlParameters=array('rid' => $rid, 'vid' => $vid, 'query' => $query);
         $url=\Drupal\Core\Url::fromRoute('taxonomy_access.admin_role_disable', $urlParameters);
@@ -276,7 +288,7 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
         '#submit' => array('::taxonomy_access_delete_selected_submit'),
       );
     }
-
+//dpm( $form, 'form');
     return $form;
   }
 
@@ -287,7 +299,10 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
       '#description' => (string)$description,
       '#open' => $open,
     );
-    $fieldset[$vid] = $grants;
+    //$fieldset[$vid] = $grants;
+    $fieldset += $grants;
+//dpm($fieldset, 'grants in fieldset ' . $vid);
+//dpm($fieldset[0], 'grants in fieldset 0 ' . $vid);
     return $fieldset ;
   }
 
@@ -337,11 +352,14 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
     );
     foreach ($rows as $id => $row) {
       $table[$id] = $this->taxonomy_access_admin_build_row($row, 'name', $delete);
+//dpm($table[$id], 'table row'.$id);
     }
     // Disable the delete checkbox for the default.
     if ($delete && isset($table[$parent_vid][TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT])) {
       $table[$parent_vid][TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT]['remove']['#disabled'] = TRUE;
     }
+//dpm($table, 'table');
+//dpm($table['0'], 'table 0');
     return $table;
   }
 
@@ -363,7 +381,7 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
    *
    * @see taxonomy_access_grant_table()
    */
-  function taxonomy_access_grant_add_table($row, $id) {
+  function taxonomy_access_grant_add_term_grants($row, $id) {
     $header = $this->taxonomy_access_grant_table_header();
     $table = array(
       '#type' => 'table',
@@ -439,7 +457,6 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
         TaxonomyAccessService::TAXONOMY_ACCESS_TERM_DENY => (string)t('Deny'),
       );
     }
-    $form['tid'] = 'xxxxxxxxxxxxx' ;
     return $form;
   }
 
@@ -501,17 +518,12 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
   function taxonomy_access_add_term_submit($form, \Drupal\Core\Form\FormStateInterface &$form_state) {
     $submitButton = $form_state->getTriggeringElement();
     $vid = $submitButton['#vocabulary'];
-    dpm($vid,'vid');
-    $newArray = $form_state->getValue('new');
-    dpm($newArray,'newArray');
-    $new = $newArray[$vid];
+    $new = $form_state->getValue('new');
     $rid = $form_state->getValue('rid');
     list($type, $id) = explode(' ', $new['item']);
     $rows = array();
-    dpm($new[$vid]['grants'][0], 'xxx');
-  return;
     $rows[$id] =
-      $this->taxonomyAccessService->_taxonomy_access_format_grant_record($id, $rid, $new[$vid]['grants'][TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT]);
+      $this->taxonomyAccessService->_taxonomy_access_format_grant_record($id, $rid, $new['grants']);
 
     // If we are adding children recursively, add those as well.
     if ($new['recursive'] == 1) {
@@ -578,6 +590,7 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
 
     $vocabularyNames=$form['#vocabularyNames'];
     $values=$form_state->getValue();
+   dpm($values, 'values');
     foreach ($vocabularyNames as $vocabularyName => $vid) {
       $rows = $values[$vid];
       $element = $form[$vocabularyName];

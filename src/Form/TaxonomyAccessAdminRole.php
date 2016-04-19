@@ -163,7 +163,7 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
       $this->taxonomy_access_grant_add_term_grants($defaults[TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT], TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT);
     $form['global_defaults']=$fieldset;
     $form['#vocabularyNames']=array('global_defaults' => TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT);
-//dpm($fieldset, 'fieldset');
+dpm($fieldset, 'fieldset');
     // Fetch all vocabularies and determine which are enabled for the role.
     $vocabs = array();
     $disabled = array();
@@ -350,6 +350,7 @@ $gt=
       '#type' => 'table',
       '#header' => $header,
     );
+    $table['#attributes']['class'] = array('taxonomy-access-grant-table');
     foreach ($rows as $id => $row) {
       $table[$id] = $this->taxonomy_access_admin_build_row($row, 'name', $delete);
 //dpm($table[$id], 'table row'.$id);

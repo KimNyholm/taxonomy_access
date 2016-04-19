@@ -69,7 +69,7 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
       $userName=$user->label();
       foreach ($allRoles as $roleNumber => $role) {
         $rid=$this->taxonomyAccessService->roleNumberToRid($roleNumber);
-        $this->pass('Checking ' . $rid . ' for user ' . $userName . ' of type ' . $userType);
+ //       $this->pass('Checking ' . $rid . ' for user ' . $userName . ' of type ' . $userType);
         if ($user->hasRole($rid) && ($rid != \Drupal\user\RoleInterface::AUTHENTICATED_ID)) {
         //if ($this->users[$user]->hasRole($role->id())){
           $this->user_roles[$userType] = $role;
@@ -270,21 +270,23 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
         $shown[$tds[0]] = $tds[1];
       }
     }
-
+//$this->pass(var_export($shown, true));
     foreach ($statuses as $rid => $status) {
-      $rid = $this->taxonomyAccessService->roleIdToNumber($roles[$rid]->id());
-      if (!isset($shown[$rid])){
-        $shown[$roles[$rid]->label()] = '';
+      //$rid = $this->taxonomyAccessService->roleIdToNumber($roles[$rid]->id());
+      $roleName = $roles[$rid]->label();
+//$this->pass($roleName, true);
+      if (!isset($shown[$roleName])){
+        $shown[$roleName] = '';
       }
       // Assert that the form shows the passed status.
       if ($status) {
-        $this->assertTrue($shown[$roles[$rid]->label()] == t('Enabled'), format_string('Role %role is enabled.', [
-          '%role' => $rid
+        $this->assertTrue($shown[$roleName] == t('Enabled'), format_string('Role %role is enabled.', [
+          '%role' => $roleName
           ]));
       }
       else {
-        $this->assertTrue($shown[$roles[$rid]->label()] == t('Disabled'), format_string('Role %role is disabled.', [
-          '%role' => $rid
+        $this->assertTrue($shown[$roleName] == t('Disabled'), format_string('Role %role is disabled.', [
+          '%role' => $roleName
           ]));
       }
 

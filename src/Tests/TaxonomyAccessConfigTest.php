@@ -129,7 +129,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
    * - Access to all nodes is denied for anonymous users.
    * - The main admin page provides the correct configuration links.
    */
-  public function testSetUpCheck() {
+  public function zzz_testSetUpCheck() {
     // Visit all nodes as anonymous and verify that access is denied.
     foreach ($this->articles as $key => $article) {
       $this->drupalGet('node/' . $article->id());
@@ -264,7 +264,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
    * - Access is updated correctly when multiple defaults are changed.
    * - Access is updated correctly when the vocabulary default is deleted.
    */
-  public function testVocabularyDefaultConfig() {
+  public function zzz_testVocabularyDefaultConfig() {
     // Log in as the administrator.
     $this->drupalLogin($this->users['site_admin']);
 
@@ -417,7 +417,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
    * - Access is updated correctly when multiple configurations are changed.
    * - Access is updated correctly when the term configuration is deleted.
    */
-  public function testTermConfig() {
+  public function zzz_testTermConfig() {
     // Log in as the administrator.
     $this->drupalLogin($this->users['site_admin']);
 
@@ -551,7 +551,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
    * @todo
    *   Check that node access is updated for these as well.
    */
-  public function testTermWithChildren() {
+  public function zzz_testTermWithChildren() {
     // Create some additional taxonomy terms in a hierarchy:
     // v1
     // - v1t1

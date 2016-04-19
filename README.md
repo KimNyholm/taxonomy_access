@@ -4,10 +4,11 @@ Drupal Taxonomy Access Control
 Porting of Drupal 7 Taxonomy Access Control to Drupal 8
 
 Todo:
-- Select all checkbox for terms in vocabulary missing 
+- port taxonomy_access.create.inc
+- Select all checkbox for terms in vocabulary missing
 - Admin styling
 - testRoleEnableDisable(), how to give regular user other role than authenticated
-- checkRoleConfig() fails to scan 
+- checkRoleConfig() fails to scan
 - Port required hooks etc in src/TaxonomyAccessService.php.
 - Simpletest class ConfigTest cases.
 - Simpletest class WeightTest cases.
@@ -17,7 +18,7 @@ Todo:
 - Check for unused code.
 
 Notes:
-1 Until a replacement for node_access_acquire_grants() is found 
+1 Until a replacement for node_access_acquire_grants() is found
   TAXONOMY_ACCESS_MAX_UPDATE is reduced to 0.
   Instead node_access_rebuild() is called directly.
 2 Until issue https://www.drupal.org/node/2703523 is solved

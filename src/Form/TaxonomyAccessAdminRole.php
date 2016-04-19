@@ -223,7 +223,7 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
     $fieldset = array(
       '#type' => 'details',
       '#title' => $vocab->label(),
-      '#description' => (string)$description,
+      '#description' =>
           (string)t('The default settings apply to all terms in %vocab that do not have their own below.', array('%vocab' => $vocab->label())),
       '#open' => TRUE,
     );
@@ -553,7 +553,9 @@ $gt=
   function taxonomy_access_delete_selected_submit($form, &$form_state) {
     $rid = $form_state->getValue('rid');
     $delete_tids = array();
-    foreach ($form_state->getValue('grants') as $vid => $tids) {
+    $vocabularyNames=$form['#vocabularyNames'];
+    foreach ($vocabularyNames as $vid) {
+      $tids= $form_state->getValue($vid);
       foreach ($tids as $tid => $record) {
         if (!empty($record['remove'])) {
           $delete_tids[] = $tid;
@@ -589,10 +591,11 @@ $gt=
     $skip_defaults = array();
 
     $vocabularyNames=$form['#vocabularyNames'];
-    $values=$form_state->getValue();
-   dpm($values, 'values');
+  //  $values=$form_state->getValue('');
+//   dpm($values, 'values');
     foreach ($vocabularyNames as $vocabularyName => $vid) {
-      $rows = $values[$vid];
+      $rows = $form_state->getValue($vid);
+      //$rows = $values[$vid];
       $element = $form[$vocabularyName];
       foreach ($rows as $tid => $row) {
         // Check the default values for this row.

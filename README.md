@@ -4,10 +4,10 @@ Drupal Taxonomy Access Control
 Porting of Drupal 7 Taxonomy Access Control to Drupal 8
 
 Todo:
+- Select all checkbox for terms in vocabulary missing 
+- Admin styling
 - testRoleEnableDisable(), how to give regular user other role than authenticated
 - checkRoleConfig() fails to scan 
-- Finalize taxonomy_access_help().
-- Fix Admin styling.
 - Port required hooks etc in src/TaxonomyAccessService.php.
 - Simpletest class ConfigTest cases.
 - Simpletest class WeightTest cases.

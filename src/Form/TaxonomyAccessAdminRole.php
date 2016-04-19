@@ -519,18 +519,18 @@ $gt=
     $submitButton = $form_state->getTriggeringElement();
     $vid = $submitButton['#vocabulary'];
     $new = $form_state->getValue('new');
+dpm($new, 'add_term_submit, new');
+    $grants=$new['grants'][$vid];
     $rid = $form_state->getValue('rid');
     list($type, $id) = explode(' ', $new['item']);
     $rows = array();
-    $rows[$id] =
-      $this->taxonomyAccessService->_taxonomy_access_format_grant_record($id, $rid, $new['grants']);
+    $rows[$id] = $this->taxonomyAccessService->_taxonomy_access_format_grant_record($id, $rid, $grants);
 
     // If we are adding children recursively, add those as well.
     if ($new['recursive'] == 1) {
       $children = $this->taxonomyAccessService->_taxonomy_access_get_descendants($id);
       foreach ($children as $tid) {
-        $rows[$tid] =
-          $this->taxonomyAccessService->_taxonomy_access_format_grant_record($tid, $rid, $new[$vid]['grants'][TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT]);
+        $rows[$tid] = $this->taxonomyAccessService->_taxonomy_access_format_grant_record($tid, $rid, $grants);
       }
     }
 

@@ -399,11 +399,11 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
    *   (optional) The list grant value. Defaults to TAXONOMY_ACCESS_TERM_DENY.
    */
   function configureFormRow(&$edit, $vid =TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT, $tid =TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT, $view = TaxonomyAccessService::TAXONOMY_ACCESS_NODE_IGNORE, $update = TaxonomyAccessService::TAXONOMY_ACCESS_NODE_IGNORE, $delete = TaxonomyAccessService::TAXONOMY_ACCESS_NODE_IGNORE, $create = TaxonomyAccessService::TAXONOMY_ACCESS_TERM_DENY, $list = TaxonomyAccessService::TAXONOMY_ACCESS_TERM_DENY) {
-    $edit["grants[$vid][$tid][view]"] = $view;
-    $edit["grants[$vid][$tid][update]"] = $update;
-    $edit["grants[$vid][$tid][delete]"] = $delete;
-    $edit["grants[$vid][$tid][create]"] = $create;
-    $edit["grants[$vid][$tid][list]"] = $list;
+    $edit[$vid."[$tid][view]"] = $view;
+    $edit[$vid."[$tid][update]"] = $update;
+    $edit[$vid."[$tid][delete]"] = $delete;
+    $edit[$vid."[$tid][create]"] = $create;
+    $edit[$vid."[$tid][list]"] = $list;
   }
 
 }

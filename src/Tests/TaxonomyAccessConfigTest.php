@@ -129,7 +129,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
    * - Access to all nodes is denied for anonymous users.
    * - The main admin page provides the correct configuration links.
    */
-  public function zzz_testSetUpCheck() {
+  public function testSetUpCheck() {
     // Visit all nodes as anonymous and verify that access is denied.
     foreach ($this->articles as $key => $article) {
       $this->drupalGet('node/' . $article->id());
@@ -177,9 +177,11 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
 
     // Use the admin form to give anonymous view allow in the global default.
     $this->drupalGet(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . '/role/' .  TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID . '/edit');
+      $this->assertResponse(200, t("Access to page allowed."));
     $edit = array();
     $this->configureFormRow($edit, TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT, TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT, TaxonomyAccessService::TAXONOMY_ACCESS_NODE_ALLOW);
-    $this->drupalPostForm(NULL, $edit, 'Save all');
+$this->pass(var_export($edit, TRUE));
+    $this->drupalPostForm(NULL, $edit, (string)t('Save all'));
 
     // Log out.
     $this->drupalLogout();

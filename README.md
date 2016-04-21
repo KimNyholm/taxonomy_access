@@ -4,7 +4,7 @@ Drupal Taxonomy Access Control
 Porting of Drupal 7 Taxonomy Access Control to Drupal 8
 
 Todo:
-- Simple test config form row. How to use post form??
+- Only enable required modules in simpletest
 - testRoleEnableDisable(), how to give regular user other role than authenticated
 - port taxonomy_access.create.inc
 - Select all checkbox for terms in vocabulary missing

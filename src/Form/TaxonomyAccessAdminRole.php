@@ -155,8 +155,8 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
     // Add a fieldset for the global default.
     $form['global_default'] = array(
       '#type' => 'details',
-      '#title' => t('Global default'),
-      '#description' => t('The global default controls access to untagged nodes. It is also used as the default for disabled vocabularies.'),
+      '#title' => (string)t('Global default'),
+      '#description' => (string)t('The global default controls access to untagged nodes. It is also used as the default for disabled vocabularies.'),
       // Collapse if there are vocabularies configured.
       //'#open' => (sizeof($defaults) <= 1),
       '#open' => TRUE,
@@ -166,7 +166,7 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
         $this->taxonomy_access_grant_add_table(
           $defaults[TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT]);
 
-    $form['#vocabularyNames']=array('global_defaults' => TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT);
+    $form['#vocabularyNames']=array('global_default' => TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT);
 
     // Fetch all vocabularies and determine which are enabled for the role.
     $vocabs = array();
@@ -228,7 +228,7 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
           '#type' => 'details',
           '#title' => $vocab->label(),
           '#attributes' => array('class' => array('taxonomy-access-vocab')),
-          '#description' => t('The default settings apply to all terms in %vocab that do not have their own below.', array('%vocab' => $vocab->label())),
+          '#description' => (string)t('The default settings apply to all terms in %vocab that do not have their own below.', array('%vocab' => $vocab->label())),
           '#open' => TRUE,
         );
         // Term grant table.
@@ -571,25 +571,21 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
     $skip_terms = array();
     $update_defaults = array();
     $skip_defaults = array();
-
     $vocabularyNames=$form['#vocabularyNames'];
-    $values=$form_state->getValues();
-   dpm($values, 'values');
-return;
+    $values = $form_state->getValues();
+    dpm($values, 'vaues');
     foreach ($vocabularyNames as $vocabularyName => $vid) {
       $rows = $form_state->getValue($vid);
-      //$rows = $values[$vid];
       $element = $form[$vocabularyName];
       foreach ($rows as $tid => $row) {
         // Check the default values for this row.
-        $termDefault=$element[$vid][$tid];
         $defaults = array();
         $grants = array();
         foreach (array('view', 'update', 'delete', 'create', 'list') as $grant_name) {
           $grants[$grant_name] = $row[$grant_name];
-          $defaults[$grant_name] = $termDefault[$grant_name]['#default_value'];
+          $defaults[$grant_name] = 
+            $element['grants'][$vid][$tid][$grant_name]['#default_value'];
         }
-
         // Proceed if the user changed the row (values differ from defaults).
         if ($defaults != $grants) {
           // If the grants for node access match the defaults, then we

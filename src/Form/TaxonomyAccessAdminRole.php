@@ -338,8 +338,8 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
       $table[$id] = $this->taxonomy_access_admin_build_row($row, 'name', $delete);
     }
     // Disable the delete checkbox for the default.
-    if ($delete && isset($table[$parent_vid][TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT])) {
-      $table[$parent_vid][TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT]['remove']['#disabled'] = TRUE;
+    if ($delete && isset($table[TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT])) {
+      $table[TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT]['remove']['#disabled'] = TRUE;
     }
     return $table;
   }

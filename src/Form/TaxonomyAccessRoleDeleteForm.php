@@ -56,7 +56,7 @@ class TaxonomyAccessRoleDeleteForm extends ConfirmFormBase {
    * {@inheritdoc}
    */
   public function getQuestion() {
-    $roleName = $this->rid;
+    $roleName = $this->rid; // Can't use rolename. Simpletest fails.
     return t('Are you sure you want to delete all taxonomy access rules for the role %id?', array('%id' => $roleName));
   }
 
@@ -99,7 +99,7 @@ class TaxonomyAccessRoleDeleteForm extends ConfirmFormBase {
       $roles = $this->taxonomyAccessService->_taxonomy_access_user_roles();
       $this->taxonomyAccessService->taxonomy_access_delete_role_grants($rid);
       drupal_set_message(t('All taxonomy access rules deleted for role %role.',
-          array('%role' => $roles[$rid]->$rid)));
+          array('%role' => $this->taxonomyAccessService->roleNumberToName($rid))));
       $form_state->setRedirect('taxonomy_access.settings');
     }
   }

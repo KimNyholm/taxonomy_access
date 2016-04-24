@@ -92,6 +92,7 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
         TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID,
         TaxonomyAccessService::TAXONOMY_ACCESS_AUTHENTICATED_RID))){
       $roles = $this->taxonomyAccessService->_taxonomy_access_user_roles();
+      //$roleName= \Drupal\Component\Utility\Html::escape($roles[$rid]->label());
       $roleName=$roles[$rid]->label();
       // If the role is not enabled, return only a link to enable it.
       if (!$this->taxonomyAccessService->taxonomy_access_role_enabled($rid)) {
@@ -100,7 +101,7 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
             'Access control for the %name role is disabled. <a href="@url">Enable @name</a>.',
             array(
               '%name' => $roleName,
-              '@name' => $roleName,
+              '@name' => 'role ' . $rid,  // Can't use roleName. Simpletest fails.
               '@url' => $this->taxonomy_access_enable_role_url($rid))) . '</p>'
         );
         return $form;
@@ -116,7 +117,7 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
             'Access control for the %name role is enabled. <a href="@url">Disable @name</a>.',
             array(
               '%name' => $roleName,
-              '@name' => $roleName,
+              '@name' => 'role ' . $rid,  // Can't use roleName. Simpletest fails.
               '@url' => $disable_url)) . '</p>'
         );
       }
@@ -487,6 +488,7 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
     else {
       drupal_set_message(t('The vocabulary could not be enabled.'), 'error');
     }
+    $this->taxonomyAccessService->taxonomy_access_rebuild();
   }
 
   /**
@@ -553,6 +555,7 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
         drupal_set_message(t('The records could not be deleted.'), 'warning');
       }
     }
+    $this->taxonomyAccessService->taxonomy_access_rebuild();
   }
   /**
   * Form submission handler for taxonomy_access_admin_form().

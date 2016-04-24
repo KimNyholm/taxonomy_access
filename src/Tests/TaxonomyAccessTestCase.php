@@ -7,15 +7,13 @@ use Drupal\taxonomy_access\TaxonomyAccessService;
 /**
  * Provides a base test class and helper methods for automated tests.
  */
-class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
+class TaxonomyAccessTestCase extends \Drupal\node\Tests\NodeTestBase{
 
   protected $strictConfigSchema = FALSE ;
 
-  public static $modules = array('taxonomy_access');
+  public static $modules = array('node', 'datetime', 'taxonomy', 'taxonomy_access');
 
   protected $taxonomyAccessService ;
-
-  protected $profile = 'standard';
 
   // There are four types of users:
   // site admins, taxonomy admins, content editors, and regular users.
@@ -237,7 +235,6 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
     $roles = $this->taxonomyAccessService->_taxonomy_access_user_roles();
 
     // Log in as the administrator.
-    $this->drupalLogout();
     $this->drupalLogin($this->users['site_admin']);
     $this->drupalGet(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG);
 
@@ -262,11 +259,9 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
         $shown[$tds[0]] = $tds[1];
       }
     }
-//$this->pass(var_export($shown, true));
     foreach ($statuses as $rid => $status) {
       //$rid = $this->taxonomyAccessService->roleIdToNumber($roles[$rid]->id());
       $roleName = $roles[$rid]->label();
-//$this->pass($roleName, true);
       if (!isset($shown[$roleName])){
         $shown[$roleName] = '';
       }
@@ -359,11 +354,11 @@ class TaxonomyAccessTestCase extends \Drupal\simpletest\WebTestBase {
   function addFormRow(&$edit, $vid =TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT, $tid =TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT, $view = TaxonomyAccessService::TAXONOMY_ACCESS_NODE_IGNORE, $update = TaxonomyAccessService::TAXONOMY_ACCESS_NODE_IGNORE, $delete = TaxonomyAccessService::TAXONOMY_ACCESS_NODE_IGNORE, $create = TaxonomyAccessService::TAXONOMY_ACCESS_TERM_DENY, $list = TaxonomyAccessService::TAXONOMY_ACCESS_TERM_DENY) {
     $new_value = $tid ? "term $tid" : "default $vid";
     $edit["new[$vid][item]"] = $new_value;
-    $edit["new[$vid][grants][$vid][0][view]"] = $view;
-    $edit["new[$vid][grants][$vid][0][update]"] = $update;
-    $edit["new[$vid][grants][$vid][0][delete]"] = $delete;
-    $edit["new[$vid][grants][$vid][0][create]"] = $create;
-    $edit["new[$vid][grants][$vid][0][list]"] = $list;
+    $edit["new[$vid][grants][0][view]"] = $view;
+    $edit["new[$vid][grants][0][update]"] = $update;
+    $edit["new[$vid][grants][0][delete]"] = $delete;
+    $edit["new[$vid][grants][0][create]"] = $create;
+    $edit["new[$vid][grants][0][list]"] = $list;
   }
 
   public /**

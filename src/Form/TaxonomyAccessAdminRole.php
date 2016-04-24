@@ -193,7 +193,7 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
       $form['enable_vocabs']['add'] = array(
         '#type' => 'submit',
         '#submit' => array('::taxonomy_access_enable_vocab_submit'),
-        '#value' => (string)t('Add'),
+        '#value' => (string)t('Add vocabulary'),
       );
     }
 
@@ -240,7 +240,7 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
         if (!empty($add_options)) {
           $form[$name]['new'] = array(
             '#type' => 'details',
-            '#open' => TRUE,
+            '#open' => FALSE,
             '#title' => (string)t('Add term'),
             '#tree' => TRUE,
             '#attributes' => array('class' => array('container-inline', 'taxonomy-access-add')),
@@ -258,12 +258,11 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
             $this->taxonomy_access_grant_add_table($vocab_default);
           $form[$name]['new'][$vid]['add'] = array(
             '#type' => 'submit',
-            '#vocabulary' => $vid,
+            '#vocabularyId' => $vid,
             '#submit' => array('::taxonomy_access_add_term_submit'),
-            '#value' => (string)t('Add'),
+            '#value' => (string)t('Add term'),
           );
         }
-//dpm($form[$name]['new']['grants'], 'new grants');
         $query = drupal_get_destination();
         $urlParameters=array('rid' => $rid, 'vid' => $vid, 'query' => $query);
         $url=\Drupal\Core\Url::fromRoute('taxonomy_access.admin_role_disable', $urlParameters);
@@ -279,7 +278,6 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
     $form['actions']['submit'] = array(
       '#type' => 'submit',
       '#value' => (string)t('Save all'),
-      // uses default handler submitForm()
     );
     if (!empty($term_grants)) {
       $form['actions']['delete'] = array(
@@ -288,7 +286,6 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
         '#submit' => array('::taxonomy_access_delete_selected_submit'),
       );
     }
-//dpm( $form, 'form');
     return $form;
   }
 
@@ -499,10 +496,9 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
    */
   function taxonomy_access_add_term_submit($form, \Drupal\Core\Form\FormStateInterface &$form_state) {
     $submitButton = $form_state->getTriggeringElement();
-    $vid = $submitButton['#vocabulary'];
-    $new = $form_state->getValue('new');
-//dpm($new, 'add_term_submit, new');
-    $grants=$new['grants'][$vid];
+    $vid = $submitButton['#vocabularyId'];
+    $new = $form_state->getValue(array('new', $vid));
+    $grants=$new['grants'][TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT];
     $rid = $form_state->getValue('rid');
     list($type, $id) = explode(' ', $new['item']);
     $rows = array();
@@ -572,8 +568,6 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
     $update_defaults = array();
     $skip_defaults = array();
     $vocabularyNames=$form['#vocabularyNames'];
-    $values = $form_state->getValues();
-    dpm($values, 'vaues');
     foreach ($vocabularyNames as $vocabularyName => $vid) {
       $rows = $form_state->getValue($vid);
       $element = $form[$vocabularyName];
@@ -583,7 +577,7 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
         $grants = array();
         foreach (array('view', 'update', 'delete', 'create', 'list') as $grant_name) {
           $grants[$grant_name] = $row[$grant_name];
-          $defaults[$grant_name] = 
+          $defaults[$grant_name] =
             $element['grants'][$vid][$tid][$grant_name]['#default_value'];
         }
         // Proceed if the user changed the row (values differ from defaults).

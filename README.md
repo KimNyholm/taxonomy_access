@@ -3,14 +3,14 @@ Drupal Taxonomy Access Control
 
 Porting of Drupal 7 Taxonomy Access Control to Drupal 8
 
+This is work in progress and the module is not yet ready for use.
+
 Todo:
-- Only enable required modules in simpletest
-- testRoleEnableDisable(), how to give regular user other role than authenticated
+- Simpletest class ConfigTest cases.
 - port taxonomy_access.create.inc
 - Select all checkbox for terms in vocabulary missing
 - Admin styling
 - Port required hooks etc in src/TaxonomyAccessService.php.
-- Simpletest class ConfigTest cases.
 - Simpletest class WeightTest cases.
 - Simpletest class CallbackCleanupTest cases.
 - Delete unused hooks etc in src/TaxonomyAccessService.php.

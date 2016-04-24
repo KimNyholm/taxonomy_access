@@ -126,44 +126,48 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
     // Disable list filtering while preparing this form.
     $this->taxonomyAccessService->taxonomy_access_disable_list();
 
-  // Fetch all grants for the role.
-  $defaults =
-    db_query(
-      'SELECT vid, grant_view, grant_update, grant_delete, grant_create,
-              grant_list
-       FROM {taxonomy_access_default}
-         WHERE rid = :rid',
-        array(':rid' => $rid))
-      ->fetchAllAssoc('vid');
-    $defaults=$this->make_array($defaults);
-    $records =
+    // Fetch all grants for the role.
+    $defaults =
       db_query(
-        'SELECT ta.tid, td.vid, ta.grant_view, ta.grant_update, ta.grant_delete,
-                ta.grant_create, ta.grant_list
-         FROM {taxonomy_access_term} ta
-         INNER JOIN {taxonomy_term_data} td ON ta.tid = td.tid
-         WHERE rid = :rid',
-        array(':rid' => $rid))
-      ->fetchAllAssoc('tid');
-    $records=$this->make_array($records);
+        'SELECT vid, grant_view, grant_update, grant_delete, grant_create,
+                grant_list
+         FROM {taxonomy_access_default}
+           WHERE rid = :rid',
+          array(':rid' => $rid))
+        ->fetchAllAssoc('vid');
+      $defaults=$this->make_array($defaults);
+      $records =
+        db_query(
+          'SELECT ta.tid, td.vid, ta.grant_view, ta.grant_update, ta.grant_delete,
+                  ta.grant_create, ta.grant_list
+           FROM {taxonomy_access_term} ta
+           INNER JOIN {taxonomy_term_data} td ON ta.tid = td.tid
+           WHERE rid = :rid',
+          array(':rid' => $rid))
+        ->fetchAllAssoc('tid');
+      $records=$this->make_array($records);
 
-    $term_grants = array();
-    foreach ($records as $record) {
-      $term_grants[$record['vid']][$record['tid']] = $record;
-    }
-    $fieldset = array(
+      $term_grants = array();
+      foreach ($records as $record) {
+        $term_grants[$record['vid']][$record['tid']] = $record;
+      }
+
+    // Add a fieldset for the global default.
+    $form['global_default'] = array(
       '#type' => 'details',
-      '#title' => (string) t('Global default'),
-      '#description' => (string)
-        t('The global default controls access to untagged nodes. It is also used as the default for disabled vocabularies.'),
-            '#attributes' => array('class' => array('container-inline', 'taxonomy-access-add')),
-      '#open' => (count($defaults) <= 1),
+      '#title' => t('Global default'),
+      '#description' => t('The global default controls access to untagged nodes. It is also used as the default for disabled vocabularies.'),
+      // Collapse if there are vocabularies configured.
+      //'#open' => (sizeof($defaults) <= 1),
+      '#open' => TRUE,
     );
-    $fieldset[TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT] =
-      $this->taxonomy_access_grant_add_term_grants($defaults[TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT], TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT);
-    $form['global_defaults']=$fieldset;
+    // Print term grant table.
+    $form['global_default']['grants'][TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT]=
+        $this->taxonomy_access_grant_add_table(
+          $defaults[TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT]);
+
     $form['#vocabularyNames']=array('global_defaults' => TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT);
-//dpm($fieldset, 'fieldset');
+
     // Fetch all vocabularies and determine which are enabled for the role.
     $vocabs = array();
     $disabled = array();
@@ -220,21 +224,17 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
         if (!empty($term_grants[$vid])) {
           $grants += $term_grants[$vid];
         }
-    $fieldset = array(
-      '#type' => 'details',
-      '#title' => $vocab->label(),
-      '#description' =>
-          (string)t('The default settings apply to all terms in %vocab that do not have their own below.', array('%vocab' => $vocab->label())),
-      '#open' => TRUE,
-    );
-$gt=
-          $this->taxonomy_access_grant_table($grants, $vocab->id(), (string)t('Term'), !empty($term_grants[$vid]));
-//dpm($gt, 'gt');
-    $fieldset[$vid] =$gt;
-//dpm($fieldset, 'vocab fieldset for ' . $vid);
-        $form[$name]=$fieldset;
- //       dpm($form[$name][$vid], 'formname');
- //       dpm($form[$name][$vid][0], 'formnameo');
+        $form[$name] = array(
+          '#type' => 'details',
+          '#title' => $vocab->label(),
+          '#attributes' => array('class' => array('taxonomy-access-vocab')),
+          '#description' => t('The default settings apply to all terms in %vocab that do not have their own below.', array('%vocab' => $vocab->label())),
+          '#open' => TRUE,
+        );
+        // Term grant table.
+        $form[$name]['grants'][$vid] =
+          $this->taxonomy_access_grant_table($grants, $vid, t('Term'), !empty($term_grants[$vid]));
+
         $form['#vocabularyNames'][$name]=$vocab->id();
         // Fieldset to add a new term if there are any.
         if (!empty($add_options)) {
@@ -245,18 +245,18 @@ $gt=
             '#tree' => TRUE,
             '#attributes' => array('class' => array('container-inline', 'taxonomy-access-add')),
           );
-          $form[$name]['new']['item'] = array(
+          $form[$name]['new'][$vid]['item'] = array(
             '#type' => 'select',
             '#title' => (string)t('Term'),
             '#options' => $add_options,
           );
-          $form[$name]['new']['recursive'] = array(
+          $form[$name]['new'][$vid]['recursive'] = array(
             '#type' => 'checkbox',
             '#title' => (string)t('with descendants'),
           );
-          $form[$name]['new']['grants'] =
-            $this->taxonomy_access_grant_add_term_grants($vocab_default, $vid);
-          $form[$name]['new']['add'] = array(
+          $form[$name]['new'][$vid]['grants'] =
+            $this->taxonomy_access_grant_add_table($vocab_default);
+          $form[$name]['new'][$vid]['add'] = array(
             '#type' => 'submit',
             '#vocabulary' => $vid,
             '#submit' => array('::taxonomy_access_add_term_submit'),
@@ -290,20 +290,6 @@ $gt=
     }
 //dpm( $form, 'form');
     return $form;
-  }
-
-  function addVocabularyDefaults($vid, $title, $description, $open, $grants){
-    $fieldset = array(
-      '#type' => 'details',
-      '#title' => (string)$title,
-      '#description' => (string)$description,
-      '#open' => $open,
-    );
-    //$fieldset[$vid] = $grants;
-    $fieldset += $grants;
-//dpm($fieldset, 'grants in fieldset ' . $vid);
-//dpm($fieldset[0], 'grants in fieldset 0 ' . $vid);
-    return $fieldset ;
   }
 
   /**
@@ -343,7 +329,7 @@ $gt=
       );
     }
     if ($delete) {
-  //    drupal_add_js('misc/tableselect.js');
+//    drupal_add_js('misc/tableselect.js');
       array_unshift($header, array('class' => array('select-all')));
     }
     $table = array(
@@ -353,14 +339,11 @@ $gt=
     $table['#attributes']['class'] = array('taxonomy-access-grant-table');
     foreach ($rows as $id => $row) {
       $table[$id] = $this->taxonomy_access_admin_build_row($row, 'name', $delete);
-//dpm($table[$id], 'table row'.$id);
     }
     // Disable the delete checkbox for the default.
     if ($delete && isset($table[$parent_vid][TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT])) {
       $table[$parent_vid][TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT]['remove']['#disabled'] = TRUE;
     }
-//dpm($table, 'table');
-//dpm($table['0'], 'table 0');
     return $table;
   }
 
@@ -374,21 +357,19 @@ $gt=
    *   - delete: The Delete grant value select box for the element.
    *   - create: The Add tag grant value select box for the element.
    *   - list: The View tag grant value select box for the element.
-   * @param int $id
-   *   The ID for this set (e.g., a vocabulary ID).
    *
    * @return
    *   Renderable array containing the table.
    *
    * @see taxonomy_access_grant_table()
    */
-  function taxonomy_access_grant_add_term_grants($row, $id) {
+  function taxonomy_access_grant_add_table($row) {
     $header = $this->taxonomy_access_grant_table_header();
     $table = array(
       '#type' => 'table',
       '#header' => $header,
     );
-    $table[$id] = $this->taxonomy_access_admin_build_row($row);
+    $table[TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT] = $this->taxonomy_access_admin_build_row($row);
     return $table;
   }
 
@@ -592,8 +573,9 @@ $gt=
     $skip_defaults = array();
 
     $vocabularyNames=$form['#vocabularyNames'];
-  //  $values=$form_state->getValue('');
-//   dpm($values, 'values');
+    $values=$form_state->getValues();
+   dpm($values, 'values');
+return;
     foreach ($vocabularyNames as $vocabularyName => $vid) {
       $rows = $form_state->getValue($vid);
       //$rows = $values[$vid];

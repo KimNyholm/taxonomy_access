@@ -111,18 +111,68 @@ function getDefault(){
     );
 }
   public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state, $rid = NULL) {
-    $vid='tags';
-    $name='tac_'.$vid;
-    $grants=$this->getGrants();
-    $form[$name]=$this->addVocabularyTermRules(
-          $vid,
-          'Tags',
-          (string)t('The default settings apply to all terms in %vocab that do not have their own below.', array('%vocab' => 'Tags')),
-          TRUE,
-          $this->taxonomy_access_grant_table($grants, $vid, (string)t('Term'),false)
+    $add_options=array('o1', 'o2');
+    $vocab_defaults=$this->getDefault();
+    foreach ($vocab_defaults as $vid => $vocab_default){
+      $name=$vid;
+      $form[$name]= array(
+        '#type' => 'details',
+        '#title' => $name,
+        '#description' => 
+              (string)t('The default settings apply to all terms in %vocab that do not have their own below.', array('%vocab' => $name)),
+        '#open' => TRUE,
         );
-//  $form['tac_'.$vid]['new'][$vid]=$this->addTermFieldSet('voc'.$vid);
-  $form['tac_'.$vid]['new'][$vid]=$this->addTermFieldSet('x'.$vid);
+      $table = array(
+        '#type' => 'table',
+        '#header' => array('fieldxyz', 'xyzcheckbox'),
+        );
+
+      $table[0]['f1'] = array(
+        '#type' => 'select',
+        '#required' => TRUE,
+        '#options' => array('c1' => 'choise 1'),
+        );
+      $table[0]['f2'] = array(
+          '#type' => 'checkbox',
+          '#title' => 'in here',
+        );
+      $form[$name]['table'.$name] = $table;
+      $form[$name]['recursive'.$name] = array(
+          '#type' => 'checkbox',
+          '#title' => 'with descendants',
+        );
+
+      if (!empty($add_options)) {
+        $form[$name]['new'.$vid] = array(
+          '#type' => 'details',
+          '#open' => TRUE,
+          '#title' => 'Add term',
+          '#attributes' => array('class' => array('container-inline', 'taxonomy-access-add')),
+        );
+        $form[$name]['new'.$vid]['item'.$vid] = array(
+          '#type' => 'select',
+          '#title' => 'Term',
+          '#options' => $add_options,
+        );
+        $form[$name]['new'.$vid]['recursive'.$vid] = array(
+          '#type' => 'checkbox',
+          '#title' => 'with descendants',
+        );
+        $form[$name]['new'.$vid]['grants'.$vid] =
+          $this->taxonomy_access_grant_add_table($vocab_default, $vid);
+        $form[$name]['new'.$vid]['add'.$vid] = array(
+          '#type' => 'submit',
+          '#vocabulary_name' => $vid,
+          '#submit' => array('::taxonomy_access_add_term_submit'),
+          '#value' => 'Add',
+        );
+      }
+
+ }
+    $form['actions']['submit'] = array(
+      '#type' => 'submit',
+      '#value' => (string)t('Save all'),
+    );
   dpm($form, 'form');
   return $form;
 }
@@ -131,49 +181,13 @@ function getDefault(){
   function taxonomy_access_add_term_submit($form, \Drupal\Core\Form\FormStateInterface &$form_state) {
     $submitButton = $form_state->getTriggeringElement();
     dpm($submitButton,'submitButton');
-    $vid = $submitButton['#name'];
-    $allArray = $form_state->getValue();
+    $vid = $submitButton['#vocabulary_name'];
+    $allArray = $form_state->getValues();
     dpm($allArray,'allArray');
     $newArray = $form_state->getValue('new');
     dpm($newArray,'newArray');
 }
 
-
-
-
-
-// below is same as taxadminform
-  function addTermFieldSet($vid, $add_options){
-    $fieldset = array(
-      '#type' => 'details',
-      '#open' => TRUE,
-//      '#title' => (string)t('Add term'),
-//            '#tree' => TRUE,
-//      '#attributes' => array('class' => array('container-inline', 'taxonomy-access-add')),
-    );
-/*
-    $fieldset = array(
-      '#type' => 'select',
-      '#title' => (string)t('Term'),
-      '#options' => $add_options,
-    );
-    $fieldset['recursive'] = array(
-      '#type' => 'checkbox',
-      '#title' => (string)t('with descendants'),
-    );
-         $fieldset['grants'] =
-           $this->taxonomy_access_grant_one_row_table($vocab_default, $vid);
-*/
-    $fieldset['add'] = array(
-      '#type' => 'submit',
-      '#name' => $vid,
-      '#submit' => array('::taxonomy_access_add_term_submit'),
-      '#value' => (string)t('Add'),
-    );
-//      dpm($form[$name], 'form af ' .$name);
-    // Fieldset to add a new term if there are any.
-    return $fieldset;
-  }
   function taxonomy_access_grant_table(array $rows, $parent_vid, $first_col, $delete = TRUE) {
     $header = $this->taxonomy_access_grant_table_header();
 /*
@@ -194,8 +208,7 @@ function getDefault(){
     );
     dpm($parent_vid, 'parent_id'. 'delete='.$delete);
     foreach ($rows as $id => $row) {
-      $table[$parent_vid] = $this->taxonomy_access_admin_build_row($row, 'name', $delete);
-  //    $table[$id] = $this->taxonomy_access_admin_build_row($row, 'name', $delete);
+      $table[$id] = $this->taxonomy_access_admin_build_row($row, 'name', $delete);
     }
     // Disable the delete checkbox for the default.
     if ($delete && isset($table[TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT])) {
@@ -205,18 +218,16 @@ function getDefault(){
     return $table;
   }
 
-  function addVocabularyTermRules($vid, $title, $description, $open, $grants){
-  //return array();
-    $fieldset = array(
-      '#type' => 'details',
-  //    '#title' => (string)$title,
-  //    '#description' => (string)$description,
-      '#open' => $open,
-    );
-    $fieldset['grants'][$vid] = $grants;
-//dpm($grants);
-    return $fieldset ;
-  }
+function taxonomy_access_grant_add_table($row, $id) {
+  $header = $this->taxonomy_access_grant_table_header();
+  $table = array(
+    '#type' => 'table',
+    '#header' => $header,
+  );
+  $table[$id][TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT] = $this->taxonomy_access_admin_build_row($row);
+
+  return $table;
+}
 
   function taxonomy_access_grant_table_header() {
     $header = array(
@@ -285,20 +296,8 @@ function getDefault(){
   }
 
 public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
-  $rid = $form_state->getValue('rid');
-  $vocabs = \Drupal\taxonomy\Entity\Vocabulary::loadMultiple();
-  $vocs=$form['vocabularies']['#values'];
-  dpm($vocs, 'vocs');
-  // Create four lists of records to update.
-  $update_terms = array();
-  $skip_terms = array();
-  $update_defaults = array();
-  $skip_defaults = array();
-
-  $values=$form_state->getValue();
+  $values=$form_state->getValues();
   dpm($values, 'values');
-  $grants=$form_state->getValue('grants');
-  dpm($grants, 'grants');
 }
 
 }

@@ -11,7 +11,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 use Drupal\taxonomy_access\TaxonomyAccessService;
 
-
 class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
 
   protected $taxonomyAccessService ;
@@ -74,8 +73,6 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
   /**
    * Form constructor for a form to manage grants by role.
    *
-   * Drupal 7: taxonomy_access_admin_role($form, $form_state, $rid) {
-   *
    * @param int $rid
    *   The role ID.
    *
@@ -92,7 +89,6 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
         TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID,
         TaxonomyAccessService::TAXONOMY_ACCESS_AUTHENTICATED_RID))){
       $roles = $this->taxonomyAccessService->_taxonomy_access_user_roles();
-      //$roleName= \Drupal\Component\Utility\Html::escape($roles[$rid]->label());
       $roleName=$roles[$rid]->label();
       // If the role is not enabled, return only a link to enable it.
       if (!$this->taxonomyAccessService->taxonomy_access_role_enabled($rid)) {

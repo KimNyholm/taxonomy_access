@@ -92,16 +92,15 @@ class TaxonomyAccessRoleDeleteForm extends ConfirmFormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $rid = $this->rid;
-    if (!in_array($rid, [
-        TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID,
-        TaxonomyAccessService::TAXONOMY_ACCESS_AUTHENTICATED_RID,
-      ])) {
-      $roles = $this->taxonomyAccessService->_taxonomy_access_user_roles();
-      $this->taxonomyAccessService->taxonomy_access_delete_role_grants($rid);
+    $deleted = $this->taxonomyAccessService->taxonomy_access_delete_role_grants($rid);
+    if ($deleted){
       drupal_set_message(t('All taxonomy access rules deleted for role %role.',
-          array('%role' => $this->taxonomyAccessService->roleNumberToName($rid))));
-      $form_state->setRedirect('taxonomy_access.settings');
+        array('%role' => $this->taxonomyAccessService->roleNumberToName($rid))));
+    } else {
+      drupal_set_message(t('Taxonomy access rules not deleted for role %role.',
+        array('%role' => $this->taxonomyAccessService->roleNumberToName($rid))), 'error');
     }
+    $form_state->setRedirect('taxonomy_access.settings');
   }
 
 }

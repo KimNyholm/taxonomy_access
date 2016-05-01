@@ -21,7 +21,7 @@ use Drupal\Core\Url;
 
 use Drupal\taxonomy_access\TaxonomyAccessService;
 
-class TaxonomyAccessRoleEnableForm extends ConfigFormBase {
+class TaxonomyAccessRoleEnableForm extends \Drupal\Core\Form\FormBase {
 
   protected $taxonomyAccessService ;
 
@@ -52,10 +52,10 @@ function taxonomy_access_enable_role_validate($rid) {
   $uri = \Drupal::request()->getRequestUri();
   $fragments=UrlHelper::parse($uri);
   // If a valid token is not provided, return a 403.
-  if (empty($query['token']) || !drupal_valid_token($query['token'], $rid)) {
-    drupal_set_message('taxonomy_access_enable_role_validate needs more validation',  'error');
-//      throw new AccessDeniedHttpException();
-    }
+  // Fix me, token validation skipped for now.
+  // if (empty($query['token']) || !drupal_valid_token($query['token'], $rid)) {
+  //   throw new AccessDeniedHttpException();
+  // }
   // Return a 404 for the anonymous or authenticated roles.
   if (in_array($rid, [
     TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID,
@@ -78,16 +78,12 @@ function taxonomy_access_enable_role_validate($rid) {
   // redirect
   $urlParameters=array('rid' => $rid);
   $url=Url::fromRoute('taxonomy_access.admin_role_edit', $urlParameters);
+  // Required for WebTestBase::clickLink() not to fail.
+  $url->setAbsolute();
   $response = new \Symfony\Component\HttpFoundation\RedirectResponse($url->toString());
   // redirect
   return $response ;
 }
-
-  protected function getEditableConfigNames() {
-    return [
-      'taxonomy_access.settings',
-    ];
-  }
 
   public function submitForm(array &$form, FormStateInterface $form_state) {
   }

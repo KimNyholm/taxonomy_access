@@ -1006,7 +1006,10 @@ function taxonomy_access_delete_role_grants($rid, $update_nodes = TRUE) {
   if (empty($rid)) {
     return FALSE;
   }
-  if ($rid == \Drupal\user\RoleInterface::ANONYMOUS_ID || $rid == \Drupal\user\RoleInterface::AUTHENTICATED_ID) {
+  if (in_array($rid, [
+      TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID,
+      TaxonomyAccessService::TAXONOMY_ACCESS_AUTHENTICATED_RID,
+    ])) {
     return FALSE;
   }
 
@@ -1026,7 +1029,7 @@ function taxonomy_access_delete_role_grants($rid, $update_nodes = TRUE) {
 
     // Find the ones we need.
     foreach ($gd_records as $gd) {
-      if ($gd['gid'] == \Drupal\user\RoleInterface::AUTHENTICATED_ID) {
+      if ($gd['gid'] == $this->roleIdToNumber(\Drupal\user\RoleInterface::AUTHENTICATED_ID)) {
         $auth_gd = $gd;
       }
       elseif ($gd['gid'] == $rid) {

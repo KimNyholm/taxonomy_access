@@ -794,7 +794,7 @@ function _taxonomy_access_get_nodes_for_defaults($vocab_ids, $rid = NULL) {
 
   $query =
     db_select('taxonomy_index', 'ti')
-    ->condition('td.vid', $vocab_ids)
+    ->condition('td.vid', $vocab_ids, 'IN')
     ->fields('ti', array('nid'))
     ->addTag('taxonomy_access_node');
     ;

@@ -393,4 +393,26 @@ class TaxonomyAccessTestCase extends \Drupal\node\Tests\NodeTestBase{
     $edit[$vid."[$tid][list]"] = $list;
   }
 
+  public function vocabularyEnable($rid, $vid){
+    // Enable the vocabulary.
+    $this->drupalGet(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . '/role/' . $rid . '/edit');
+    $edit = array();
+    $edit['enable_vocab'] = $vid;
+    $this->drupalPostForm(NULL, $edit, t('Add vocabulary'));
+  }
+
+  public function vocabularySetDefault($rid, $vid, $access){
+    $this->drupalGet(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . '/role/' . $rid . '/edit');
+    $edit = array();
+    $this->configureFormRow($edit, $vid, TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT,$access);
+    $this->drupalPostForm(NULL, $edit, 'Save all');
+  }
+
+  function VocabularyTermAdd($rid, $vid, $tid, $access){
+    $this->drupalGet(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . '/role/' . $rid . '/edit');
+    $edit = array();
+    $this->addFormRow($edit, $vid, $tid, $access);
+    $this->drupalPostForm(NULL, $edit, 'Add term');
+  }
+  
 }

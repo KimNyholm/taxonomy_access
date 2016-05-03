@@ -1,0 +1,12 @@
+7347  write(14, "w\2\0\0\3
+SELECT tadg.rid AS rid, 
+BIT_OR(COALESCE(ta.grant_view, tad.grant_view, tadg.grant_view)) AS grant_view, 
+BIT_OR(COALESCE(ta.grant_update, tad.grant_update, tadg.grant_update)) AS grant_update, 
+BIT_OR(COALESCE(ta.grant_delete, tad.grant_delete, tadg.grant_delete)) AS grant_delete\n
+FROM \ntaxonomy_term_data td\n
+INNER JOIN taxonomy_access_default tadg ON tadg.vid = 'tac_gd___'\n
+LEFT OUTER JOIN taxonomy_access_default tad ON tad.vid = td.vid AND tad.rid = tadg.rid\n
+LEFT OUTER JOIN taxonomy_access_term ta ON ta.tid = td.tid AND ta.rid = tadg.rid\n
+INNER JOIN taxonomy_index ti ON td.tid = ti.tid\nWHERE  (ti.nid = '22') \n
+GROUP BY tadg.rid", 635) = 635
+

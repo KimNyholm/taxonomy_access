@@ -198,7 +198,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
    * - Access is updated correctly when the vocabulary default is deleted.
    */
   
-  public function testVocabularyDefaultConfig() {
+  public function zzz_testVocabularyDefaultConfig() {
     // Log in as the administrator.
     $this->drupalLogin($this->users['site_admin']);
     $this->vocabularyEnable(TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, $this->vocabs['v1']->id());
@@ -324,7 +324,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
    * - Access is updated correctly when the term configuration is deleted.
    */
   
-  public function zzz_testTermConfig() {
+  public function testTermConfig() {
 
     $this->drupalLogin($this->users['site_admin']);
     $this->vocabularyEnable(TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, $this->vocabs['v1']->id());
@@ -376,20 +376,10 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
 
     // Log in as the administrator.
     $this->drupalLogin($this->users['site_admin']);
-
     // Use the form to change the configuration: Allow for v2t1; Deny for v1t1.
+    $this->vocabularySetTerm(TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, $this->vocabs['v2']->id(), $this->terms['v2t1']->id(), TaxonomyAccessService::TAXONOMY_ACCESS_NODE_ALLOW);
+    $this->vocabularySetTerm(TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, $this->vocabs['v1']->id(), $this->terms['v1t1']->id(), TaxonomyAccessService::TAXONOMY_ACCESS_NODE_DENY);
     $this->drupalGet(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . '/role/' . TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID . '/edit');
-    $edit = array();
-    $this->configureFormRow(
-      $edit, $this->vocabs['v2']->id(), $this->terms['v2t1']->id(), TaxonomyAccessService::TAXONOMY_ACCESS_NODE_ALLOW
-
-    );
-    $this->configureFormRow(
-      $edit, $this->vocabs['v1']->id(), $this->terms['v1t1']->id(), TaxonomyAccessService::TAXONOMY_ACCESS_NODE_DENY
-    );
-//FIX ME
-    $this->drupalPostForm(NULL, $edit, 'Save all');
-
     // Log out.
     $this->drupalLogout();
 
@@ -418,11 +408,8 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     // Log in as the administrator.
     $this->drupalLogin($this->users['site_admin']);
 
-    // Use the form to delete the v2t1 configuration.
-    $this->drupalGet(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . '/role/' .TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID . '/edit');
-    $edit = array();
-    $edit["grants[{$this->vocabs['v2']->id()}][{$this->terms['v2t1']->id()}][remove]"] = 1;
-    $this->drupalPostForm(NULL, $edit, 'Delete selected');
+    // Delete the v2t1 configuration.
+    $this->vocabularyTermDelete(TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, 'v2', $this->terms['v2t1']->id());
 
     // Log out.
     $this->drupalLogout();
@@ -435,6 +422,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
       $this->assertResponse(403, t("Access to %name page (nid %nid) is denied.", array('%name' => $key, '%nid' => $page->id())));
     }
   }
+
 
   /**
    * Tests adding a term configuration with children.

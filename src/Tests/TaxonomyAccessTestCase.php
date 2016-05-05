@@ -419,11 +419,15 @@ class TaxonomyAccessTestCase extends \Drupal\node\Tests\NodeTestBase{
     $this->drupalPostForm(NULL, $edit, t('Add vocabulary'));
   }
 
-  public function vocabularySetDefault($rid, $vid, $access){
+  public function vocabularySetTerm($rid, $vid, $tid, $access){
     $this->drupalGet(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . '/role/' . $rid . '/edit');
     $edit = array();
-    $this->configureFormRow($edit, $vid, TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT,$access);
+    $this->configureFormRow($edit, $vid, $tid, $access);
     $this->drupalPostForm(NULL, $edit, 'Save all');
+  }
+
+  public function vocabularySetDefault($rid, $vid, $access){
+    vocabularySetTerm($rid, $vid, TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT, $access);
   }
 
   function VocabularyTermAdd($rid, $vid, $tid, $access){
@@ -431,6 +435,15 @@ class TaxonomyAccessTestCase extends \Drupal\node\Tests\NodeTestBase{
     $edit = array();
     $this->addFormRow($edit, $vid, $tid, $access);
     $this->drupalPostForm(NULL, $edit, 'Add term');
+  }
+
+  function vocabularyTermDelete($rid, $vid, $tid){
+     // Use the form to delete the v2t1 configuration.
+      $this->drupalGet(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . '/role/' .$rid . '/edit');
+      $edit = array();
+      $edit[$vid."[$tid][remove]"] = 1;      
+//      $edit["grants[{$this->vocabs[$vid]->id()}][{$this->terms[$tid]->id()}][remove]"] = 1;
+      $this->drupalPostForm(NULL, $edit, 'Delete selected');
   }
   
 }

@@ -103,11 +103,14 @@ class TaxonomyAccessRoleDisableForm extends ConfirmFormBase {
       drupal_set_message(
         t('All Taxonomy access rules deleted for %vocab in role %role.',
           array(
-            '%vocab' => $form_state->getValue('vocab_name'),
+            '%vocab' => $this->vid,
             '%role' => $roles[$rid]->label())
          ));
       $urlParameters=array('rid' => $rid);
-      $form_state->setRedirect('taxonomy_access.settings', $urlParameters);
+      $form_state->setRedirect('taxonomy_access.admin_role_edit', $urlParameters);
+      $this->taxonomyAccessService->taxonomy_access_rebuild();
+      $this->taxonomyAccessService->taxonomy_access_show_node_access();
+      
     }
   }
 

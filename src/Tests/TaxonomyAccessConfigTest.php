@@ -103,7 +103,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
    * - Access is updated for the correct nodes when there are specific term
    *    and vocabulary configurations.
    */
-  public function testGlobalDefaultConfig() {
+  public function zzz_testGlobalDefaultConfig() {
     // Log in as the administrator.
     $this->drupalLogin($this->users['site_admin']);
 
@@ -198,7 +198,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
    * - Access is updated correctly when the vocabulary default is deleted.
    */
   
-  public function zzz_testVocabularyDefaultConfig() {
+  public function testVocabularyDefaultConfig() {
     // Log in as the administrator.
     $this->drupalLogin($this->users['site_admin']);
     $this->vocabularyEnable(TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, $this->vocabs['v1']->id());
@@ -224,14 +224,9 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
 
     // Log in as the administrator.
     $this->drupalLogin($this->users['site_admin']);
+    // Enable v2 and add a specific configuration for v2t1.
     $this->vocabularyEnable(TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, $this->vocabs['v2']->id());
-
-    // Programmatically enable v2 and add a specific configuration for v2t1.
-    $term_config = $this->taxonomyAccessService->_taxonomy_access_format_grant_record(
-      $this->terms['v2t1']->id(), TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, array('view' =>TaxonomyAccessService::TAXONOMY_ACCESS_NODE_IGNORE)
-    );
-    $this->taxonomyAccessService->taxonomy_access_set_term_grants(array($term_config));
-
+    $this->VocabularyTermAdd(TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, $this->vocabs['v2']->id(), $this->terms['v2t1']->id(), TaxonomyAccessService::TAXONOMY_ACCESS_NODE_IGNORE);
     // Use the admin form to give anonymous view deny for the v2 default.
     $this->vocabularySetDefault(TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, $this->vocabs['v2']->id(), TaxonomyAccessService::TAXONOMY_ACCESS_NODE_DENY);
 
@@ -262,13 +257,9 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     // Log in as the administrator.
     $this->drupalLogin($this->users['site_admin']);
 
-    // Use the form to change the configuration: Allow for v2; Deny for v1.
-    $this->drupalGet(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . '/role/' .TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID . '/edit');
-    $edit = array();
-    $this->configureFormRow($edit, $this->vocabs['v2']->id(), TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT,TaxonomyAccessService::TAXONOMY_ACCESS_NODE_ALLOW);
-    $this->configureFormRow($edit, $this->vocabs['v1']->id(),TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT,TaxonomyAccessService::TAXONOMY_ACCESS_NODE_DENY);
-// FIX ME
-    $this->drupalPostForm(NULL, $edit, 'Save all');
+    // Change the configuration: Allow for v2; Deny for v1.
+    $this->vocabularySetDefault(TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, $this->vocabs['v1']->id(), TaxonomyAccessService::TAXONOMY_ACCESS_NODE_DENY);
+    $this->vocabularySetDefault(TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, $this->vocabs['v2']->id(), TaxonomyAccessService::TAXONOMY_ACCESS_NODE_ALLOW);
 
     // Log out.
     $this->drupalLogout();
@@ -301,9 +292,8 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
 
     // Use the admin form to disable v1.
     $this->drupalGet(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . '/role/' . TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID . '/edit');
-// FIX ME
     $this->clickLink(t('delete all v1 access rules'));
-    $this->assertText("Are you sure you want to delete all Taxonomy access rules for v1", t('Disable form for vocabulary loaded.'));
+    $this->assertText("Are you sure you want to delete all taxonomy access rules for v1", t('Disable form for vocabulary loaded.'));
     $this->drupalPostForm(NULL, array(), 'Delete all');
 
     // Log out.

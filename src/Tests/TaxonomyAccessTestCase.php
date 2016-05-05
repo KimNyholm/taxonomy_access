@@ -125,8 +125,7 @@ class TaxonomyAccessTestCase extends \Drupal\node\Tests\NodeTestBase{
    * @return object
    *   The taxonomy term object.
    */
-  function createTerm($taxonomyName, $vocab, $parent = 0) {
-    $vid=$vocab->id();
+  function createTerm($taxonomyName, $vid, $parent = 0) {
     $term = \Drupal\taxonomy\Entity\Term::create(
         [ 'name' => $taxonomyName, 'vid' => $vid, 'parent'=>array($parent)]);
     $term-> save();
@@ -168,6 +167,7 @@ class TaxonomyAccessTestCase extends \Drupal\node\Tests\NodeTestBase{
           'handler_settings' => array(
             'target_bundles' => array($vocabulary_name => $vocabulary_name),
           ),
+            'auto_create' => TRUE,
         )
       );
 
@@ -190,12 +190,8 @@ class TaxonomyAccessTestCase extends \Drupal\node\Tests\NodeTestBase{
   function createArticle($autocreate = [], $existing = []) {
     $values = [];
     foreach ($autocreate as $name) {
-      $values[] = [
-        'tid' => 'autocreate',
-        'vid' => 1,
-        'name' => $name,
-        'vocabulary_machine_name' => 'tags',
-      ];
+      $term = $this->createTerm($name, 'tags');
+      $values[] = $term->id() ;
     }
     foreach ($existing as $tid) {
       $values[] = [
@@ -205,13 +201,35 @@ class TaxonomyAccessTestCase extends \Drupal\node\Tests\NodeTestBase{
       ];
     }
 
-    // Bloody $langcodes.
-    $values = [\Drupal\Core\Language\Language::LANGCODE_NOT_SPECIFIED => $values];
-
     $settings = [
       'type' => 'article',
-      'field_tags' => $values,
+      'v1' => $values,
     ];
+
+    return $this->drupalCreateNode($settings);
+  }
+
+  function createPage($tags = array()) {
+    $v1 = array();
+    $v2 = array();
+
+    foreach ($tags as $name) {
+      switch ($this->terms[$name]->getVocabularyId()) {
+        case ($this->vocabs['v1']->id()):
+          $v1[] = $this->terms[$name]->id();
+          break;
+
+        case ($this->vocabs['v2']->id()):
+          $v2[] = $this->terms[$name]->id();
+          break;
+      }
+    }
+
+    $settings = array(
+      'type' => 'page',
+      'v1' => $v1,
+      'v2' => $v2,
+    );
 
     return $this->drupalCreateNode($settings);
   }

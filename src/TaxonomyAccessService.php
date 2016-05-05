@@ -1422,7 +1422,7 @@ function _taxonomy_access_node_access_records($node_nid, $reset = FALSE) {
   foreach ($records as $record) {
     $grants[] = $this->_taxonomy_access_format_node_access_record($record);
   }
-
+  drupal_set_message('node ' . $node_nid . ' ' . var_export($grants, TRUE));
   return $grants;
 }
 
@@ -1708,5 +1708,36 @@ function taxonomy_access_disable() {
     }
   }
 }
+
+function taxonomy_access_show_node_access()
+{
+  $query = db_query(
+      "SELECT na.nid, na.gid, na.realm, na.grant_view 
+       FROM {node_access} na
+       ");
+  $records = $query->fetchAll();
+  drupal_set_message('node access table ' . var_export($records, TRUE));
+  $query = db_query(
+      "SELECT ta.tid, ta.rid, ta.grant_view 
+       FROM {taxonomy_access_term} ta
+       ");
+  $records = $query->fetchAll();
+  drupal_set_message('taxonomy_access_term table ' . var_export($records, TRUE));
+  $query = db_query(
+      "SELECT tad.vid, tad.rid, tad.grant_view 
+       FROM {taxonomy_access_default} tad
+       ");
+  $records = $query->fetchAll();
+  drupal_set_message('taxonomy_access_default table ' . var_export($records, TRUE));
+  $query = db_query(
+      "SELECT th.tid, th.parent
+       FROM {taxonomy_term_hierarchy} th
+       ");
+  $records = $query->fetchAll();
+  drupal_set_message('taxonomy term hierarchy table ' . var_export($records, TRUE));
+  return 'tac show ' . var_export($records, TRUE);
+  
 }
 
+
+}

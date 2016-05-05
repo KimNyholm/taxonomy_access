@@ -19,14 +19,13 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
   public function setUp() {
     parent::setUp();
 
-    // Add two taxonomy fields to pages.
     foreach (array('v1', 'v2') as $vocab) {
       $this->vocabs[$vocab] = $this->createVocab($vocab);
       $this->createField($vocab);
       $this->terms[$vocab . 't1'] =
-        $this->createTerm($vocab . 't1', $this->vocabs[$vocab]);
+        $this->createTerm($vocab . 't1', $this->vocabs[$vocab]->id());
       $this->terms[$vocab . 't2'] =
-        $this->createTerm($vocab . 't2', $this->vocabs[$vocab]);
+        $this->createTerm($vocab . 't2', $this->vocabs[$vocab]->id());
     }
 
     // Set up a variety of nodes with different term combinations.
@@ -44,73 +43,6 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
           $this->createPage(array($t1->label(), $t2->label()));
       }
     }
-  }
-
-  function createArticle($autocreate = [], $existing = []) {
-    $values = [];
-    foreach ($autocreate as $name) {
-      $values[] = [
-        'tid' => 'autocreate',
-        'vid' => 1,
-        'name' => $name,
-        'vocabulary_machine_name' => 'tags',
-      ];
-    }
-    foreach ($existing as $tid) {
-      $values[] = [
-        'tid' => $tid,
-        'vid' => 1,
-        'vocabulary_machine_name' => 'tags',
-      ];
-    }
-
-    // Bloody $langcodes.
-    $values = [\Drupal\Core\Language\Language::LANGCODE_NOT_SPECIFIED => $values];
-
-    $settings = [
-      'type' => 'article',
-      'field_tags' => $values,
-    ];
-
-    return $this->drupalCreateNode($settings);
-  }
-
-  /**
-   * Creates a page with the specified terms.
-   *
-   * @param array $terms
-   *   (optional) An array of term names to tag the page.  Defaults to array().
-   *
-   * @return object
-   *   The node object.
-   */
-  function createPage($tags = array()) {
-    $v1 = array();
-    $v2 = array();
-
-    foreach ($tags as $name) {
-      switch ($this->terms[$name]->id()) {
-        case ($this->vocabs['v1']->id()):
-          $v1[] = array('tid' => $this->terms[$name]->id());
-          break;
-
-        case ($this->vocabs['v2']->id()):
-          $v2[] = array('tid' => $this->terms[$name]->id());
-          break;
-      }
-    }
-
-    // Bloody $langcodes.
-    $v1 = array(\Drupal\Core\Language\Language::LANGCODE_NOT_SPECIFIED => $v1);
-    $v2 = array(\Drupal\Core\Language\Language::LANGCODE_NOT_SPECIFIED => $v2);
-
-    $settings = array(
-      'type' => 'page',
-      'v1' => $v1,
-      'v2' => $v2,
-    );
-
-    return $this->drupalCreateNode($settings);
   }
 
 /*
@@ -206,6 +138,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     // Set v1t1 and v2t1 to view allow.
     $this->VocabularyTermAdd(TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, $this->vocabs['v1']->id(), $this->terms['v1t1']->id(), TaxonomyAccessService::TAXONOMY_ACCESS_NODE_ALLOW);
     $this->vocabularyEnable(TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, $this->vocabs['v2']->id());
+    $this->vocabularySetDefault(TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, $this->vocabs['v2']->id(), TaxonomyAccessService::TAXONOMY_ACCESS_NODE_DENY);
     $this->VocabularyTermAdd(TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, $this->vocabs['v2']->id(), $this->terms['v2t1']->id(), TaxonomyAccessService::TAXONOMY_ACCESS_NODE_ALLOW);
 
     // Use the admin form to give anonymous view deny in the global default.
@@ -216,8 +149,18 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
 
     // Log out.
     $this->drupalLogout();
+    $this->show_tac();
+    $this->pass(
+      $this->taxonomyAccessService->taxonomy_access_show_node_access()
+    );
+  $query = db_query(
+      "SELECT na.nid, na.gid, na.realm, na.grant_view 
+       FROM {node_access} na
+       ");
+  $records = $query->fetchAll();
+  $this->pass('node access table ' . var_export($records, TRUE));
 
-    // Visit each artile and verify that access is denied.
+  // Visit each artile and verify that access is denied.
     foreach ($this->articles as $key => $article) {
       $this->drupalGet('node/' . $article->id());
       $this->assertResponse(403, t("Access to %name article (nid %nid) is denied.", array('%name' => $key, '%nid' => $article->id())));
@@ -521,22 +464,22 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
 
     $this->terms['v1t1c1'] = $this->createTerm(
       'v1t1c1',
-      $this->vocabs['v1'],
+      $this->vocabs['v1']->id(),
       $this->terms['v1t1']->id()
     );
     $this->terms['v1t1c2'] = $this->createTerm(
       'v1t1c2',
-      $this->vocabs['v1'],
+      $this->vocabs['v1']->id(),
       $this->terms['v1t1']->id()
     );
     $this->terms['v1t1c1g1'] = $this->createTerm(
       'v1t1c1g1',
-      $this->vocabs['v1'],
+      $this->vocabs['v1']->id(),
       $this->terms['v1t1c1']->id()
     );
     $this->terms['v1t1c1g2'] = $this->createTerm(
       'v1t1c1g2',
-      $this->vocabs['v1'],
+      $this->vocabs['v1']->id(),
       $this->terms['v1t1c1']->id()
     );
 
@@ -693,4 +636,64 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
       $this->assertResponse(403, t("Access to %name page (nid %nid) is denied.", array('%name' => $key, '%nid' => $page->id())));
     }
   }
+
+function show_tac(){
+
+  $sql="  select td.tid, td.vid
+from {taxonomy_term_data} td 
+ ";
+$records=db_query($sql)->fetchAll();
+$this->pass('show tax1 ' . var_export($records, TRUE));
+
+$sql="  select td.tid, td.vid, tadg.vid, tadg.rid 
+from {taxonomy_term_data} td 
+inner join {taxonomy_access_default} tadg on tadg.vid = 'tac_gd___' 
+";
+$records=db_query($sql)->fetchAll();
+
+$this->pass('show tax 2' . var_export($records, TRUE));
+  $sql="  select td.tid, td.vid, tadg.vid, tadg.rid, tad.vid, tad.rid
+from {taxonomy_term_data} td 
+inner join {taxonomy_access_default} tadg on tadg.vid = 'tac_gd___' 
+left outer join {taxonomy_access_default} tad on tad.vid = td.vid and tad.rid =
+ tadg.rid
+ ";
+$records=db_query($sql)->fetchAll();
+
+$this->pass('show tax3 ' . var_export($records, TRUE));
+
+  $sql="  select td.tid, td.vid, tadg.vid, tadg.rid, tad.vid, tad.rid, ta.tid, ta.rid, ta.grant_view 
+from {taxonomy_term_data} td 
+inner join {taxonomy_access_default} tadg on tadg.vid = 'tac_gd___' 
+left outer join {taxonomy_access_default} tad on tad.vid = td.vid and tad.rid = tadg.rid
+left outer join {taxonomy_access_term} ta on ta.tid = td.tid and ta.rid = tadg.rid 
+";
+$records=db_query($sql)->fetchAll();
+$this->pass('show tax 4' . var_export($records, TRUE));
+
+  $sql="  select ta.tid, ta.rid, ta.grant_view 
+from {taxonomy_access_term} ta 
+";
+$records=db_query($sql)->fetchAll();
+$this->pass('taxonomy_access_term ' . var_export($records, TRUE));
+
+  $sql="  select ti.tid
+from {taxonomy_index} ti 
+";
+$records=db_query($sql)->fetchAll();
+$this->pass('taxonomy_index ' . var_export($records, TRUE));
+
+  $sql="  select td.tid, ti.tid, ti.nid, td.vid, tadg.vid, tadg.rid, tad.vid, tad.rid, ta.tid, ta.rid, 
+ta.grant_view 
+from {taxonomy_term_data} td 
+inner join {taxonomy_access_default} tadg on tadg.vid = 'tac_gd___' 
+left outer join {taxonomy_access_default} tad on tad.vid = td.vid and tad.rid = tadg.rid
+left outer join {taxonomy_access_term} ta on ta.tid = td.tid and ta.rid = tadg.rid 
+inner join {taxonomy_index} ti ON td.tid = ti.tid
+";
+$records=db_query($sql)->fetchAll();
+$this->pass('show tax 5' . var_export($records, TRUE));
+
 }
+  
+    }

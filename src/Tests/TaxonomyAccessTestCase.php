@@ -427,7 +427,7 @@ class TaxonomyAccessTestCase extends \Drupal\node\Tests\NodeTestBase{
   }
 
   public function vocabularySetDefault($rid, $vid, $access){
-    vocabularySetTerm($rid, $vid, TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT, $access);
+    $this->vocabularySetTerm($rid, $vid, TaxonomyAccessService::TAXONOMY_ACCESS_VOCABULARY_DEFAULT, $access);
   }
 
   function VocabularyTermAdd($rid, $vid, $tid, $access){

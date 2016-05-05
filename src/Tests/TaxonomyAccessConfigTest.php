@@ -61,7 +61,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
    * - Access to all nodes is denied for anonymous users.
    * - The main admin page provides the correct configuration links.
    */
-  public function zzz_testSetUpCheck() {
+  public function testSetUpCheck() {
     // Visit all nodes as anonymous and verify that access is denied.
     foreach ($this->articles as $key => $article) {
       $this->drupalGet('node/' . $article->id());
@@ -103,7 +103,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
    * - Access is updated for the correct nodes when there are specific term
    *    and vocabulary configurations.
    */
-  public function zzz_testGlobalDefaultConfig() {
+  public function testGlobalDefaultConfig() {
     // Log in as the administrator.
     $this->drupalLogin($this->users['site_admin']);
 
@@ -198,7 +198,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
    * - Access is updated correctly when the vocabulary default is deleted.
    */
   
-  public function zzz_testVocabularyDefaultConfig() {
+  public function testVocabularyDefaultConfig() {
     // Log in as the administrator.
     $this->drupalLogin($this->users['site_admin']);
     $this->vocabularyEnable(TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, $this->vocabs['v1']->id());
@@ -324,7 +324,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
    * - Access is updated correctly when the term configuration is deleted.
    */
   
-  public function zzz_testTermConfig() {
+  public function testTermConfig() {
 
     $this->drupalLogin($this->users['site_admin']);
     $this->vocabularyEnable(TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, $this->vocabs['v1']->id());
@@ -430,7 +430,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
    * @todo
    *   Check that node access is updated for these as well.
    */
-  public function zzz_testTermWithChildren() {
+  public function testTermWithChildren() {
     // Create some additional taxonomy terms in a hierarchy:
     // v1
     // - v1t1
@@ -514,10 +514,8 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     //   - A global default table (with correct values?)
     //   - An "Add vocabulary" fieldset.
     //   - No vocabulary fieldsets or term data.
-//FIX ME, click link returns 0 bytes!?
     $this->clickLink(t('Enable role ' . $rid));
     $this->drupalGet(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . "/role/$rid/edit");
-    //$this->clickLink(format_string('Enable @name', array('@name' => $name)));
     $this->checkRoleEnableLink($rid, FALSE);
     $this->checkRoleDisableLink($rid, TRUE);
 

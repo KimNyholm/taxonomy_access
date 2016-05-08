@@ -6,8 +6,6 @@ Porting of Drupal 7 Taxonomy Access Control to Drupal 8
 This is work in progress and the module is not yet ready for use.
 
 Todo:
-- Simpletest class NodeGrantTest cases.
-- Simpletest class TermGrantTest cases.
 - Port required hooks etc in src/TaxonomyAccessService.php.
 - port taxonomy_access.create.inc
 - Delete unused hooks etc in src/TaxonomyAccessService.php.

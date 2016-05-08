@@ -12,6 +12,7 @@ Todo:
 - port taxonomy_access.create.inc
 - Delete unused hooks etc in src/TaxonomyAccessService.php.
 - Select all checkbox for terms in vocabulary missing
+- Role id to be replaced with role names in UI.
 - Admin styling
 - Simpletest class WeightTest cases.
 - Simpletest class CallbackCleanupTest cases.
@@ -21,6 +22,6 @@ Todo:
 Notes:
 1 Until a replacement for node_access_acquire_grants() is found
   TAXONOMY_ACCESS_MAX_UPDATE is reduced to 0.
-  Instead node_access_rebuild() is called directly.
 2 Until issue https://www.drupal.org/node/2703523 is solved
-  node_access_rebuild() is followed by a call to drupal_flush_all_caches().
+  node_access_rebuild() is followed by a call to drupal_flush_all_caches()
+  in simple test.

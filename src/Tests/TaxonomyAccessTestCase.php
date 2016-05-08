@@ -445,5 +445,15 @@ class TaxonomyAccessTestCase extends \Drupal\node\Tests\NodeTestBase{
 //      $edit["grants[{$this->vocabs[$vid]->id()}][{$this->terms[$tid]->id()}][remove]"] = 1;
       $this->drupalPostForm(NULL, $edit, 'Delete selected');
   }
+
+// If rebuild is flagged to admin, then rebuild.  
+function taxonomy_access_rebuild(){
+  if (node_access_needs_rebuild()) {
+  node_access_rebuild();
+  drupal_flush_all_caches();
+  }
+//$nids=$this->taxonomy_access_affected_nodes();
+  //return $this->_taxonomy_access_node_access_update($nids);
+}
   
 }

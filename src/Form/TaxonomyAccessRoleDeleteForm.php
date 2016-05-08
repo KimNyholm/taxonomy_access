@@ -100,7 +100,6 @@ class TaxonomyAccessRoleDeleteForm extends ConfirmFormBase {
       drupal_set_message(t('Taxonomy access rules not deleted for role %role.',
         array('%role' => $this->taxonomyAccessService->roleNumberToName($rid))), 'error');
     }
-    $this->taxonomyAccessService->taxonomy_access_rebuild();
     $urlParameters=array('rid' => $rid);
     $form_state->setRedirect('taxonomy_access.admin_role_edit', $urlParameters);
   }

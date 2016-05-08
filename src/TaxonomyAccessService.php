@@ -15,7 +15,9 @@ class TaxonomyAccessService {
  * If the number of affected nodes is greater, then node_access_needs_rebuild()
  * will be set instead.
  */
-const TAXONOMY_ACCESS_MAX_UPDATE = 500 ;
+// In Drupal 8 reduced from 500 to 0 until an implementatin for 
+//  node_access_acquire_grants() is found
+  const TAXONOMY_ACCESS_MAX_UPDATE = 0 ;
 
 /**
  * Base path for module administration pages.
@@ -614,12 +616,6 @@ function _taxonomy_access_flag_rebuild() {
   node_access_needs_rebuild(TRUE);
 }
 
-function taxonomy_access_rebuild(){
-  node_access_rebuild();
-  drupal_flush_all_caches();
-  //$nids=$this->taxonomy_access_affected_nodes();
-  //return $this->_taxonomy_access_node_access_update($nids);
-}
 
 /**
  * Updates node access grants for a set of nodes.
@@ -637,7 +633,6 @@ function _taxonomy_access_node_access_update(array $nids) {
     // Set node_access_needs_rebuild() until we succeed below.
     $this->_taxonomy_access_flag_rebuild();
 
-/*  How to do below in Drupal 8. node_access_acquire_grants not defined.
 
     // Remove any duplicate nids from the array.
     $nids = array_unique($nids);
@@ -653,7 +648,6 @@ function _taxonomy_access_node_access_update(array $nids) {
       // If we make it here our update was successful; unflag rebuild.
       node_access_needs_rebuild(FALSE);
     }
-*/
   }
   return TRUE;
 }

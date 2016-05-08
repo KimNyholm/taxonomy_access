@@ -474,7 +474,6 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
     $roles = $this->taxonomyAccessService->_taxonomy_access_user_roles();
     $vocab = taxonomy_vocabulary_load($vid);
     if ($this->taxonomyAccessService->taxonomy_access_enable_vocab($vid, $rid)) {
-      $this->taxonomyAccessService->taxonomy_access_rebuild();
       drupal_set_message(t(
         'Vocabulary %vocab enabled successfully for the %role role.',
         array(
@@ -512,7 +511,6 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
 
     // Set the grants for the row or rows.
     $this->taxonomyAccessService->taxonomy_access_set_term_grants($rows);
-    $this->taxonomyAccessService->taxonomy_access_rebuild();
   }
 
 
@@ -540,7 +538,6 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
     }
     if ($rid) {
       if ($this->taxonomyAccessService->taxonomy_access_delete_term_grants($delete_tids, $rid)) {
-        $this->taxonomyAccessService->taxonomy_access_rebuild();
         drupal_set_message(
           \Drupal::translation()->formatPlural(
             sizeof($delete_tids),
@@ -551,7 +548,6 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
         drupal_set_message(t('The records could not be deleted.'), 'warning');
       }
     }
-    $this->taxonomyAccessService->taxonomy_access_rebuild();
   }
   /**
   * Form submission handler for taxonomy_access_admin_form().
@@ -632,7 +628,6 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
     if (!empty($skip_defaults)) {
       $this->taxonomyAccessService->taxonomy_access_set_default_grants($skip_defaults, FALSE);
     }
-    $this->taxonomyAccessService->taxonomy_access_rebuild();
     $this->taxonomyAccessService->taxonomy_access_show_node_access();
     }
 

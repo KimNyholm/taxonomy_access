@@ -116,7 +116,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
 
     // Log out.
     $this->drupalLogout();
-
+    $this->taxonomy_access_rebuild();
     // Visit each node and verify that access is allowed.
     foreach ($this->articles as $key => $article) {
       $this->drupalGet('node/' . $article->id());
@@ -149,6 +149,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
 
     // Log out.
     $this->drupalLogout();
+    $this->taxonomy_access_rebuild();
     $this->show_tac();
     $this->pass(
       $this->taxonomyAccessService->taxonomy_access_show_node_access()
@@ -207,6 +208,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
 
     // Log out.
     $this->drupalLogout();
+    $this->taxonomy_access_rebuild();
 
     // Visit each page and verify whether access is allowed or denied.
     foreach ($this->pages as $key => $page) {
@@ -232,6 +234,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
 
     // Log out.
     $this->drupalLogout();
+    $this->taxonomy_access_rebuild();
     // Visit each page and verify whether access is allowed or denied.
     foreach ($this->pages as $key => $page) {
       $this->drupalGet('node/' . $page->id());
@@ -263,6 +266,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
 
     // Log out.
     $this->drupalLogout();
+    $this->taxonomy_access_rebuild();
 
     // Visit each page and verify whether access is allowed or denied.
     foreach ($this->pages as $key => $page) {
@@ -298,6 +302,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
 
     // Log out.
     $this->drupalLogout();
+    $this->taxonomy_access_rebuild();
 
     // Visit each page and verify whether access is allowed or denied.
     foreach ($this->pages as $key => $page) {
@@ -330,6 +335,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     $this->vocabularyEnable(TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, $this->vocabs['v1']->id());
     $this->VocabularyTermAdd(TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, $this->vocabs['v1']->id(), $this->terms['v1t1']->id(), TaxonomyAccessService::TAXONOMY_ACCESS_NODE_ALLOW);
     $this->drupalLogout();
+    $this->taxonomy_access_rebuild();
 
     // Visit each page and verify whether access is allowed or denied.
     foreach ($this->pages as $key => $page) {
@@ -351,6 +357,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     // Use the admin form to give anonymous view deny for v2t1.
     $this->VocabularyTermAdd(TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID, $this->vocabs['v2']->id(), $this->terms['v2t1']->id(), TaxonomyAccessService::TAXONOMY_ACCESS_NODE_DENY);
     $this->drupalLogout();
+    $this->taxonomy_access_rebuild();
 
     // Visit each page and verify whether access is allowed or denied.
     foreach ($this->pages as $key => $page) {
@@ -382,6 +389,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     $this->drupalGet(TaxonomyAccessService::TAXONOMY_ACCESS_CONFIG . '/role/' . TaxonomyAccessService::TAXONOMY_ACCESS_ANONYMOUS_RID . '/edit');
     // Log out.
     $this->drupalLogout();
+    $this->taxonomy_access_rebuild();
 
     // Visit each page and verify whether access is allowed or denied.
     foreach ($this->pages as $key => $page) {
@@ -413,6 +421,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
 
     // Log out.
     $this->drupalLogout();
+    $this->taxonomy_access_rebuild();
 
     // Visit each page and verify whether access is allowed or denied.
     foreach ($this->pages as $key => $page) {
@@ -543,6 +552,7 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
 
     // Log in as the regular_user.
     $this->drupalLogout();
+    $this->taxonomy_access_rebuild();
     $this->drupalLogin($this->users['regular_user']);
 
     // Visit each node and verify that access is allowed.
@@ -555,8 +565,8 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
       $this->assertResponse(200, t("Access to %name page (nid %nid) is allowed.", array('%name' => $key, '%nid' => $page->id())));
     }
 
-    // Log in as the administrator.
     $this->drupalLogout();
+    // Log in as the administrator.
     $this->drupalLogin($this->users['site_admin']);
 
     // Test disabling the role.
@@ -599,8 +609,9 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     // @todo
     //   - Add a term configuration and make sure that gets deleted too.
 
-    // Log in as the regular_user.
     $this->drupalLogout();
+    $this->taxonomy_access_rebuild();
+    // Log in as the regular_user.
     $this->drupalLogin($this->users['regular_user']);
 
     // Visit all nodes and verify that access is again denied.

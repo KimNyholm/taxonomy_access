@@ -113,7 +113,7 @@ class TaxonomyAccessTermGrantTest extends \Drupal\taxonomy_access\Tests\Taxonomy
         // Create parent term.
         $parent_name = $vocab_name . "__" . $parent_name . "_parent";
         $this->vocabs[$vocab_name]['terms'][$parent_name] =
-          $this->createTerm($parent_name, $vocab);
+          $this->createTerm($parent_name, $vocab->id());
         $parent_id = $this->vocabs[$vocab_name]['terms'][$parent_name]->id();
 
         // Configure grants for the parent term for each role.
@@ -134,7 +134,7 @@ class TaxonomyAccessTermGrantTest extends \Drupal\taxonomy_access\Tests\Taxonomy
         foreach ($grant_combos as $child_name => $child_grants) {
           $child_name = $parent_name . "__" . $child_name . "_child";
           $this->vocabs[$vocab_name]['terms'][$child_name] =
-            $this->createTerm($child_name, $vocab, $parent_id);
+            $this->createTerm($child_name, $vocab->id(), $parent_id);
           $child_id = $this->vocabs[$vocab_name]['terms'][$child_name]->id();
 
           // Configure grants for the child term for each role.

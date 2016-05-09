@@ -483,7 +483,6 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
     else {
       drupal_set_message(t('The vocabulary could not be enabled.'), 'error');
     }
-    $this->taxonomyAccessService->taxonomy_access_rebuild();
   }
 
   /**

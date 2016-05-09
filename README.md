@@ -6,16 +6,26 @@ Porting of Drupal 7 Taxonomy Access Control to Drupal 8
 This is work in progress and the module is not yet ready for use.
 
 Todo:
-- Port required hooks etc in src/TaxonomyAccessService.php.
+Hooks:
+- taxonomy_access_init
+- taxonomy_access_theme
+- taxonomy_access_element_info
+- taxonomy_access_menu
+- taxonomy_access_user_role_delete
+- taxonomy_access_taxonomy_vocabulary_delete
+- taxonomy_access_taxonomy_term_delete
+- taxonomy_access_field_info_alter
+- taxonomy_access_field_attach_validate
+- taxonomy_access_query_term_access_alter
+- taxonomy_access_field_widget_taxonomy_autocomplete_form_alter
+- taxonomy_access_field_widget_form_alter
+- taxonomy_access_disable
 - port taxonomy_access.create.inc
-- Delete unused hooks etc in src/TaxonomyAccessService.php.
 - Select all checkbox for terms in vocabulary missing
 - Role id to be replaced with role names in UI.
 - Admin styling
 - Simpletest class WeightTest cases.
 - Simpletest class CallbackCleanupTest cases.
-- Add visibility for class methods.
-- Check for unused code.
 
 Notes:
 1 Until a replacement for node_access_acquire_grants() is found

@@ -141,107 +141,6 @@ function _taxonomy_access_user_roles($permission = NULL) {
 }
 
 /**
- * Implements hook_init().
- */
-function taxonomy_access_init() {
-  $path = drupal_get_path('module', 'taxonomy_access');
-  drupal_add_css($path . '/taxonomy_access.css');
-
-  // Register our shutdown function.
-  drupal_register_shutdown_function('taxonomy_access_shutdown');
-}
-
-/**
- * Implements hook_theme().
- */
-function taxonomy_access_theme() {
-  return array(
-    'taxonomy_access_admin_form' => array(
-      'render element' => 'form',
-      'file' => 'taxonomy_access.admin.inc',
-    ),
-    'taxonomy_access_grant_table' => array(
-      'render element' => 'elements',
-      'file' => 'taxonomy_access.admin.inc',
-    ),
-  );
-}
-
-/**
- * Implements hook_element_info().
- */
-function taxonomy_access_element_info() {
-  return array(
-    'taxonomy_access_grant_table' => array(
-      '#theme' => 'taxonomy_access_grant_table',
-      '#regions' => array('' => array()),
-    ),
-  );
-}
-
-/**
- * Implements hook_menu().
- */
-function taxonomy_access_menu() {
-  $items = array();
-
-  $items[TAXONOMY_ACCESS_CONFIG] = array(
-    'title' => 'Taxonomy access control',
-    'description' => 'Taxonomy-based access control for content',
-    'page callback' => 'taxonomy_access_admin',
-    'access arguments' => array('administer permissions'),
-    'file' => 'taxonomy_access.admin.inc',
-  );
-  $items[TAXONOMY_ACCESS_CONFIG . '/role'] = array(
-    'title' => 'Configure role access rules',
-    'description' => 'Configure taxonomy access control',
-    'page callback' => 'taxonomy_access_admin',
-    'access arguments' => array('administer permissions'),
-    'file' => 'taxonomy_access.admin.inc',
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-  );
-  $items[TAXONOMY_ACCESS_CONFIG . '/role/%/edit'] = array(
-    'title callback' => 'taxonomy_access_role_edit_title',
-    'title arguments' => array(5),
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('taxonomy_access_admin_role', 5),
-    'access callback' => 'taxonomy_access_role_edit_access',
-    'access arguments' => array(5),
-    'file' => 'taxonomy_access.admin.inc',
-  );
-  $items[TAXONOMY_ACCESS_CONFIG . '/role/%/enable'] = array(
-    'page callback' => 'taxonomy_access_enable_role_validate',
-    'page arguments' => array(5),
-    'access arguments' => array('administer permissions'),
-    'file' => 'taxonomy_access.admin.inc',
-  );
-  $items[TAXONOMY_ACCESS_CONFIG . '/role/%/delete'] = array(
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('taxonomy_access_role_delete_confirm', 5),
-    'access callback' => 'taxonomy_access_role_delete_access',
-    'access arguments' => array(5),
-    'file' => 'taxonomy_access.admin.inc',
-    'type' => MENU_CALLBACK,
-  );
-  $items[TAXONOMY_ACCESS_CONFIG . '/role/%/disable/%taxonomy_vocabulary'] = array(
-    'page callback' => 'taxonomy_access_disable_vocab_confirm_page',
-    'page arguments' => array(5, 7),
-    'access arguments' => array('administer permissions'),
-    'file' => 'taxonomy_access.admin.inc',
-    'type' => MENU_CALLBACK,
-  );
-  $items['taxonomy_access/autocomplete'] = array(
-    'title' => 'Autocomplete taxonomy',
-    'page callback' => 'taxonomy_access_autocomplete',
-    'access arguments' => array('access content'),
-    'type' => MENU_CALLBACK,
-    'file' => 'taxonomy_access.create.inc',
-  );
-
-  return $items;
-}
-
-/**
  * Title callback: Returns the title for the role edit form.
  */
 function taxonomy_access_role_edit_title($rid) {
@@ -288,31 +187,8 @@ function taxonomy_access_role_delete_access($rid) {
   return TRUE;
 }
 
-/**
- * Implements hook_user_role_delete().
- */
-function taxonomy_access_user_role_delete($role) {
-  // Do not update node access since the role will no longer exist.
-  taxonomy_access_delete_role_grants($role->rid, FALSE);
-}
 
 /**
- * Implements hook_taxonomy_vocabulary_delete().
- */
-function taxonomy_access_taxonomy_vocabulary_delete($vocab) {
-  taxonomy_access_delete_default_grants($vocab->vid);
-}
-
-/**
- * Implements hook_taxonomy_term_delete().
- */
-function taxonomy_access_taxonomy_term_delete($term) {
-  taxonomy_access_delete_term_grants($term->tid);
-}
-
-/**
- * Implements hook_node_grants().
- *
  * Gives access to taxonomies based on the taxonomy_access table.
  */
 function taxonomy_access_node_grants(\Drupal\Core\Session\AccountInterface $user, $op) {
@@ -322,132 +198,6 @@ function taxonomy_access_node_grants(\Drupal\Core\Session\AccountInterface $user
     $roleGrants[]= $this->roleIdToNumber($role);
   }
   return array('taxonomy_access_role' => $roleGrants);
-}
-
-/**
-/**
- * Implements hook_field_info_alter().
- *
- * @todo
- *   Should we somehow pass the originl callback to our callback dynamically?
- */
-function taxonomy_access_field_info_alter(&$info) {
-
-  // Return if there's no term reference field type.
-  if (empty($info['taxonomy_term_reference'])) {
-    return;
-  }
-
-  // Use our custom callback in order to disable list while generating options.
-  $info['taxonomy_term_reference']['settings']['options_list_callback'] = '_taxonomy_access_term_options';
-}
-
-/**
- * Implements hook_field_attach_validate().
- *
- * For form validation:
- *   @see taxonomy_access_options_validate()
- *   @see taxonomy_access_autocomplete_validate()
- */
-function taxonomy_access_field_attach_validate($entity_type, $entity, &$errors) {
-  // Add create grant handling.
-  module_load_include('inc', 'taxonomy_access', 'taxonomy_access.create');
-
-  _taxonomy_access_field_validate($entity_type, $entity, $errors);
-}
-
-/**
- * Implements hook_query_TAG_alter() for 'term_access'.
- *
- * Provides sitewide list grant filtering, as well as create grant filtering
- * for autocomplete paths.
- *
- * @todo
- *   Fix create permission filtering for autocomplete paths.
- *
- * @ingroup tac_list
- */
-function taxonomy_access_query_term_access_alter($query) {
-
-  // Take no action while the list op is disabled.
-  if (!taxonomy_access_list_enabled()) {
-    return;
-  }
-
-  // Take no action if there is no term table in the query.
-  $alias = '';
-  $tables =& $query->getTables();
-  foreach ($tables as $i => $table) {
-    if (strpos($table['table'], 'taxonomy_term_') === 0) {
-      $alias = $table['alias'];
-    }
-  }
-  if (empty($alias)) {
-    return;
-  }
-
-  // Fetch a list of all terms the user may list.
-  $tids = &drupal_static(__FUNCTION__, taxonomy_access_user_list_terms());
-
-  // If exactly TRUE was returned, the user can list all terms.
-  if ($tids === TRUE) {
-    return;
-  }
-
-  // If the user cannot list any terms, then allow only null values.
-  if (empty($tids)) {
-    $query->isNull($alias . ".tid");
-  }
-
-  // Otherwise, filter to the terms provided.
-  else {
-    $query->condition($alias . ".tid", $tids, "IN");
-  }
-}
-
-/**
- * Implements hook_field_widget_WIDGET_TYPE_form_alter().
- *
- * @see _taxonomy_access_autocomplete_alter()
- */
-function taxonomy_access_field_widget_taxonomy_autocomplete_form_alter(&$element, &$form_state, $context) {
-
-  // Enforce that list grants do not filter the autocomplete.
-  taxonomy_access_disable_list();
-
-  // Add create grant handling.
-  module_load_include('inc', 'taxonomy_access', 'taxonomy_access.create');
-  _taxonomy_access_autocomplete_alter($element, $form_state, $context);
-
-  // Re-enable list grants.
-  taxonomy_access_enable_list();
-}
-
-/**
- * Implements hook_field_widget_form_alter().
- *
- * @see _taxonomy_access_options_alter()
- */
-function taxonomy_access_field_widget_form_alter(&$element, &$form_state, $context) {
-  // Only act on taxonomy fields.
-  if ($context['field']['type'] != 'taxonomy_term_reference') {
-    return;
-  }
-  // Only act on options widgets.
-  $widget = $context['instance']['widget']['type'];
-  if (!in_array($widget, array('options_buttons', 'options_select'))) {
-    return;
-  }
-
-  // Enforce that list grants do not filter our queries.
-  taxonomy_access_disable_list();
-
-  // Add create grant handling.
-  module_load_include('inc', 'taxonomy_access', 'taxonomy_access.create');
-  _taxonomy_access_options_alter($element, $form_state, $context);
-
-  // Re-enable list grants.
-  taxonomy_access_enable_list();
 }
 
 /**
@@ -1686,22 +1436,6 @@ function taxonomy_access_options_validate($element, &$form_state) {
   _taxonomy_access_options_validate($element, $form_state);
 }
 
-/**
- * Implements hook_disable().
- *
- * Removes all options_list callbacks during disabling of the module which were
- * set in taxonomy_access_field_info_alter().
- */
-function taxonomy_access_disable() {
-  foreach (field_read_fields() as $field_name => $field) {
-    if ($field['type'] == 'taxonomy_term_reference') {
-      if (!empty($field['settings']['options_list_callback']) && $field['settings']['options_list_callback'] == '_taxonomy_access_term_options') {
-        $field['settings']['options_list_callback'] = '';
-        field_update_field($field);
-      }
-    }
-  }
-}
 
 function taxonomy_access_show_node_access()
 {

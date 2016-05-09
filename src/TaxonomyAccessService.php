@@ -345,20 +345,6 @@ function taxonomy_access_disable_vocab($vid, $rid) {
 
 
 /**
- * Shutdown function: Performs any needed node access updates.
- *
- * @see taxonomy_access_init()
- */
-function taxonomy_access_shutdown() {
-  // Update any affected nodes.
-  $affected_nodes = taxonomy_access_affected_nodes();
-  if (!empty($affected_nodes)) {
-    taxonomy_access_affected_nodes(NULL, TRUE);
-    _taxonomy_access_node_access_update($affected_nodes);
-  }
-}
-
-/**
  * Flags node access for rebuild with a message for administrators.
  */
 function _taxonomy_access_flag_rebuild() {
@@ -421,7 +407,6 @@ function taxonomy_access_affected_nodes(array $affected_nodes = NULL, $reset = F
   // If node_access_needs_rebuild or $reset are set, reset list and return.
   if (!empty($nodes)) {
     if (node_access_needs_rebuild() || $reset) {
-      //dpm('rebuild  already initiated');
       $nodes = array();
       return $nodes;
     }

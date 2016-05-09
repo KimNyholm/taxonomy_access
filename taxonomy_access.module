@@ -59,25 +59,28 @@ function taxonomy_access_menu() {
 
 /**
  * Implements hook_user_role_delete().
+ */
 function taxonomy_access_user_role_delete($role) {
   // Do not update node access since the role will no longer exist.
-  taxonomy_access_delete_role_grants($role->rid, FALSE);
+  $taxonomyAccessService = \Drupal::Service('taxonomy_access.taxonomy_access_service');
+  $taxonomyAccessService->taxonomy_access_delete_role_grants($role->rid, FALSE);
 }
- */
 
 /**
  * Implements hook_taxonomy_vocabulary_delete().
-function taxonomy_access_taxonomy_vocabulary_delete($vocab) {
-  taxonomy_access_delete_default_grants($vocab->vid);
-}
  */
+function taxonomy_access_taxonomy_vocabulary_delete($vocab) {
+  $taxonomyAccessService = \Drupal::Service('taxonomy_access.taxonomy_access_service');
+  $taxonomyAccessService->taxonomy_access_delete_default_grants($vocab->id());
+}
 
 /**
  * Implements hook_taxonomy_term_delete().
-function taxonomy_access_taxonomy_term_delete($term) {
-  taxonomy_access_delete_term_grants($term->tid);
-}
  */
+function taxonomy_access_taxonomy_term_delete($term) {
+  $taxonomyAccessService = \Drupal::Service('taxonomy_access.taxonomy_access_service');
+  $taxonomyAccessService->taxonomy_access_delete_term_grants($term->id());
+}
 
 /**
 /**

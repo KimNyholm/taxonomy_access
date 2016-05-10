@@ -363,7 +363,6 @@ function _taxonomy_access_flag_rebuild() {
  *   Unset rebuild message when we set the flag to false?
  */
 function _taxonomy_access_node_access_update(array $nids) {
-  //dpm($nids,'_taxonomy_access_node_access_update');
   // Proceed only if node_access_needs_rebuild() is not already flagged.
   if (!node_access_needs_rebuild()) {
     // Set node_access_needs_rebuild() until we succeed below.

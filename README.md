@@ -7,9 +7,6 @@ This is work in progress and the module is not yet ready for use.
 
 Todo:
 - Role id to be replaced with role names in UI.
-- hook taxonomy_access_init
-- taxonomy_access_shutdown
-- hook taxonomy_access_query_term_access_alter
 - hook taxonomy_access_menu, entry autocomplete
 - hook taxonomy_access_field_info_alter
 - hook taxonomy_access_field_attach_validate

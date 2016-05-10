@@ -3,14 +3,29 @@
 
 /**
  * Implements hook_init().
+ */
 function taxonomy_access_init() {
-  $path = drupal_get_path('module', 'taxonomy_access');
-  drupal_add_css($path . '/taxonomy_access.css');
+//  $path = drupal_get_path('module', 'taxonomy_access');
+//  drupal_add_css($path . '/taxonomy_access.css');
 
   // Register our shutdown function.
   drupal_register_shutdown_function('taxonomy_access_shutdown');
 }
+
+/**
+ * Shutdown function: Performs any needed node access updates.
+ *
+ * @see taxonomy_access_init()
  */
+function taxonomy_access_shutdown() {
+  $taxonomyAccessService = \Drupal::Service('taxonomy_access.taxonomy_access_service');
+  // Update any affected nodes.
+  $affected_nodes = $taxonomyAccessService->taxonomy_access_affected_nodes();
+  if (!empty($affected_nodes)) {
+    $taxonomyAccessService->taxonomy_access_affected_nodes(NULL, TRUE);
+    $taxonomyAccessService->_taxonomy_access_node_access_update($affected_nodes);
+  }
+}
 
 /**
  * Implements hook_theme().

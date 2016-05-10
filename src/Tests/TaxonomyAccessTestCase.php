@@ -60,7 +60,7 @@ class TaxonomyAccessTestCase extends \Drupal\node\Tests\NodeTestBase{
     // Configure users with base permission patterns.
     foreach ($this->user_config as $user => $permissions) {
       $this->users[$user]=$this->drupalCreateUser($permissions);
-
+      
       // Save the role ID separately so it's easy to retrieve.
       foreach ($this->users[$user]->getRoles(TRUE) as $rid) {
         $this->user_roles[$user] = \Drupal\user\entity\Role::load($rid);

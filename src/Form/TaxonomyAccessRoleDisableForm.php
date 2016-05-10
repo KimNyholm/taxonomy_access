@@ -52,7 +52,8 @@ class TaxonomyAccessRoleDisableForm extends ConfirmFormBase {
    * {@inheritdoc}
    */
   public function getQuestion() {
-    return t('Are you sure you want to delete all taxonomy access rules for %vid in the %rid role?', array('%vid' => $this->vid, '%rid' => $this->rid));
+    return t('Are you sure you want to delete all taxonomy access rules for %vid in the %rid role?', 
+      array('%vid' => $this->vid, '%rid' => $this->taxonomyAccessService->roleNumberToName($this->rid)));
   }
 
   /**

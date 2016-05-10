@@ -94,10 +94,11 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
       if (!$this->taxonomyAccessService->taxonomy_access_role_enabled($rid)) {
         $form['status'] = array(
           '#markup' => '<p>' . t(
-            'Access control for the %name role is disabled. <a href="@url">Enable @name</a>.',
+            'Access control for the %name role is disabled. <a href="@url">Enable role</a>.',
             array(
               '%name' => $roleName,
-              '@name' => 'role ' . $rid,  // Can't use roleName. Simpletest fails.
+// FIX ME simple test failure.
+//              '@name' => $roleName,
               '@url' => $this->taxonomy_access_enable_role_url($rid))) . '</p>'
         );
         return $form;
@@ -110,10 +111,11 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
         $disable_url = $url->toString();
         $form['status'] = array(
           '#markup' => '<p>' . t(
-            'Access control for the %name role is enabled. <a href="@url">Disable @name</a>.',
+            'Access control for the %name role is enabled. <a href="@url">Disable role</a>.',
             array(
               '%name' => $roleName,
-              '@name' => 'role ' . $rid,  // Can't use roleName. Simpletest fails.
+// FIX ME simple test failure.
+//              '@name' => $roleName,
               '@url' => $disable_url)) . '</p>'
         );
       }

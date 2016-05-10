@@ -56,7 +56,7 @@ class TaxonomyAccessRoleDeleteForm extends ConfirmFormBase {
    * {@inheritdoc}
    */
   public function getQuestion() {
-    $roleName = $this->rid; // Can't use rolename. Simpletest fails.
+    $roleName = $this->taxonomyAccessService->roleNumberToName($this->rid);
     return t('Are you sure you want to delete all taxonomy access rules for the role %id?', array('%id' => $roleName));
   }
 

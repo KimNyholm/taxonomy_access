@@ -124,10 +124,11 @@ function taxonomy_access_field_attach_validate($entity_type, $entity, &$errors) 
  *   Fix create permission filtering for autocomplete paths.
  *
  * @ingroup tac_list
+ */
 function taxonomy_access_query_term_access_alter($query) {
-
+  $taxonomyAccessService = \Drupal::Service('taxonomy_access.taxonomy_access_service');
   // Take no action while the list op is disabled.
-  if (!taxonomy_access_list_enabled()) {
+  if (!$taxonomyAccessService ->taxonomy_access_list_enabled()) {
     return;
   }
 
@@ -144,7 +145,7 @@ function taxonomy_access_query_term_access_alter($query) {
   }
 
   // Fetch a list of all terms the user may list.
-  $tids = &drupal_static(__FUNCTION__, taxonomy_access_user_list_terms());
+  $tids = &drupal_static(__FUNCTION__, $taxonomyAccessService ->taxonomy_access_user_list_terms());
 
   // If exactly TRUE was returned, the user can list all terms.
   if ($tids === TRUE) {
@@ -161,7 +162,6 @@ function taxonomy_access_query_term_access_alter($query) {
     $query->condition($alias . ".tid", $tids, "IN");
   }
 }
- */
 
 /**
  * Implements hook_field_widget_WIDGET_TYPE_form_alter().

@@ -1277,7 +1277,7 @@ function taxonomy_access_user_list_terms() {
   // Cache the terms the current user can list.
   static $terms = NULL;
   if (is_null($terms)) {
-    $terms = _taxonomy_access_user_term_grants(FALSE);
+    $terms = $this->_taxonomy_access_user_term_grants(FALSE);
   }
   return $terms;
 }
@@ -1303,17 +1303,20 @@ function _taxonomy_access_user_term_grants($create = FALSE, array $vids = array(
 
   // If no account was passed, default to current user.
   if (is_null($account)) {
-    global $user;
+    $user = \Drupal::currentUser();
     $account = $user;
   }
 
   // If the user can administer taxonomy, return TRUE for a global grant.
-  if (user_access('administer taxonomy', $account)) {
+
+// Check for permission
+;  
+  if ($account->hasPermission('administer taxonomy')) {
     return TRUE;
   }
 
   // Build a term grant query.
-  $query = _taxonomy_access_grant_query(array($grant_type));
+  $query = $this->_taxonomy_access_grant_query(array($grant_type));
 
   // Select term grants for the user's roles.
   $query

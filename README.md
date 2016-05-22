@@ -8,12 +8,11 @@ Configuration of taxonomy access control and node access functionality is workin
 Neither admin styling nor taxonomy fields and widgets are supported.
 
 Todo:
-- simple test group prefix z_ to be removed.
 - Field and widgets to be supported, i.e.:
+    - hook taxonomy_access_field_widget_form_alter
     - hook taxonomy_access_field_info_alter
     - hook taxonomy_access_field_attach_validate
     - hook taxonomy_access_field_widget_taxonomy_autocomplete_form_alter
-    - hook taxonomy_access_field_widget_form_alter
     - hook taxonomy_access_disable
     - hook taxonomy_access_menu, entry autocomplete
     - port taxonomy_access.create.inc

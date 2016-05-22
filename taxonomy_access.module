@@ -98,13 +98,13 @@ function taxonomy_access_taxonomy_term_delete($term) {
 }
 
 /**
-/**
  * Implements hook_field_info_alter().
  *
  * @todo
  *   Should we somehow pass the originl callback to our callback dynamically?
-function taxonomy_access_field_info_alter(&$info) {
-
+*/
+ function taxonomy_access_field_info_alter(&$info) {
+   dpm('taxonomy_access_field_info_alter');
   // Return if there's no term reference field type.
   if (empty($info['taxonomy_term_reference'])) {
     return;
@@ -113,8 +113,8 @@ function taxonomy_access_field_info_alter(&$info) {
   // Use our custom callback in order to disable list while generating options.
   $info['taxonomy_term_reference']['settings']['options_list_callback'] = '_taxonomy_access_term_options';
 }
- */
 
+    
 /**
  * Implements hook_field_attach_validate().
  *
@@ -200,17 +200,22 @@ function taxonomy_access_field_widget_taxonomy_autocomplete_form_alter(&$element
  * Implements hook_field_widget_form_alter().
  *
  * @see _taxonomy_access_options_alter()
+ */
 function taxonomy_access_field_widget_form_alter(&$element, &$form_state, $context) {
   // Only act on taxonomy fields.
-  if ($context['field']['type'] != 'taxonomy_term_reference') {
+  $field_definition = $context['items']->getFieldDefinition();
+  $type = $field_definition->getType();  
+  if ($type != 'entity_reference') {
     return;
   }
   // Only act on options widgets.
-  $widget = $context['instance']['widget']['type'];
-  if (!in_array($widget, array('options_buttons', 'options_select'))) {
+
+  $widget = $element['#type'];
+  if (!in_array($widget, array('checkboxes', 'select'))) {
     return;
   }
-
+  // Fix me from here.
+  return ;
   // Enforce that list grants do not filter our queries.
   taxonomy_access_disable_list();
 
@@ -221,7 +226,6 @@ function taxonomy_access_field_widget_form_alter(&$element, &$form_state, $conte
   // Re-enable list grants.
   taxonomy_access_enable_list();
 }
- */
 
 /**
  * Implements hook_disable().

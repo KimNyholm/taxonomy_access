@@ -1,0 +1,3 @@
+services:
+    taxonomy_access.taxonomy_access_service:
+        class: Drupal\taxonomy_access\TaxonomyAccessService

@@ -1,0 +1,44 @@
+taxonomy_access.settings:
+  path: /admin/config/people/taxonomy_access
+  defaults:
+    _title: Taxonomy access control
+    _controller: Drupal\taxonomy_access\Controller\TaxonomyAccessController::taxonomy_access_admin
+  requirements:
+    _permission: 'administer site configuration'
+  options:
+    _admin_route: TRUE
+taxonomy_access.admin_role_delete:
+  path: /admin/config/people/taxonomy_access/role/{rid}/delete
+  defaults:
+    _title: Taxonomy access control role delete
+    _form: Drupal\taxonomy_access\Form\TaxonomyAccessRoleDeleteForm
+  requirements:
+    _permission: 'administer site configuration'
+  options:
+    _admin_route: TRUE
+taxonomy_access.admin_role_disable:
+  path: /admin/config/people/taxonomy_access/role/{rid}/disable/{vid}
+  defaults:
+    _title: Taxonomy access control role disable
+    _form: Drupal\taxonomy_access\Form\TaxonomyAccessRoleDisableForm
+  requirements:
+    _permission: 'administer site configuration'
+  options:
+    _admin_route: TRUE
+taxonomy_access.admin_role_enable:
+  path: /admin/config/people/taxonomy_access/role/{rid}/enable
+  defaults:
+    _title: Taxonomy access control enable role
+    _form: Drupal\taxonomy_access\Form\TaxonomyAccessRoleEnableForm
+  requirements:
+    _permission: 'administer site configuration'
+  options:
+    _admin_route: TRUE
+taxonomy_access.admin_role_edit:
+  path: /admin/config/people/taxonomy_access/role/{rid}/edit
+  defaults:
+    _form: Drupal\taxonomy_access\Form\TaxonomyAccessAdminRole
+  requirements:
+    _permission: 'administer site configuration'
+  options:
+    _admin_route: TRUE

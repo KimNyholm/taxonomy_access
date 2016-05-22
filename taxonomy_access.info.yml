@@ -1,0 +1,6 @@
+name: Taxonomy Access Control
+type: module
+description: Taxonomy based access control.
+package: Custom
+core: 8.x
+configure: taxonomy_access.settings

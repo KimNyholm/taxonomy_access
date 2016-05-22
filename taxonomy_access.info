@@ -1,7 +1,0 @@
-name = Taxonomy Access Control
-description = Access control for user roles based on taxonomy categories.
-dependencies[] = taxonomy (>=7.8)
-core = 7.x
-configure = admin/config/people/taxonomy_access
-
-files[] = taxonomy_access.test

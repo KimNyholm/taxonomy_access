@@ -7,7 +7,7 @@ use Drupal\taxonomy_access\TaxonomyAccessService;
 /**
  * Tests the module's configuration forms.
  *
- * @group z_taxonomy_access
+ * @group taxonomy_access
  */
 class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAccessTestCase {
 
@@ -150,16 +150,6 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     // Log out.
     $this->drupalLogout();
     $this->taxonomy_access_rebuild();
-    $this->show_tac();
-    $this->pass(
-      $this->taxonomyAccessService->taxonomy_access_show_node_access()
-    );
-  $query = db_query(
-      "SELECT na.nid, na.gid, na.realm, na.grant_view 
-       FROM {node_access} na
-       ");
-  $records = $query->fetchAll();
-  $this->pass('node access table ' . var_export($records, TRUE));
 
   // Visit each artile and verify that access is denied.
     foreach ($this->articles as $key => $article) {
@@ -627,63 +617,4 @@ class TaxonomyAccessConfigTest extends \Drupal\taxonomy_access\Tests\TaxonomyAcc
     }
   }
 
-function show_tac(){
-
-  $sql="  select td.tid, td.vid
-from {taxonomy_term_data} td 
- ";
-$records=db_query($sql)->fetchAll();
-$this->pass('show tax1 ' . var_export($records, TRUE));
-
-$sql="  select td.tid, td.vid, tadg.vid, tadg.rid 
-from {taxonomy_term_data} td 
-inner join {taxonomy_access_default} tadg on tadg.vid = 'tac_gd___' 
-";
-$records=db_query($sql)->fetchAll();
-
-$this->pass('show tax 2' . var_export($records, TRUE));
-  $sql="  select td.tid, td.vid, tadg.vid, tadg.rid, tad.vid, tad.rid
-from {taxonomy_term_data} td 
-inner join {taxonomy_access_default} tadg on tadg.vid = 'tac_gd___' 
-left outer join {taxonomy_access_default} tad on tad.vid = td.vid and tad.rid =
- tadg.rid
- ";
-$records=db_query($sql)->fetchAll();
-
-$this->pass('show tax3 ' . var_export($records, TRUE));
-
-  $sql="  select td.tid, td.vid, tadg.vid, tadg.rid, tad.vid, tad.rid, ta.tid, ta.rid, ta.grant_view 
-from {taxonomy_term_data} td 
-inner join {taxonomy_access_default} tadg on tadg.vid = 'tac_gd___' 
-left outer join {taxonomy_access_default} tad on tad.vid = td.vid and tad.rid = tadg.rid
-left outer join {taxonomy_access_term} ta on ta.tid = td.tid and ta.rid = tadg.rid 
-";
-$records=db_query($sql)->fetchAll();
-$this->pass('show tax 4' . var_export($records, TRUE));
-
-  $sql="  select ta.tid, ta.rid, ta.grant_view 
-from {taxonomy_access_term} ta 
-";
-$records=db_query($sql)->fetchAll();
-$this->pass('taxonomy_access_term ' . var_export($records, TRUE));
-
-  $sql="  select ti.tid
-from {taxonomy_index} ti 
-";
-$records=db_query($sql)->fetchAll();
-$this->pass('taxonomy_index ' . var_export($records, TRUE));
-
-  $sql="  select td.tid, ti.tid, ti.nid, td.vid, tadg.vid, tadg.rid, tad.vid, tad.rid, ta.tid, ta.rid, 
-ta.grant_view 
-from {taxonomy_term_data} td 
-inner join {taxonomy_access_default} tadg on tadg.vid = 'tac_gd___' 
-left outer join {taxonomy_access_default} tad on tad.vid = td.vid and tad.rid = tadg.rid
-left outer join {taxonomy_access_term} ta on ta.tid = td.tid and ta.rid = tadg.rid 
-inner join {taxonomy_index} ti ON td.tid = ti.tid
-";
-$records=db_query($sql)->fetchAll();
-$this->pass('show tax 5' . var_export($records, TRUE));
-
 }
-  
-    }

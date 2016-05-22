@@ -4,7 +4,7 @@ namespace Drupal\taxonomy_access\Tests;
 /**
  * Test module weight.
  *
- * @group z_taxonomy_access
+ * @group taxonomy_access
  */
 class TaxonomyAccessWeightTest extends \Drupal\simpletest\WebTestBase {
 

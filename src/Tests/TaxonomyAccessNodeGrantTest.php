@@ -7,7 +7,7 @@ use Drupal\taxonomy_access\TaxonomyAccessService;
 /**
  * Tests node access for all possible grant combinations.
  *
- * @group z_taxonomy_access
+ * @group taxonomy_access
  */
 class TaxonomyAccessNodeGrantTest extends \Drupal\taxonomy_access\Tests\TaxonomyAccessTestCase {
 

@@ -213,8 +213,6 @@ function taxonomy_access_node_grants(\Drupal\Core\Session\AccountInterface $user
  *   Should we default to the authenticated user global default?
  */
 function taxonomy_access_enable_role($rid) {
-  //dpm($rid, 'enable role');
-
   // Take no action if the role is already enabled. All valid role IDs are > 0.
   if (empty($rid) || $this->taxonomy_access_role_enabled($rid)) {
     return FALSE;
@@ -267,7 +265,6 @@ function taxonomy_access_role_enabled($rid) {
  * @see taxnomomy_access_enable_role()
  */
 function taxonomy_access_enable_vocab($vid, $rid) {
-  //dpm('taxonomy_access_enable_vocab');
   // All valid role IDs are > 0, and we do not enable the global default here.
   if (empty($rid) || empty($vid)) {
     return FALSE;
@@ -292,7 +289,6 @@ function taxonomy_access_enable_vocab($vid, $rid) {
        WHERE vid = :vid AND rid = :rid',
        array(':rid' => $rid, ':vid' => TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT))
     ->fetchAssoc();
-  //dpm($global_default, 'gd');
   $record = $this->_taxonomy_access_format_grant_record($vid, $rid, $global_default, TRUE);
   return $this->taxonomy_access_set_default_grants(array($vid => $record));
 }
@@ -400,7 +396,6 @@ function _taxonomy_access_node_access_update(array $nids) {
  *   The cached list of nodes.
  */
 function taxonomy_access_affected_nodes(array $affected_nodes = NULL, $reset = FALSE) {
-  //dpm($affected_nodes, 'taxonomy_access_affected_nodes, reset='.$reset);
   static $nodes = array();
 
   // If node_access_needs_rebuild or $reset are set, reset list and return.
@@ -434,7 +429,6 @@ function taxonomy_access_affected_nodes(array $affected_nodes = NULL, $reset = F
  *    controlled for the role.
  */
 function _taxonomy_access_get_controlled_nodes_for_role($rid) {
-  //dpm('_taxonomy_access_get_controlled_nodes_for_role entry');
   $query = db_select('taxonomy_index', 'ti')
     ->fields('ti', array('nid'))
     ->addTag('taxonomy_access_node');
@@ -506,7 +500,6 @@ function _taxonomy_access_get_nodes_for_global_default($rid) {
  *    An array of node IDs associated with the given vocabulary.
  */
 function _taxonomy_access_get_nodes_for_defaults($vocab_ids, $rid = NULL) {
-  //dpm($vocab_ids, 'taxonomy_access_get_nodes_for_defaults rid='.$rid);
   // Accept either a single vocabulary ID or an array thereof.
   if (!is_array($vocab_ids)) {
     $vocab_ids = array($vocab_ids);
@@ -580,7 +573,6 @@ function _taxonomy_access_global_controlled_terms($rid) {
  *   A list of term IDs.
  */
 function _taxonomy_access_vocab_controlled_terms($vids, $rid) {
-  //dpm($vids, '_taxonomy_access_vocab_controlled_terms, rid='.$rid);
   // Accept either a single vocabulary ID or an array thereof.
   if (!is_array($vids)) {
     $vids = array((string)$vids);
@@ -596,7 +588,6 @@ function _taxonomy_access_vocab_controlled_terms($vids, $rid) {
       array(':rid' => $rid, ':vids[]' => $vids)
     )
     ->fetchCol();
-  //dpm($tids, 'tids');
 
   return $tids;
 }
@@ -828,8 +819,6 @@ function taxonomy_access_delete_role_grants($rid, $update_nodes = TRUE) {
  *   TRUE on success, or FALSE on failure.
  */
 function taxonomy_access_delete_default_grants($vocab_ids, $rid = NULL, $update_nodes = TRUE) {
-  //dpm($vocab_ids, 'taxonomy_access_delete_default_grants entry');
-
   // Accept either a single vocabulary ID or an array thereof.
   if ($vocab_ids !== TaxonomyAccessService::TAXONOMY_ACCESS_GLOBAL_DEFAULT && empty($vocab_ids)) {
     return FALSE;
@@ -871,7 +860,6 @@ function taxonomy_access_delete_default_grants($vocab_ids, $rid = NULL, $update_
  *   TRUE on success, or FALSE on failure.
  */
 function taxonomy_access_delete_term_grants($term_ids, $rid = NULL, $update_nodes = TRUE) {
- // dpm($term_ids, 'taxonomy_access_delete_term_grants role='.$rid.' update='.$update_nodes);
   // Accept either a single term ID or an array thereof.
   if (!is_array($term_ids)) {
     $term_ids = array($term_ids);
@@ -958,7 +946,6 @@ function _taxonomy_access_format_grant_record($id, $rid, array $grants, $default
  * @see _taxonomy_access_format_grant_record()
  */
 function taxonomy_access_set_term_grants(array $grant_rows, $update_nodes = TRUE) {
-  //dpm($grant_rows, 'taxonomy_access_set_term_grants');
   // Collect lists of term and role IDs in the list.
   $terms_for_roles = array();
   foreach ($grant_rows as $grant_row) {
@@ -997,7 +984,6 @@ function taxonomy_access_set_term_grants(array $grant_rows, $update_nodes = TRUE
  * @see _taxonomy_access_format_grant_record()
  */
 function taxonomy_access_set_default_grants(array $grant_rows, $update_nodes = TRUE) {
-//  dpm($grant_rows, 'taxonomy_access_set_default_grants, update='.$update_nodes);
   // Collect lists of term and role IDs in the list.
   $vocabs_for_roles = array();
   foreach ($grant_rows as $grant_row) {
@@ -1122,7 +1108,6 @@ function _taxonomy_access_grant_query(array $grants, $default = FALSE) {
  * @ingroup tac_node_access
  */
 function _taxonomy_access_node_access_records($node_nid, $reset = FALSE) {
-  //dpm($node_nid, 'node nid line 1333');
   // Build the base node grant query.
   $query = $this->_taxonomy_access_grant_query(array('view', 'update', 'delete'));
 
@@ -1150,7 +1135,6 @@ function _taxonomy_access_node_access_records($node_nid, $reset = FALSE) {
   foreach ($records as $record) {
     $grants[] = $this->_taxonomy_access_format_node_access_record($record);
   }
-  drupal_set_message('node ' . $node_nid . ' ' . var_export($grants, TRUE));
   return $grants;
 }
 
@@ -1421,37 +1405,6 @@ function taxonomy_access_options_validate($element, &$form_state) {
   // Add create grant handling.
   module_load_include('inc', 'taxonomy_access', 'taxonomy_access.create');
   _taxonomy_access_options_validate($element, $form_state);
-}
-
-
-function taxonomy_access_show_node_access()
-{
-  $query = db_query(
-      "SELECT na.nid, na.gid, na.realm, na.grant_view 
-       FROM {node_access} na
-       ");
-  $records = $query->fetchAll();
-  drupal_set_message('node access table ' . var_export($records, TRUE));
-  $query = db_query(
-      "SELECT ta.tid, ta.rid, ta.grant_view 
-       FROM {taxonomy_access_term} ta
-       ");
-  $records = $query->fetchAll();
-  drupal_set_message('taxonomy_access_term table ' . var_export($records, TRUE));
-  $query = db_query(
-      "SELECT tad.vid, tad.rid, tad.grant_view 
-       FROM {taxonomy_access_default} tad
-       ");
-  $records = $query->fetchAll();
-  drupal_set_message('taxonomy_access_default table ' . var_export($records, TRUE));
-  $query = db_query(
-      "SELECT th.tid, th.parent
-       FROM {taxonomy_term_hierarchy} th
-       ");
-  $records = $query->fetchAll();
-  drupal_set_message('taxonomy term hierarchy table ' . var_export($records, TRUE));
-  return 'tac show ' . var_export($records, TRUE);
-  
 }
 
 

@@ -1,25 +1,3 @@
-taxonomy_access.form:
-  path: /form
-  defaults:
-    _form: Drupal\taxonomy_access\Form\SandboxForm
-  requirements:
-    _permission: 'administer site configuration'
-  options:
-    _admin_route: TRUE
-taxonomy_access.demo:
-  path: /demo/{parameter}
-  defaults:
-    _title: Demo page with one parameter
-    _controller: Drupal\taxonomy_access\Controller\SandboxController::demo
-  requirements:
-    _permission: 'access content'
-taxonomy_access.sandbox:
-  path: /sandbox
-  defaults:
-    _title: Sandbox
-    _controller: Drupal\taxonomy_access\Controller\SandboxController::contents
-  requirements:
-    _permission: 'administer site configuration'
 taxonomy_access.settings:
   path: /admin/config/people/taxonomy_access
   defaults:

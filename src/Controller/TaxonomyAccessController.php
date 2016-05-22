@@ -34,42 +34,6 @@ class TaxonomyAccessController extends ControllerBase {
     );
   }
 
-  static public function taxonomy_accessRoleName($roleId){
-    // Seems to be some bug in autoloader.
-    // To fix, but how?
-    // $role=\Drupal\User\Entity\Role::load($roleId);
-    // $roleName=empty($role) ? "Unkownn role id '$roleId'" : $role->label();
-    $roleName=$roleId;
-    return $roleName;
-  }
-
-/**
- * Generates a URL to enable a role with a token for CSRF protection.
- *
- * @param int $rid
- *   The role ID.
- *
- * @return string
- *   The full URL for the request path.
- */
-static function taxonomy_access_enable_role_url($roleId) {
-  // Create a query array with a token to validate the sumbission.
-  //  $query = drupal_get_destination();
-  //  $query['token'] = drupal_get_token($rid);
-  return '';
-  $urlParameters=array('roleId' => $roleId);
-  $url=Url::fromRoute('taxonomy_access.admin_role_enable', $urlParameters);
-//  dpm($urlParameters);
-  return '';
-  return $url->toString();
-}
-
-static function taxonomy_access_delete_role_url($roleId) {
-  //  $query = drupal_get_destination();
-  $urlParameters=array('roleId' => $roleId);
-  $url=Url::fromRoute('taxonomy_access.admin_role_delete', $urlParameters);
-  return $url->toString();
-}
 
 function taxonomy_access_admin() {
   $roles = $this->taxonomyAccessService->_taxonomy_access_user_roles();

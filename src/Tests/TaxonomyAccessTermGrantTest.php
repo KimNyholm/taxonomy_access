@@ -5,7 +5,7 @@ namespace Drupal\taxonomy_access\Tests;
 /**
  * Tests term grants for all possible grant combinations.
  *
- * @group z_taxonomy_access
+ * @group taxonomy_access
  */
 class TaxonomyAccessTermGrantTest extends \Drupal\taxonomy_access\Tests\TaxonomyAccessTestCase {
   // There are four roles for term access testing:

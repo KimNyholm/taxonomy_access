@@ -629,7 +629,6 @@ class TaxonomyAccessAdminRole extends \Drupal\Core\Form\FormBase {
     if (!empty($skip_defaults)) {
       $this->taxonomyAccessService->taxonomy_access_set_default_grants($skip_defaults, FALSE);
     }
-    $this->taxonomyAccessService->taxonomy_access_show_node_access();
-    }
+  }
 
 }

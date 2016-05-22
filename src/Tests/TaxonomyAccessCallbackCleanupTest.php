@@ -5,7 +5,7 @@ namespace Drupal\taxonomy_access\Tests;
 /**
  * Test callback cleanup during disabling of module works.
  *
- * @group z_taxonomy_access
+ * @group taxonomy_access
  */
 class TaxonomyAccessCallbackCleanupTest extends \Drupal\taxonomy_access\Tests\TaxonomyAccessTestCase {
 
